@@ -72,7 +72,37 @@ practice, as explained by the domain expert.
 
 ---
 
+### Workflow 1: Opportunity Approval Process
 
+- **Trigger / Start Condition:**  
+  A Recruiter submits an Opportunity to the Placement Cell.
+
+- **Steps Involved:**  
+  1. The Placement Cell reviews the Opportunity details.  
+  2. EligibilityCriteria and company information are verified.  
+  3. The Placement Cell decides to approve or reject the Opportunity.  
+  4. If rejected, remarks are added and communicated to the Recruiter.
+
+- **Outcome / End Condition:**  
+  Approved Opportunities are published and made visible to Students.
+
+---
+
+### Workflow 2: Student Application Process
+
+- **Trigger / Start Condition:**  
+  A Student views an approved Opportunity.
+
+- **Steps Involved:**  
+  1. The Student checks the EligibilityCriteria.  
+  2. If eligible, the Student submits an Application along with a resume.  
+  3. The Application is created and its ApplicationStatus is set to *Applied*.  
+  4. The Student receives a Notification confirming the submission.
+
+- **Outcome / End Condition:**  
+  The Application moves to the screening stage for review by the Recruiter.
+
+---
 
 
 

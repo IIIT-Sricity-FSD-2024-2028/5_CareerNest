@@ -3,7 +3,7 @@
 # Last Updated: 2026-01-31
 
 Opportunity:
-  definition: >
+  definition:
     An opportunity refers to a job or internship role shared by a company
     with the college for hiring students. It includes details such as the
     role description, eligibility conditions, and selection process.
@@ -15,7 +15,7 @@ Opportunity:
     - Internship
 
 EligibilityCriteria:
-  definition: >
+  definition:
     Eligibility criteria are the conditions that decide whether a student
     is allowed to apply for a particular opportunity. These are usually
     decided by the company and approved by the placement cell.
@@ -27,7 +27,7 @@ EligibilityCriteria:
     - Requirements
 
 Application:
-  definition: >
+  definition:
     An application is submitted when a student applies for an opportunity
     through the placement process. It represents the student’s intent to
     participate in the hiring process.
@@ -39,7 +39,7 @@ Application:
     - Job Application
 
 ApplicationStatus:
-  definition: >
+  definition:
     Application status shows the current stage of a student’s application
     as it moves through the recruitment process.
   examples:
@@ -52,7 +52,7 @@ ApplicationStatus:
     - Application Stage
 
 PlacementCell:
-  definition: >
+  definition:
     The placement cell is the college body responsible for coordinating
     placements and internships. It acts as a bridge between students and
     recruiting companies.
@@ -64,7 +64,7 @@ PlacementCell:
     - Career Cell
 
 Recruiter:
-  definition: >
+  definition:
     A recruiter represents a company participating in campus placements
     and is responsible for evaluating candidates and making hiring decisions.
   examples:
@@ -75,7 +75,7 @@ Recruiter:
     - Employer
 
 Student:
-  definition: >
+  definition:
     A student is a currently enrolled member of the college who participates
     in placements or internships by applying to opportunities.
   examples:
@@ -86,7 +86,7 @@ Student:
     - Applicant
 
 Alumni:
-  definition: >
+  definition:
     Alumni are former students of the college who may support current
     students by referring or recommending them for opportunities.
   examples:
@@ -97,7 +97,7 @@ Alumni:
     - Graduate
 
 Referral:
-  definition: >
+  definition:
     A referral is a recommendation provided by an alumni to support a
     student’s application for a specific opportunity.
   examples:
@@ -108,7 +108,7 @@ Referral:
     - Endorsement
 
 RecruitmentRound:
-  definition: >
+  definition:
     A recruitment round is one step in the hiring process where candidates
     are evaluated by the company.
   examples:
@@ -119,7 +119,7 @@ RecruitmentRound:
     - Hiring Stage
 
 Notification:
-  definition: >
+  definition:
     A notification is a message sent by the system to inform users about
     important updates in the placement process.
   examples:
@@ -130,7 +130,7 @@ Notification:
     - Update
 
 ProfileMatchPercentage:
-  definition: >
+  definition:
     Profile match percentage is an indicative value shown to students to
     help them understand how closely their profile aligns with an opportunity.
     It does not affect eligibility or selection.
@@ -140,4 +140,17 @@ ProfileMatchPercentage:
   aliases:
     - Match Score
     - Profile Match
+
+Faculty:
+  definition: 
+    Faculty refers to a teaching staff member involved in the placement
+    process in an advisory role. Faculty members guide students, monitor
+    their progress, and provide placement-related suggestions, but do not
+    take part in hiring decisions.
+  examples:
+    - Faculty mentor guiding students on placement preparation
+    - Faculty reviewing student progress during placement season
+  aliases:
+    - Placement Advisor
+    - Faculty Mentor
 

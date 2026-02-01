@@ -170,3 +170,30 @@ practice, as explained by the domain expert.
 - Alumni Referrals are often managed informally, which makes them difficult
   to track and verify during the recruitment process.
 
+  ---
+
+## Assumptions & Clarifications
+
+### Assumptions Confirmed
+- The placement process involves continuous coordination among Students,
+  Recruiters, Alumni, Faculty, and the Placement Cell, rather than isolated
+  interactions.
+
+- Manual coordination across emails, spreadsheets, and messaging platforms
+  contributes significantly to delays and miscommunication during the
+  placement cycle.
+
+### Assumptions Corrected
+- It was clarified that not all Opportunities are initiated by Recruiters.
+  In many cases, the Placement Cell proactively reaches out to companies and
+  manages the onboarding of Opportunities.
+
+- Alumni involvement in placements is typically informal and advisory, and
+  does not directly influence final recruitment decisions.
+
+### Open Questions That Need Follow-Up
+- How Alumni Referrals can be structured formally within the placement
+  process while maintaining fairness and transparency.
+
+- How EligibilityCriteria exceptions, such as borderline CGPA cases, can be
+  handled consistently without increasing manual intervention.

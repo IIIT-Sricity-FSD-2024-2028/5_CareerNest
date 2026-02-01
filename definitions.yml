@@ -1,0 +1,143 @@
+# Domain: College Placement and Internship Management (EdTech)
+# Problem Statement: Centralized Placement & Internship Portal
+# Last Updated: 2026-01-31
+
+Opportunity:
+  definition: >
+    An opportunity refers to a job or internship role shared by a company
+    with the college for hiring students. It includes details such as the
+    role description, eligibility conditions, and selection process.
+  examples:
+    - Internship role shared by a software company for pre-final year students
+    - Full-time placement role offered during campus placements
+  aliases:
+    - Job
+    - Internship
+
+EligibilityCriteria:
+  definition: >
+    Eligibility criteria are the conditions that decide whether a student
+    is allowed to apply for a particular opportunity. These are usually
+    decided by the company and approved by the placement cell.
+  examples:
+    - Minimum CGPA requirement of 7.0
+    - Only students from specific branches are allowed
+  aliases:
+    - Eligibility
+    - Requirements
+
+Application:
+  definition: >
+    An application is submitted when a student applies for an opportunity
+    through the placement process. It represents the student’s intent to
+    participate in the hiring process.
+  examples:
+    - A student applying for a data analyst internship
+    - Application submitted for a campus placement drive
+  aliases:
+    - Submission
+    - Job Application
+
+ApplicationStatus:
+  definition: >
+    Application status shows the current stage of a student’s application
+    as it moves through the recruitment process.
+  examples:
+    - Applied
+    - Shortlisted
+    - Interview Scheduled
+    - Rejected
+  aliases:
+    - Status
+    - Application Stage
+
+PlacementCell:
+  definition: >
+    The placement cell is the college body responsible for coordinating
+    placements and internships. It acts as a bridge between students and
+    recruiting companies.
+  examples:
+    - Approving job postings before publishing them to students
+    - Coordinating interview schedules with recruiters
+  aliases:
+    - Placement Office
+    - Career Cell
+
+Recruiter:
+  definition: >
+    A recruiter represents a company participating in campus placements
+    and is responsible for evaluating candidates and making hiring decisions.
+  examples:
+    - HR representative from a company visiting campus
+    - Recruiter conducting online interviews
+  aliases:
+    - Company
+    - Employer
+
+Student:
+  definition: >
+    A student is a currently enrolled member of the college who participates
+    in placements or internships by applying to opportunities.
+  examples:
+    - Final-year student applying for placements
+    - Pre-final year student applying for internships
+  aliases:
+    - Candidate
+    - Applicant
+
+Alumni:
+  definition: >
+    Alumni are former students of the college who may support current
+    students by referring or recommending them for opportunities.
+  examples:
+    - Alumni referring a student to their company
+    - Graduate endorsing a candidate for an internship
+  aliases:
+    - Former Student
+    - Graduate
+
+Referral:
+  definition: >
+    A referral is a recommendation provided by an alumni to support a
+    student’s application for a specific opportunity.
+  examples:
+    - Alumni approving a referral request for a student
+    - Referral tag shown to the recruiter
+  aliases:
+    - Recommendation
+    - Endorsement
+
+RecruitmentRound:
+  definition: >
+    A recruitment round is one step in the hiring process where candidates
+    are evaluated by the company.
+  examples:
+    - Online assessment round
+    - Technical interview round
+  aliases:
+    - Selection Round
+    - Hiring Stage
+
+Notification:
+  definition: >
+    A notification is a message sent by the system to inform users about
+    important updates in the placement process.
+  examples:
+    - Interview schedule notification
+    - Application status update
+  aliases:
+    - Alert
+    - Update
+
+ProfileMatchPercentage:
+  definition: >
+    Profile match percentage is an indicative value shown to students to
+    help them understand how closely their profile aligns with an opportunity.
+    It does not affect eligibility or selection.
+  examples:
+    - 80% match shown for a relevant job
+    - Low match indicating skill gap
+  aliases:
+    - Match Score
+    - Profile Match
+

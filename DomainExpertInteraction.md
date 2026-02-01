@@ -104,7 +104,57 @@ practice, as explained by the domain expert.
 
 ---
 
+### Workflow 3: Recruitment and Selection Process
 
+- **Trigger / Start Condition:**  
+  A Recruiter begins reviewing Applications for an Opportunity.
+
+- **Steps Involved:**  
+  1. The Recruiter screens Applications and shortlists eligible candidates.  
+  2. One or more RecruitmentRounds (such as online assessment or interview) are scheduled.  
+  3. Students are informed of RecruitmentRound details through Notifications.  
+  4. After completion of RecruitmentRounds, the Recruiter updates the final outcome.
+
+- **Outcome / End Condition:**  
+  The ApplicationStatus is updated to *Selected* or *Rejected*, and the Student
+  is notified of the outcome.
+
+---
+
+### Workflow 4: Alumni Referral Process
+
+- **Trigger / Start Condition:**  
+  A Student requests a Referral for an existing Application.
+
+- **Steps Involved:**  
+  1. The Student selects an Alumni and submits a referral request.  
+  2. The Alumni reviews the Student profile and Application.  
+  3. The Alumni approves or declines the Referral request.  
+
+- **Outcome / End Condition:**  
+  If approved, the Application is marked as *Referred* and visible to the Recruiter.
+
+  ---
+
+  ## Rules, Constraints, and Exceptions
+
+- *Mandatory Rules or Policies:*  
+  - Students must meet eligibility criteria to apply  
+  - All opportunities must be approved by the placement cell  
+
+- *Constraints or Limitations:*  
+  - Recruitment decisions are made by companies, not the system  
+  - Timelines depend on recruiter availability  
+
+- *Common Exceptions or Edge Cases:*  
+  - Borderline CGPA cases  
+  - Late updates from recruiters  
+
+- *Situations Where Things Usually Go Wrong:*  
+  - Missed communication  
+  - Manual tracking errors  
+
+---
 
 
 

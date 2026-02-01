@@ -6,7 +6,7 @@ Opportunity:
   definition:
     An opportunity refers to a job or internship role shared by a company
     with the college for hiring students. It includes details such as the
-    role description, eligibility conditions, and selection process.
+    role description, eligibility conditions, and recruitment  process.
   examples:
     - Internship role shared by a software company for pre-final year students
     - Full-time placement role offered during campus placements
@@ -153,4 +153,14 @@ Faculty:
   aliases:
     - Placement Advisor
     - Faculty Mentor
+PlacementStatistics:
+  definition:
+    Aggregated institutional information showing placement and internship
+    participation, offers and outcomes.
+  examples:
+    - A dashboard showing number of students placed per branch
+  aliases:
+    - PlacementReports
+    - PlacementMetrics
+
 

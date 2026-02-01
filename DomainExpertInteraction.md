@@ -156,6 +156,17 @@ practice, as explained by the domain expert.
 
 ---
 
+## Current Challenges and Pain Points
 
+- Tracking ApplicationStatus across different recruitment stages is difficult
+  when information is maintained manually.
 
+- Heavy reliance on emails and spreadsheets makes it hard to maintain a
+  single source of truth for placement-related information.
+
+- Interview and RecruitmentRound schedules are sometimes shared late or
+  through multiple channels, leading to confusion among students.
+
+- Alumni Referrals are often managed informally, which makes them difficult
+  to track and verify during the recruitment process.
 

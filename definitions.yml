@@ -5,10 +5,10 @@
 Opportunity:
   definition:
     An opportunity refers to a job or internship role shared by a company
-    with the college for hiring students. It includes details such as the
+    with the college for hiring Candidates. It includes details such as the
     role description, eligibility conditions, and recruitment  process.
   examples:
-    - Internship role shared by a software company for pre-final year students
+    - Internship role shared by a software company for pre-final year Candidates
     - Full-time placement role offered during campus placements
   aliases:
     - Job
@@ -16,23 +16,23 @@ Opportunity:
 
 EligibilityCriteria:
   definition:
-    Eligibility criteria are the conditions that decide whether a student
+    Eligibility criteria are the conditions that decide whether a Candidate
     is allowed to apply for a particular opportunity. These are usually
     decided by the company and approved by the placement cell.
   examples:
     - Minimum CGPA requirement of 7.0
-    - Only students from specific branches are allowed
+    - Only Candidates from specific branches are allowed
   aliases:
     - Eligibility
     - Requirements
 
 Application:
   definition:
-    An application is submitted when a student applies for an opportunity
-    through the placement process. It represents the student’s intent to
+    An application is submitted when a Candidate applies for an opportunity
+    through the placement process. It represents the Candidate’s intent to
     participate in the hiring process.
   examples:
-    - A student applying for a data analyst internship
+    - A Candidate applying for a data analyst internship
     - Application submitted for a campus placement drive
   aliases:
     - Submission
@@ -40,7 +40,7 @@ Application:
 
 ApplicationStatus:
   definition:
-    Application status shows the current stage of a student’s application
+    Application status shows the current stage of a Candidate’s application
     as it moves through the recruitment process.
   examples:
     - Applied
@@ -54,10 +54,10 @@ ApplicationStatus:
 PlacementCell:
   definition:
     The placement cell is the college body responsible for coordinating
-    placements and internships. It acts as a bridge between students and
+    placements and internships. It acts as a bridge between Candidates and
     recruiting companies.
   examples:
-    - Approving job postings before publishing them to students
+    - Approving job postings before publishing them to Candidates
     - Coordinating interview schedules with recruiters
   aliases:
     - Placement Office
@@ -74,34 +74,34 @@ Recruiter:
     - Company
     - Employer
 
-Student:
+Candidate:
   definition:
-    A student is a currently enrolled member of the college who participates
+    A Candidate is a currently enrolled member of the college who participates
     in placements or internships by applying to opportunities.
   examples:
-    - Final-year student applying for placements
-    - Pre-final year student applying for internships
+    - Final-year Candidate applying for placements
+    - Pre-final year Candidate applying for internships
   aliases:
-    - Candidate
+    - Student
     - Applicant
 
 Alumni:
   definition:
-    Alumni are former students of the college who may support current
-    students by referring or recommending them for opportunities.
+    Alumni are former Candidates of the college who may support current
+    Candidates by referring or recommending them for opportunities.
   examples:
-    - Alumni referring a student to their company
+    - Alumni referring a Candidate to their company
     - Graduate endorsing a candidate for an internship
   aliases:
-    - Former Student
+    - Former Candidate
     - Graduate
 
 Referral:
   definition:
     A referral is a recommendation provided by an alumni to support a
-    student’s application for a specific opportunity.
+    Candidate’s application for a specific opportunity.
   examples:
-    - Alumni approving a referral request for a student
+    - Alumni approving a referral request for a Candidate
     - Referral tag shown to the recruiter
   aliases:
     - Recommendation
@@ -131,7 +131,7 @@ Notification:
 
 ProfileMatchPercentage:
   definition:
-    Profile match percentage is an indicative value shown to students to
+    Profile match percentage is an indicative value shown to Candidates to
     help them understand how closely their profile aligns with an opportunity.
     It does not affect eligibility or selection.
   examples:
@@ -144,12 +144,12 @@ ProfileMatchPercentage:
 Faculty:
   definition: 
     Faculty refers to a teaching staff member involved in the placement
-    process in an advisory role. Faculty members guide students, monitor
+    process in an advisory role. Faculty members guide Candidates, monitor
     their progress, and provide placement-related suggestions, but do not
     take part in hiring decisions.
   examples:
-    - Faculty mentor guiding students on placement preparation
-    - Faculty reviewing student progress during placement season
+    - Faculty mentor guiding Candidates on placement preparation
+    - Faculty reviewing Candidate progress during placement season
   aliases:
     - Placement Advisor
     - Faculty Mentor
@@ -158,7 +158,7 @@ PlacementStatistics:
     Aggregated institutional information showing placement and internship
     participation, offers and outcomes.
   examples:
-    - A dashboard showing number of students placed per branch
+    - A dashboard showing number of Candidates placed per branch
   aliases:
     - PlacementReports
     - PlacementMetrics

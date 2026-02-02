@@ -2,10 +2,10 @@
 
 ##  Problem Statement
 
-Campus placement and internship management in colleges involves multiple stakeholders such as students, recruiters, alumni, faculty, and the placement cell.  
+Campus placement and internship management in colleges involves multiple stakeholders such as candidates, recruiters, alumni, faculty, and the placement cell.  
 Currently, much of this process relies on **emails, spreadsheets, messaging apps, and manual coordination**, which leads to:
 
-- Lack of transparency for students about application status
+- Lack of transparency for candidates about application status
 - Manual errors in eligibility checking
 - Delays in communication between stakeholders
 - Difficulty in tracking referrals and recruitment stages
@@ -21,7 +21,7 @@ This project aims to model and build a **College Placement & Internship Portal**
 
 The system involves the following actors, each representing a real-world role in the placement process:
 
-- Student  
+- Candidate  
 - Recruiter  
 - Alumni  
 - Placement Cell  
@@ -33,9 +33,9 @@ Each actor interacts with the system based on their responsibilities in actual p
 
 ##  Planned Features by Actor
 
-### Student
+### Candidate
 
-Students are the primary beneficiaries of the placement process and interact with the system to discover opportunities and track progress.
+Candidates are the primary beneficiaries of the placement process and interact with the system to discover opportunities and track progress.
 
 **Planned Features:**
 - View approved job and internship opportunities
@@ -58,7 +58,7 @@ Recruiters represent companies hiring through campus placements.
 **Planned Features:**
 - Submit job and internship opportunities
 - Define eligibility criteria for opportunities
-- View applications submitted by students
+- View applications submitted by candidates
 - See alumni referral indicators
 - Screen and shortlist candidates
 - Schedule online assessments and interviews
@@ -69,11 +69,11 @@ Recruiters represent companies hiring through campus placements.
 
 ### Alumni
 
-Alumni support students by providing referrals based on professional judgment.
+Alumni support candidates by providing referrals based on professional judgment.
 
 **Planned Features:**
-- View referral requests from students
-- Review student profiles and resumes
+- View referral requests from candidates
+- Review candidate profiles and resumes
 - Approve or decline referral requests
 - Provide endorsements where applicable
 - Receive notifications for referral requests
@@ -87,7 +87,7 @@ The Placement Cell governs the placement process and ensures institutional compl
 **Planned Features:**
 - Review and approve job/internship opportunities
 - Reject opportunities with remarks when required
-- Publish approved opportunities to students
+- Publish approved opportunities to candidates
 - Enforce placement rules and policies
 - Monitor recruitment activity and progress
 - View placement statistics and outcomes
@@ -97,14 +97,14 @@ The Placement Cell governs the placement process and ensures institutional compl
 
 ###  Faculty (Placement Advisor)
 
-Faculty members support students through guidance and monitoring, without directly controlling recruitment decisions.
+Faculty members support candidates through guidance and monitoring, without directly controlling recruitment decisions.
 
 **Planned Features:**
-- Monitor student placement progress
-- Analyze student profiles and application trends
+- Monitor candidate placement progress
+- Analyze candidate profiles and application trends
 - Provide placement guidance and preparation advice
-- Recommend opportunities based on student readiness
-- Share insights and best practices with students
+- Recommend opportunities based on candidate readiness
+- Share insights and best practices with candidates
 
 ---
 

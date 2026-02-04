@@ -129,18 +129,6 @@ Notification:
     - Alert
     - Update
 
-ProfileMatchPercentage:
-  definition:
-    Profile match percentage is an indicative value shown to Candidates to
-    help them understand how closely their profile aligns with an opportunity.
-    It does not affect eligibility or selection.
-  examples:
-    - 80% match shown for a relevant job
-    - Low match indicating skill gap
-  aliases:
-    - Match Score
-    - Profile Match
-    
 PlacementStatistics:
   definition:
     Aggregated institutional information showing placement and internship

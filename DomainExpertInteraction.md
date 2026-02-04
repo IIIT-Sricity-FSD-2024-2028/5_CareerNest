@@ -32,7 +32,7 @@
   The main purpose is to manage placements smoothly by coordinating candidates, companies, and internal stakeholders while ensuring rules are followed and communication is clear.
 
 - **What are the primary goals or outcomes of this problem statement?**  
-  To ensure candidates get fair placement opportunities, recruiters receive suitable candidates on time, and the placement cell can track and manage the entire process efficiently.
+  To ensure candidates get fair placement opportunities, recruiters receive suitable candidates on time, and the Senior placement Officer can track and manage the entire process efficiently.
 
 ### Key Domain Terms
 
@@ -44,11 +44,10 @@
 | ApplicationStatus | The current stage of a candidate’s application in the recruitment process |
 | RecruitmentRound | A specific stage in hiring, such as an online test or interview |
 | Referral | A recommendation provided by an alumni to support a candidate’s application |
-| PlacementCell | The college body responsible for approving opportunities and managing placements |
+| Senior Placement Officer | The college authority responsible for approving opportunities and managing placement activities |
 | Recruiter | A company representative involved in evaluating candidates and making hiring decisions |
 | candidate | A currently enrolled college student participating in placements or internships |
 | Alumni | A former student who may support current candidates through referrals |
-| Faculty | A teaching staff member involved in placement guidance and monitoring |
 | Notification | A message sent to inform users about placement-related updates |
 | PlacementStatistics | Aggregated information showing placement participation and outcomes |
 ---
@@ -59,9 +58,8 @@
 |---|---|
 | Candidate | Apply for opportunities, attend interviews, track application status |
 | Recruiter | Share job roles, screen candidates, conduct recruitment rounds |
-| Placement Cell | Approve opportunities, enforce rules, coordinate the process |
+| Senior Placement Officer | Approve opportunities, enforce rules, coordinate the process |
 | Alumni | Provide referrals and recommendations |
-| Faculty | Guide candidates and monitor placement progress |
 
 ---
 
@@ -75,12 +73,12 @@ practice, as explained by the domain expert.
 ### Workflow 1: Opportunity Approval Process
 
 - **Trigger / Start Condition:**  
-  A Recruiter submits an Opportunity to the Placement Cell.
+  A Recruiter submits an Opportunity to the Senior Placement Officer.
 
 - **Steps Involved:**  
-  1. The Placement Cell reviews the Opportunity details.  
+  1. The Senior Placement Officer reviews the Opportunity details.  
   2. EligibilityCriteria and company information are verified.  
-  3. The Placement Cell decides to approve or reject the Opportunity.  
+  3. The Senior Placement Officer decides to approve or reject the Opportunity.  
   4. If rejected, remarks are added and communicated to the Recruiter.
 
 - **Outcome / End Condition:**  
@@ -140,7 +138,7 @@ practice, as explained by the domain expert.
 
 - *Mandatory Rules or Policies:*  
   - Candidates must meet eligibility criteria to apply  
-  - All opportunities must be approved by the placement cell  
+  - All opportunities must be approved by the Senior placement Officer  
 
 - *Constraints or Limitations:*  
   - Recruitment decisions are made by companies, not the system  
@@ -176,7 +174,7 @@ practice, as explained by the domain expert.
 
 ### Assumptions Confirmed
 - The placement process involves continuous coordination among Candidates,
-  Recruiters, Alumni, Faculty, and the Placement Cell, rather than isolated
+  Recruiters, Alumni, and the Senior Placement Officer, rather than isolated
   interactions.
 
 - Manual coordination across emails, spreadsheets, and messaging platforms
@@ -185,7 +183,7 @@ practice, as explained by the domain expert.
 
 ### Assumptions Corrected
 - It was clarified that not all Opportunities are initiated by Recruiters.
-  In many cases, the Placement Cell proactively reaches out to companies and
+  In many cases, the Senior Placement Officer proactively reaches out to companies and
   manages the onboarding of Opportunities.
 
 - Alumni involvement in placements is typically informal and advisory, and

@@ -18,7 +18,7 @@ EligibilityCriteria:
   definition:
     Eligibility criteria are the conditions that decide whether a Candidate
     is allowed to apply for a particular opportunity. These are usually
-    decided by the company and approved by the placement cell.
+    decided by the company and approved by the Senior placement Officer.
   examples:
     - Minimum CGPA requirement of 7.0
     - Only Candidates from specific branches are allowed
@@ -51,17 +51,17 @@ ApplicationStatus:
     - Status
     - Application Stage
 
-PlacementCell:
+Senior Placement Officer:
   definition:
-    The placement cell is the college body responsible for coordinating
-    placements and internships. It acts as a bridge between Candidates and
-    recruiting companies.
+    The Senior Placement Officer is responsible for managing and coordinating
+    placement and internship activities. This role serves as an intermediary
+    between Candidates and recruiting organizations, ensuring smooth and
+    compliant recruitment processes.
   examples:
-    - Approving job postings before publishing them to Candidates
-    - Coordinating interview schedules with recruiters
+    - Reviewing and approving job or internship postings before they are made
+      available to Candidates
   aliases:
-    - Placement Office
-    - Career Cell
+    - Placement Officer
 
 Recruiter:
   definition:
@@ -140,19 +140,7 @@ ProfileMatchPercentage:
   aliases:
     - Match Score
     - Profile Match
-
-Faculty:
-  definition: 
-    Faculty refers to a teaching staff member involved in the placement
-    process in an advisory role. Faculty members guide Candidates, monitor
-    their progress, and provide placement-related suggestions, but do not
-    take part in hiring decisions.
-  examples:
-    - Faculty mentor guiding Candidates on placement preparation
-    - Faculty reviewing Candidate progress during placement season
-  aliases:
-    - Placement Advisor
-    - Faculty Mentor
+    
 PlacementStatistics:
   definition:
     Aggregated institutional information showing placement and internship

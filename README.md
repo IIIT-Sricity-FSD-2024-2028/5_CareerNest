@@ -2,14 +2,14 @@
 
 ##  Problem Statement
 
-Campus placement and internship management in colleges involves multiple stakeholders such as candidates, recruiters, alumni, faculty, and the placement cell.  
+Campus placement and internship management in colleges involves multiple stakeholders such as candidates, recruiters, alumni, and the Senior placement Officer.  
 Currently, much of this process relies on **emails, spreadsheets, messaging apps, and manual coordination**, which leads to:
 
 - Lack of transparency for candidates about application status
 - Manual errors in eligibility checking
 - Delays in communication between stakeholders
 - Difficulty in tracking referrals and recruitment stages
-- High coordination overhead for the placement cell
+- High coordination overhead for the Senior placement Officer
 
 There is a need for a **centralized, structured, and transparent system** that models how placements actually happen in practice, while enforcing institutional rules and providing clear visibility to all stakeholders.
 
@@ -24,8 +24,7 @@ The system involves the following actors, each representing a real-world role in
 - Candidate  
 - Recruiter  
 - Alumni  
-- Placement Cell  
-- Faculty (Placement Advisor)
+- Senior Placement Officer
 
 Each actor interacts with the system based on their responsibilities in actual placement workflows.
 
@@ -80,9 +79,9 @@ Alumni support candidates by providing referrals based on professional judgment.
 
 ---
 
-### Placement Cell
+### Senior Placement Officer
 
-The Placement Cell governs the placement process and ensures institutional compliance.
+The Senior Placement Officer governs the placement process and ensures institutional compliance.
 
 **Planned Features:**
 - Review and approve job/internship opportunities
@@ -92,19 +91,6 @@ The Placement Cell governs the placement process and ensures institutional compl
 - Monitor recruitment activity and progress
 - View placement statistics and outcomes
 - Manage communication with recruiters
-
----
-
-###  Faculty (Placement Advisor)
-
-Faculty members support candidates through guidance and monitoring, without directly controlling recruitment decisions.
-
-**Planned Features:**
-- Monitor candidate placement progress
-- Analyze candidate profiles and application trends
-- Provide placement guidance and preparation advice
-- Recommend opportunities based on candidate readiness
-- Share insights and best practices with candidates
 
 ---
 

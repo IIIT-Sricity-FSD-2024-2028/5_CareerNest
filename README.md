@@ -39,7 +39,6 @@ Candidates are the primary beneficiaries of the placement process and interact w
 **Planned Features:**
 - View approved job and internship opportunities
 - View opportunity details and eligibility requirements
-- See profile match percentage for opportunities (advisory)
 - Apply for eligible opportunities
 - Upload and manage resume
 - Track application status across recruitment stages

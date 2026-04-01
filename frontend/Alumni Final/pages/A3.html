@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CareerNest — My Profile</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../Styles/A2.css" />
+  <link rel="stylesheet" href="../Styles/A3.css" />
+</head>
+<body>
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-name">CareerNest</div>
+        <div class="brand-sub">Alumni</div>
+      </div>
+      <a href="A3.html" class="sidebar-profile" title="My Profile">
+        <div class="avatar avatar--light">SR</div>
+        <div class="profile-info">
+          <div class="profile-name">Sneha Reddy</div>
+          <div class="profile-email">sneha@google.com</div>
+          <div class="profile-company">Google</div>
+        </div>
+      </a>
+      <nav class="sidebar-nav">
+        <a href="A1.html" class="nav-btn">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffffe6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          Dashboard
+        </a>
+        <a href="A2.html" class="nav-btn">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffffe6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Referral Requests
+        </a>
+        <a href="../../login.html" class="nav-btn signout" onclick="event.preventDefault();document.getElementById('signout-modal').style.display='flex'">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffffe6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Sign Out
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+      <header class="topbar">
+        <h1 class="page-title">My Profile</h1>
+      </header>
+
+      <div class="profile-content" id="profile-content"></div>
+    </main>
+  </div>
+  <!-- Sign Out Confirmation Modal -->
+  <div class="signout-overlay" id="signout-modal" onclick="if(event.target===this)this.style.display='none'">
+    <div class="signout-popup">
+      <div class="signout-icon-wrap">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e76a00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </div>
+      <div class="signout-title">Sign Out</div>
+      <div class="signout-msg">Are you sure you want to sign out of CareerNest?</div>
+      <div class="signout-btns">
+        <button class="signout-cancel" onclick="document.getElementById('signout-modal').style.display='none'">Cancel</button>
+        <button class="signout-confirm" onclick="window.location.href='../../login.html'">Sign Out</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../Data/alumni_data.js"></script>
+  <script src="../Js/A3.js" defer></script>
+</body>
+</html>

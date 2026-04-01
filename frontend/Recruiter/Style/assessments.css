@@ -1,0 +1,184 @@
+/* ASSESSMENTS SPECIFIC CSS */
+
+.assessments-banner {
+  background: white;
+  color: #111827;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid #E5E7EB;
+  margin-top: 20px;
+}
+
+.assessments-banner h2 {
+  font-size: 20px;
+  margin-bottom: 4px;
+}
+
+.assessments-banner p {
+  color: #6B7280;
+  font-size: 14px;
+}
+
+.action-btn {
+  background: #0F8F63;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.action-btn:hover {
+  background: #0C7F5B;
+}
+
+/* LIST SECTION */
+.list-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+/* ASSESSMENT CARD */
+.assessment-card {
+  background: white;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.assessment-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.card-title-area {
+  margin-top: 8px;
+}
+
+.card-title-area h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 4px;
+}
+
+.card-title-area p {
+  font-size: 14px;
+  color: #6B7280;
+}
+
+/* DETAILS ROW */
+.details-row {
+  display: flex;
+  gap: 24px;
+  font-size: 13px;
+  color: #6B7280;
+  align-items: center;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.detail-item svg {
+  width: 16px;
+  height: 16px;
+  color: #9CA3AF;
+}
+
+/* LINK ROW */
+.link-row {
+  font-size: 13px;
+  color: #6B7280;
+}
+
+.link-row a {
+  color: #4F39F6;
+  text-decoration: none;
+}
+
+/* CARD ACTIONS */
+.card-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid #E5E7EB;
+  color: #374151;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.btn-fill {
+  background: #EEF2FF;
+  color: #4F39F6;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* BADGES - Extended */
+.badge.blue { background-color: #EEF2FF; color: #4F46E5; }
+.badge.pink { background-color: #FDF2F8; color: #DB2777; }
+.badge.green { background-color: #ECFDF5; color: #059669; }
+.badge.gray { background-color: #F3F4F6; color: #4B5563; border: 1px solid #E5E7EB; }
+
+/* MODAL OVERRIDES FOR SCHEDULE FORM */
+.large-modal {
+  max-width: 600px;
+  text-align: left;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.row {
+  display: flex;
+  gap: 16px;
+}
+.row .form-group {
+  flex: 1;
+}
+
+.actions button {
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  border: 1px solid;
+}

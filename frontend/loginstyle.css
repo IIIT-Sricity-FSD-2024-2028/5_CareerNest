@@ -1,0 +1,256 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+:root {
+    --candidate-color: #6366F1;
+    --alumni-color: #F59E0B;
+    --recruiter-color: #10B981;
+    --officer-color: #8B5CF6;
+
+    --candidate-bg: #1E2A44;
+    --alumni-bg: #E67E22;
+    --recruiter-bg: #27AE60;
+    --officer-bg: #8E44AD;
+
+    --transition-speed: 0.4s;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color var(--transition-speed) ease;
+    overflow-x: hidden;
+}
+
+body.candidate-bg {
+    background-color: var(--candidate-bg);
+}
+
+body.alumni-bg {
+    background-color: var(--alumni-bg);
+}
+
+body.recruiter-bg {
+    background-color: var(--recruiter-bg);
+}
+
+body.officer-bg {
+    background-color: var(--officer-bg);
+}
+
+.main-wrapper {
+    width: 100%;
+    max-width: 850px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+}
+
+.actor-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    width: 100%;
+}
+
+.actor-card {
+    background: white;
+    padding: 20px;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    width: 160px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.actor-card:hover {
+    transform: translateY(-5px);
+}
+
+.actor-card.active {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    border: 2px solid transparent;
+}
+
+.icon-box {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: white;
+}
+
+.candidate-icon {
+    background-color: var(--candidate-color);
+}
+
+.alumni-icon {
+    background-color: var(--alumni-color);
+}
+
+.recruiter-icon {
+    background-color: var(--recruiter-color);
+}
+
+.officer-icon {
+    background-color: var(--officer-color);
+}
+
+.actor-card p {
+    font-weight: 600;
+    font-size: 14px;
+    color: #444;
+}
+
+.login-container {
+    background-color: white;
+    width: 100%;
+    padding: 50px;
+    border-radius: 30px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+h1 {
+    font-size: 36px;
+    font-weight: 700;
+    color: #111;
+    margin-bottom: 5px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.label {
+    font-weight: 600;
+    font-size: 14px;
+    color: #555;
+}
+
+input {
+    width: 100%;
+    padding: 16px 24px;
+    border-radius: 50px;
+    border: 1.5px solid #E5E7EB;
+    background: #F9FAFB;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+input:focus {
+    border-color: var(--candidate-color);
+}
+
+.password-wrapper {
+    position: relative;
+}
+
+.password-wrapper input {
+    padding-right: 60px;
+}
+
+#togglePassword {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #9CA3AF;
+    font-size: 18px;
+}
+
+.login-btn {
+    background-color: #6366F1;
+    color: white;
+    padding: 16px;
+    border: none;
+    border-radius: 50px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}
+
+.login-btn:hover {
+    background-color: #4F46E5;
+}
+
+.login-btn:active {
+    transform: scale(0.98);
+}
+
+#msg-display {
+    text-align: center;
+    font-weight: 600;
+    min-height: 20px;
+}
+
+.forgot-link {
+    text-align: center;
+    color: #6366F1;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.forgot-link:hover {
+    text-decoration: underline;
+}
+
+.footer-action {
+    margin-top: 10px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.home-btn {
+    background-color: black;
+    color: white;
+    padding: 14px 40px;
+    border-radius: 50px;
+    border: none;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: opacity 0.2s;
+}
+
+.home-btn:hover {
+    opacity: 0.85;
+}
+
+@media (max-width: 768px) {
+    .actor-tabs {
+        flex-wrap: wrap;
+    }
+
+    .actor-card {
+        width: calc(50% - 10px);
+    }
+}

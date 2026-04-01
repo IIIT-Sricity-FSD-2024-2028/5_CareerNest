@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Recruiter Dashboard</title>
+  <link rel="stylesheet" href="../Style/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<aside>
+
+  <!-- TOP PART -->
+  <div>
+    <h1>CareerNest</h1>
+    <p>Recruiter</p>
+
+    <a href="profile.html" style="text-decoration: none; color: inherit;">
+      <div class="profile" style="cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+        <div class="avatar">PK</div>
+        <div>
+          <p>Priya Kapo</p>
+          <p class="email">priya12@gmail.com</p>
+        </div>
+      </div>
+    </a>
+
+    <!-- NAV INSIDE ASIDE -->
+    <nav>
+      <ul>
+        <li class="active">
+          <a href="index.html" style="display:flex; align-items:center; gap:10px;"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+        </li>
+        <li>
+          <a href="post.html" style="display:flex; align-items:center; gap:10px;"><i data-lucide="send"></i> Post Opportunity</a>
+        </li>
+        <li>
+          <a href="myopportunities.html" style="display:flex; align-items:center; gap:10px;"><i data-lucide="briefcase"></i> My Opportunities</a>
+        </li>
+        <li>
+          <a href="applications.html" style="display:flex; align-items:center; gap:10px;"><i data-lucide="users"></i> Applications</a>
+        </li>
+        <li>
+          <a href="assessments.html" style="display:flex; align-items:center; gap:10px;"><i data-lucide="calendar-check"></i> Assessments</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+
+  <!-- BOTTOM PART -->
+  <a href="../../login.html" class="logout" style="text-decoration: none; color: white; display: block; padding: 10px; text-align: center; border-radius: 8px; background: rgba(255,255,255,0.1);">Sign Out</a>
+
+</aside>
+
+
+<!-- MAIN -->
+<main>
+
+<!-- NAVBAR -->
+<header>
+  <h2>Dashboard</h2>
+  <div class="nav-right" style="position: relative; display: flex; gap: 15px;">
+    <!-- Notification -->
+    <div style="position: relative;">
+      <a href="#" onclick="document.getElementById('notifMenu').classList.toggle('show')" style="color: #6A7282; display: flex; align-items: center; margin-top:5px;"><i data-lucide="bell"></i></a>
+      <div id="notifMenu" class="dropdown-menu">
+        <h4>Notifications</h4>
+        <hr>
+        <p>No new notifications right now.</p>
+      </div>
+    </div>
+    <!-- Profile -->
+    <div style="position: relative;">
+      <div class="avatar small" style="cursor: pointer;" onclick="document.getElementById('profileMenu').classList.toggle('show')">PK</div>
+      <div id="profileMenu" class="dropdown-menu">
+        <h4>Priya Kapo</h4>
+        <p style="font-size:12px; color:#6B7280;">priya12@gmail.com</p>
+        <hr>
+        <a href="profile.html" style="color: #374151; display: block; margin-bottom: 8px;">My Profile</a>
+        <a href="login.html" style="color:#DC2626; display: block;">Sign Out</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+
+<!-- BANNER -->
+<section class="banner">
+  <h2>Welcome, Priya!</h2>
+  <p>TechCorp Solutions · Recruiter Dashboard</p>
+
+  <div class="btn-group">
+    <button class="primary" onclick="window.location.href='post.html'">+ Post Opportunity</button>
+    <button class="secondary" onclick="window.location.href='applications.html'">View Applications</button>
+  </div>
+</section>
+
+
+<!-- STATS -->
+<section class="stats">
+
+  <div class="card">
+    <div class="icon blue">
+      <i data-lucide="briefcase"></i>
+    </div>
+    <h2 id="opportunities"></h2>
+    <p>Posted Opportunities</p>
+  </div>
+
+  <div class="card">
+    <div class="icon green">
+      <i data-lucide="users"></i>
+    </div>
+    <h2 id="applications"></h2>
+    <p>Total Applications</p>
+  </div>
+
+  <div class="card">
+    <div class="icon purple">
+      <i data-lucide="trending-up"></i>
+    </div>
+    <h2 id="shortlisted"></h2>
+    <p>Shortlisted</p>
+  </div>
+
+  <div class="card">
+    <div class="icon green">
+      <i data-lucide="check-circle"></i>
+    </div>
+    <h2 id="referred"></h2>
+    <p>Referred Candidates</p>
+  </div>
+
+</section>
+
+
+<!-- BOTTOM -->
+<section class="bottom">
+
+  <!-- LEFT -->
+  <div class="box">
+    <div class="box-header">
+      <h3>My Opportunities</h3>
+      <a href="myopportunities.html" class="view" style="text-decoration: none;">View all →</a>
+    </div>
+
+    <hr>
+
+    <div id="opportunitiesList"></div>
+  </div>
+
+
+  <!-- RIGHT -->
+  <div class="box">
+
+    <div class="box-header">
+      <h3>Recent Applications</h3>
+      <a href="applications.html" class="view" style="text-decoration: none;">View all →</a>
+    </div>
+
+    <hr>
+
+    <!-- DYNAMIC CONTENT WILL COME HERE -->
+    <div id="applicationsList"></div>
+
+  </div>
+
+</section>
+
+</main>
+
+<script>
+  lucide.createIcons();
+</script>
+<!-- DATA FILES -->
+<script src="../data/mockdata.js"></script>
+<!-- JS FILES -->
+<script src="../js/script.js"></script>
+
+</body>
+</html>

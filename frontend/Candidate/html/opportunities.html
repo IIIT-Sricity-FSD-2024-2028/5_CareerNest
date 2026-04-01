@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CareerNest - Opportunities</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Boxicons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="../Css/style.css">
+    <link rel="stylesheet" href="../Css/opportunities.css">
+</head>
+<body>
+
+<div class="app-layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <!-- Brand -->
+        <div class="brand">
+            <div class="brand-icon">
+                <i class='bx bxs-graduation'></i>
+            </div>
+            <div class="brand-text">
+                <h2>CareerNest</h2>
+                <p>College Placement Cell</p>
+            </div>
+        </div>
+
+        <!-- User Profile Card in Sidebar -->
+        <div class="sidebar-user-card" onclick="window.location.href='profile.html'" style="cursor: pointer;" title="View Profile">
+            <div class="user-avatar" id="sidebar-avatar">SB</div>
+            <div class="user-info">
+                <h4 id="sidebar-name">Loading...</h4>
+                <p id="sidebar-role">Loading...</p>
+            </div>
+        </div>
+
+        <!-- Navigation Menu -->
+        <nav class="sidebar-nav">
+            <ul>
+                <li class="nav-item">
+                    <a href="index.html">
+                        <i class='bx bx-grid-alt'></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item active-opportunities">
+                    <a href="opportunities.html">
+                        <i class='bx bx-briefcase-alt-2'></i>
+                        <span>Browse Opportunities</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="applications.html">
+                        <i class='bx bx-file-blank'></i>
+                        <span>My Applications</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="referrals.html">
+                        <i class='bx bx-user-plus'></i>
+                        <span>Referrals</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="changepassword.html">
+                        <i class='bx bx-lock-alt'></i>
+                        <span>Change Password</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Sign Out Footer -->
+        <div class="sidebar-footer">
+            <a href="../../login.html" class="sign-out">
+                <i class='bx bx-log-out'></i>
+                <span>Sign Out</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content page-enter">
+        <!-- TOP HEADER -->
+        <header class="top-header">
+            <h1 class="page-title">Opportunities</h1>
+            <div class="header-actions">
+                <div class="notification-container" style="position: relative;">
+                    <div class="notification-btn" id="notif-btn" style="cursor: pointer;">
+                        <i class='bx bx-bell'></i>
+                        <span class="badge red-badge" id="notif-count" style="display:none;">0</span>
+                    </div>
+                    <div class="notification-dropdown" id="notif-dropdown">
+                        <div class="notif-header">
+                            <h5>Notifications</h5>
+                            <a href="#" id="mark-read-btn">Mark all read</a>
+                        </div>
+                        <div class="notif-body" id="notif-list-container">
+                        </div>
+                    </div>
+                </div>
+                <div class="top-avatar" id="top-avatar" onclick="window.location.href='profile.html'" style="cursor: pointer;" title="View Profile">SB</div>
+            </div>
+        </header>
+
+        <!-- TOOLBAR (Search & Filters) -->
+        <div class="opportunities-toolbar">
+            <div class="search-container">
+                <i class='bx bx-search'></i>
+                <input type="text" placeholder="Search jobs, companies, skills...">
+            </div>
+            <div class="filter-actions">
+                <button class="filter-btn active">All</button>
+                <button class="filter-btn">Full-time</button>
+                <button class="filter-btn">Internship</button>
+                <div style="width:100px; height:36px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px;"></div> <!-- UI spacer from screenshot -->
+                <span class="opp-count-text"><span id="job-count">0</span> opportunities</span>
+            </div>
+        </div>
+
+        <!-- DASHBOARD CONTAINER (SPLIT PANE) -->
+        <div class="split-layout">
+            
+            <!-- Left Pane: Job List -->
+            <div class="jobs-list-col" id="jobs-list-container">
+                <!-- Javascript injects list cards here -->
+            </div>
+
+            <!-- Right Pane: Details View -->
+            <div class="job-details-col">
+                <div class="details-content" id="job-details-container">
+                    <!-- Javascript injects selected job details here -->
+                    <div style="padding: 40px; text-align: center; color: #94a3b8;">
+                        Loading opportunities...
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+</div>
+
+<!-- Eligibility Check Modal -->
+<dialog id="modal-eligibility" class="profile-modal">
+    <div class="modal-header">
+        <h3>Eligibility Check</h3>
+        <button class="modal-close" onclick="document.getElementById('modal-eligibility').close()"><i class='bx bx-x'></i></button>
+    </div>
+    <div id="eligibility-content" style="padding: 24px; color: var(--text-primary);">
+        <!-- Injected via JS -->
+    </div>
+</dialog>
+
+<!-- Terms and Conditions Modal -->
+<dialog id="modal-terms" class="profile-modal">
+    <div class="modal-header">
+        <h3>Terms & Conditions</h3>
+        <button class="modal-close" onclick="document.getElementById('modal-terms').close()"><i class='bx bx-x'></i></button>
+    </div>
+    <div style="padding: 24px; color: var(--text-primary);">
+        <p style="font-size: 14px; line-height: 1.6; margin-bottom: 20px;">
+            By applying for this role, you acknowledge that you have carefully read the job description and meet the inherent technical requirements requested by the company. You agree not to withdraw without proper notice and verify that all information in your profile is entirely accurate.
+        </p>
+        <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 32px; background: #f8fafc; padding: 16px; border-radius: 8px;">
+            <input type="checkbox" id="chk-terms" style="margin-top: 4px; transform: scale(1.2); cursor: pointer;" onchange="document.getElementById('btn-final-apply').disabled = !this.checked; document.getElementById('btn-final-apply').style.opacity = this.checked ? '1' : '0.5';">
+            <label for="chk-terms" style="cursor: pointer; font-size: 14px; font-weight: 500;">I have read all the rules and regulations of the company, and I abide by the rules.</label>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 12px;">
+            <button class="btn-secondary" onclick="document.getElementById('modal-terms').close()">Cancel</button>
+            <button id="btn-final-apply" class="btn-primary" style="opacity: 0.5;" disabled>Confirm Application</button>
+        </div>
+    </div>
+</dialog>
+
+<!-- Success Modal -->
+<dialog id="modal-success" class="profile-modal" style="width: 400px; text-align: center;">
+    <div style="padding: 40px 24px;">
+        <div style="width: 80px; height: 80px; border-radius: 50%; background: #dcfce7; color: #16a34a; display: flex; align-items: center; justify-content: center; font-size: 48px; margin: 0 auto 24px auto;">
+            <i class='bx bx-check'></i>
+        </div>
+        <h2 style="font-size: 24px; color: var(--text-primary); margin-bottom: 12px;">Applied Successfully!</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 32px; font-size: 15px;">Your application has been routed directly to the recruiter's dashboard.</p>
+        <button class="btn-primary" style="width: 100%;" onclick="document.getElementById('modal-success').close(); window.location.href='applications.html';">Go to My Applications</button>
+    </div>
+</dialog>
+
+<script type="module" src="../Js/opportunities.js"></script>
+</body>
+</html>

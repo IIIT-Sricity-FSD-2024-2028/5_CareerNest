@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CareerNest - Review Opportunities</title>
+    <link rel="stylesheet" href="../styles/p2.css">
+</head>
+<body>
+    <div class="frame">
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-brand"><h2>CareerNest</h2><span>Placement Officer</span></div>
+
+            <ul class="sidebar-nav">
+                <li class="nav-item" onclick="location.href='p1.html'"><span>Dashboard</span></li>
+                <li class="nav-item active" onclick="location.href='p2.html'"><span>Review Opportunities</span></li>
+                <li class="nav-item" onclick="location.href='p3.html'"><span>Statistics</span></li>
+                <li class="nav-item" onclick="location.href='p4.html'"><span>Recruiters</span></li>
+                <li class="nav-item" onclick="location.href='p5.html'"><span>User Oversight</span></li>
+                <li class="nav-item" onclick="location.href='p6.html'"><span>App Tracking</span></li>
+            </ul>
+
+            <!-- ✅ FIXED SIGNOUT -->
+            <div class="sidebar-signout">
+                <a href="../../login.html" style="text-decoration:none; color:inherit;">
+                    <span>Sign Out</span>
+                </a>
+            </div>
+        </nav>
+
+        <header class="header">
+            <div class="header-title">Review Opportunities</div>
+
+            <div class="header-profile">
+                <div class="profile-dropdown">
+
+                    <a class="profile-dd-item" onclick="location.href='p1.html?view=profile'">
+                        My Profile
+                    </a>
+
+                    <!-- ✅ FIXED SIGNOUT -->
+                    <a class="profile-dd-item signout" href="../../login.html">
+                        Sign Out
+                    </a>
+
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content" id="mainContent">
+            <div class="filter-tabs">
+                <button class="tab active" onclick="filterOpps('all', this)">All (0)</button>
+                <button class="tab" onclick="filterOpps('pending', this)">Pending (0)</button>
+                <button class="tab" onclick="filterOpps('approved', this)">Approved (0)</button>
+                <button class="tab" onclick="filterOpps('published', this)">Published (0)</button>
+                <button class="tab" onclick="filterOpps('rejected', this)">Rejected (0)</button>
+            </div>
+            <div class="opp-list" id="oppList"></div>
+        </main>
+
+        <!-- ═══ Profile Content ═══ -->
+        <main class="main-content" id="profileContent" style="display:none;"></main>
+
+        <div class="modal-overlay" id="rejectModal">
+            <div class="modal">
+                <div class="modal-header"><h3>Reject Opportunity</h3><button class="modal-close" onclick="closeRejectModal()">&times;</button></div>
+                <p class="modal-desc" style="font-weight: 600; color: #374151; margin-bottom: 8px;">Remarks / Reason for Decline * <span style="font-weight: normal; font-size: 12px; color: #6b7280;">(at least 10 words)</span></p>
+                <textarea class="modal-textarea" id="rejectRemarks" placeholder="e.g. Company does not meet our placement partner criteria. Please resubmit with updated credentials..."></textarea>
+                <div id="rejectError" style="color:#ef4444; font-size:12px; margin-top:4px; margin-bottom:14px; display:none;">Remarks / Reason for Decline must be at least 10 words.</div>
+                <div class="modal-actions"><button class="modal-btn-cancel" onclick="closeRejectModal()">Cancel</button><button class="modal-btn-confirm" onclick="confirmRejection()">Confirm Rejection</button></div>
+            </div>
+        </div>
+    </div>
+<script src="../js files/mockdata.js"></script>
+<script src="../js files/p2.js"></script>
+</body>
+</html>

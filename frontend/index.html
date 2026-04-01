@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CareerNest — Empowering campus placements with transparency, structure, and intelligent automation for students, recruiters, alumni, and placement officers.">
+  <title>CareerNest — Campus Placement & Internship Portal</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="#" class="logo">
+        <span class="logo-icon">
+          <!-- feather icon -->
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="15"/></svg>
+        </span>
+        <span class="logo-text">CareerNest</span>
+      </a>
+
+      <ul class="nav-links" id="nav-links">
+        <li><a href="#hero">Home</a></li>
+        <li><a href="#roles">Roles</a></li>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#process">How It Works</a></li>
+        <li><a href="contact.html">Contact Us</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+          <span class="theme-icon" id="theme-icon">🌙</span>
+        </button>
+        <button class="login-btn" id="login-btn">
+          <span>Login</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+        <button class="mobile-toggle" id="mobile-toggle" aria-label="Toggle navigation">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero" id="hero">
+    <div class="hero-bg-slider" id="hero-bg-slider"></div>
+    <div class="hero-overlay"></div>
+
+    <!-- Floating particles -->
+    <div class="particles" id="particles"></div>
+
+    <div class="hero-content">
+      <div class="hero-badge animate-on-scroll">
+        🎓
+        <span>Trusted by 500+ Colleges Nationwide</span>
+      </div>
+      <h1 class="animate-on-scroll">
+        <span class="hero-line">Empowering</span>
+        <span class="hero-line gradient-text">Campus Placements</span>
+        <span class="hero-line">with Transparency</span>
+      </h1>
+      <p class="hero-subtitle animate-on-scroll">
+        A centralized, structured platform connecting students, recruiters, alumni, 
+        and placement officers — replacing spreadsheets and emails with clarity.
+      </p>
+      
+    </div>
+
+    <div class="hero-scroll-indicator">
+      <div class="mouse">
+        <div class="mouse-wheel"></div>
+      </div>
+      <span>Scroll to explore</span>
+    </div>
+  </section>
+
+  <!-- Stats Section -->
+  <section class="stats" id="stats">
+    <div class="stats-inner">
+      <div class="stat-card animate-on-scroll">
+        <div class="stat-icon">🏛️</div>
+        <div class="stat-number" data-target="500">0</div>
+        <div class="stat-suffix">+</div>
+        <p>Colleges</p>
+      </div>
+      <div class="stat-card animate-on-scroll">
+        <div class="stat-icon">🎓</div>
+        <div class="stat-number" data-target="10000">0</div>
+        <div class="stat-suffix">+</div>
+        <p>Students Placed</p>
+      </div>
+      <div class="stat-card animate-on-scroll">
+        <div class="stat-icon">🏢</div>
+        <div class="stat-number" data-target="200">0</div>
+        <div class="stat-suffix">+</div>
+        <p>Recruiters</p>
+      </div>
+      <div class="stat-card animate-on-scroll">
+        <div class="stat-icon">📈</div>
+        <div class="stat-number" data-target="98">0</div>
+        <div class="stat-suffix">%</div>
+        <p>Placement Rate</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Problem Section -->
+  <section class="problem" id="problem">
+    <div class="container">
+      <div class="section-header animate-on-scroll">
+        <span class="tag">THE PROBLEM</span>
+        <h2>Why Traditional Placement<br>Systems Fall Short</h2>
+        <p class="section-subtitle">Campus placements rely on emails, spreadsheets, and manual coordination — creating chaos for everyone involved.</p>
+      </div>
+
+      <div class="problem-grid">
+        <div class="problem-card animate-on-scroll">
+          <div class="problem-icon">🚫</div>
+          <h3>Lack of Transparency</h3>
+          <p>Candidates have no visibility into their application status or where they stand in the process.</p>
+        </div>
+        <div class="problem-card animate-on-scroll">
+          <div class="problem-icon">⚠️</div>
+          <h3>Manual Errors</h3>
+          <p>Eligibility checking and application tracking through spreadsheets leads to frequent mistakes.</p>
+        </div>
+        <div class="problem-card animate-on-scroll">
+          <div class="problem-icon">⏰</div>
+          <h3>Communication Delays</h3>
+          <p>Important updates get lost in email threads and messaging apps, causing missed opportunities.</p>
+        </div>
+        <div class="problem-card animate-on-scroll">
+          <div class="problem-icon">📋</div>
+          <h3>Coordination Overhead</h3>
+          <p>Placement officers spend excessive time on administrative tasks instead of strategic initiatives.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Core Features Section -->
+  <section class="core-features" id="core-features">
+    <div class="container">
+      <div class="section-header animate-on-scroll">
+        <span class="tag-pill">⭐ CORE FEATURES</span>
+        <h2>Everything You Need for<br><span class="gradient-text">Seamless Placements</span></h2>
+        <p class="section-subtitle">A comprehensive platform designed to model real-world placement workflows with transparency and efficiency.</p>
+      </div>
+
+      <div class="core-grid">
+        <div class="core-card animate-on-scroll">
+          <div class="core-icon" style="background: linear-gradient(135deg, #4f6ef7, #38bdf8);">🔍</div>
+          <h3>Opportunity Discovery</h3>
+          <p>Browse approved job and internship listings with detailed eligibility criteria, role descriptions, and company info.</p>
+        </div>
+
+        <div class="core-card animate-on-scroll">
+          <div class="core-icon" style="background: linear-gradient(135deg, #8b5cf6, #a855f7);">🗺️</div>
+          <h3>Application Tracking</h3>
+          <p>Real-time visibility into your application status across every recruitment stage — from applied to placed.</p>
+        </div>
+
+        <div class="core-card animate-on-scroll">
+          <div class="core-icon" style="background: linear-gradient(135deg, #10b981, #34d399);">🤝</div>
+          <h3>Alumni Referrals</h3>
+          <p>Request referrals from alumni, track approval status, and showcase endorsements to recruiters.</p>
+        </div>
+
+        <div class="core-card animate-on-scroll">
+          <div class="core-icon" style="background: linear-gradient(135deg, #2563eb, #38bdf8);">📅</div>
+          <h3>Smart Scheduling</h3>
+          <p>Recruiters can schedule assessments and interviews; candidates get instant notifications and calendar syncs.</p>
+        </div>
+
+        <div class="core-card animate-on-scroll">
+          <div class="core-icon" style="background: linear-gradient(135deg, #3b82f6, #60a5fa);">✅</div>
+          <h3>Automated Eligibility</h3>
+          <p>System-enforced eligibility rules ensure only qualified candidates can apply — no manual checking needed.</p>
+        </div>
+
+        <div class="core-card animate-on-scroll">
+          <div class="core-icon" style="background: linear-gradient(135deg, #06b6d4, #22d3ee);">📊</div>
+          <h3>Placement Analytics</h3>
+          <p>Comprehensive dashboards showing placement statistics, outcomes, and trends for institutional decision-making.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Role Selection Section -->
+  <section class="roles" id="roles">
+    <div class="container">
+      <div class="section-header animate-on-scroll">
+        <span class="tag">GET STARTED</span>
+        <h2>Select Your Role to Continue</h2>
+        <p class="section-subtitle">Choose the role that best describes you and get a personalised experience tailored to your needs.</p>
+      </div>
+
+      <div class="role-container">
+        <div class="role-card animate-on-scroll" data-role="candidate">
+          <div class="role-icon-wrap candidate-gradient">🎓</div>
+          <h3>Candidate</h3>
+          <p>Browse opportunities, apply for jobs & internships, track your applications, and request alumni referrals.</p>
+          <a href="login.html?role=candidate" class="role-link">
+            <span>Enter as Candidate</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </div>
+
+        <div class="role-card animate-on-scroll" data-role="alumni">
+          <div class="role-icon-wrap alumni-gradient">🤝</div>
+          <h3>Alumni</h3>
+          <p>Share internship reports, provide professional endorsements, and help juniors through referral support.</p>
+          <a href="login.html?role=alumni" class="role-link">
+            <span>Enter as Alumni</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </div>
+
+        <div class="role-card animate-on-scroll" data-role="officer">
+          <div class="role-icon-wrap officer-gradient">🛡️</div>
+          <h3>Placement Officer</h3>
+          <p>Approve opportunities, enforce placement policies, monitor stats, and manage recruiter relationships.</p>
+          <a href="login.html?role=officer" class="role-link">
+            <span>Enter as Officer</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </div>
+
+        <div class="role-card animate-on-scroll" data-role="recruiter">
+          <div class="role-icon-wrap recruiter-gradient">💼</div>
+          <h3>Recruiter</h3>
+          <p>Post opportunities, screen candidates, schedule interviews, and manage your entire hiring pipeline.</p>
+          <a href="login.html?role=recruiter" class="role-link">
+            <span>Enter as Recruiter</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features" id="features">
+    <div class="container">
+      <div class="section-header animate-on-scroll">
+        <span class="tag">FEATURES</span>
+        <h2>Powerful Features for<br>Every Stakeholder</h2>
+        <p class="section-subtitle">Designed to meet the unique needs of candidates, recruiters, alumni, and placement officers.</p>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs animate-on-scroll">
+        <button class="tab active" data-role="candidate">
+          <span class="tab-icon">🎓</span>
+          <span>Candidates</span>
+        </button>
+        <button class="tab" data-role="recruiter">
+          <span class="tab-icon">💼</span>
+          <span>Recruiters</span>
+        </button>
+        <button class="tab" data-role="alumni">
+          <span class="tab-icon">🤝</span>
+          <span>Alumni</span>
+        </button>
+        <button class="tab" data-role="officer">
+          <span class="tab-icon">🛡️</span>
+          <span>Placement Officer</span>
+        </button>
+      </div>
+
+      <!-- Feature Content -->
+      <div class="feature-box animate-on-scroll">
+        <div class="feature-box-header">
+          <div class="feature-box-icon" id="feature-box-icon">🎓</div>
+          <h3 id="role-title">Candidates</h3>
+        </div>
+        <div class="feature-list" id="feature-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Process Section -->
+  <section class="process" id="process">
+    <div class="container">
+      <div class="section-header animate-on-scroll">
+        <span class="tag">PROCESS</span>
+        <h2>How CareerNest Works</h2>
+        <p class="section-subtitle">A streamlined four-step journey from opportunity submission to successful placement.</p>
+      </div>
+
+      <div class="process-timeline">
+        <div class="timeline-line"></div>
+
+        <div class="process-card animate-on-scroll">
+          <div class="process-number">01</div>
+          <div class="process-content">
+            <div class="process-icon">✈️</div>
+            <h3>Opportunity Submission</h3>
+            <p>Recruiters submit job and internship opportunities with defined eligibility criteria. Placement officers review and approve them for publication.</p>
+          </div>
+        </div>
+
+        <div class="process-card animate-on-scroll">
+          <div class="process-number">02</div>
+          <div class="process-content">
+            <div class="process-icon">🖱️</div>
+            <h3>Apply & Validate</h3>
+            <p>Students discover matching opportunities and apply with one click. The system automatically validates eligibility requirements in real-time.</p>
+          </div>
+        </div>
+
+        <div class="process-card animate-on-scroll">
+          <div class="process-number">03</div>
+          <div class="process-content">
+            <div class="process-icon">🤝</div>
+            <h3>Alumni Referrals</h3>
+            <p>Students request referrals from alumni. Alumni review candidate profiles, provide endorsements, and boost their chances of getting hired.</p>
+          </div>
+        </div>
+
+        <div class="process-card animate-on-scroll">
+          <div class="process-number">04</div>
+          <div class="process-content">
+            <div class="process-icon">🏆</div>
+            <h3>Track to Success</h3>
+            <p>All stakeholders track progress in real-time. Recruiters update stages, students monitor status, and officers oversee the entire pipeline.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials Section -->
+  <section class="testimonials" id="testimonials">
+    <div class="container">
+      <div class="section-header animate-on-scroll">
+        <span class="tag">TESTIMONIALS</span>
+        <h2>Loved by Thousands</h2>
+        <p class="section-subtitle">Hear from the people who use CareerNest every day.</p>
+      </div>
+
+      <div class="testimonial-grid">
+        <div class="testimonial-card animate-on-scroll">
+          <div class="testimonial-rating">★★★★★</div>
+          <p class="testimonial-text">
+            "The placement portal made the entire process transparent and stress-free. I could easily track my application status and know exactly which stage I was in. Requesting referrals from alumni directly through the portal really improved my chances."
+          </p>
+          <div class="testimonial-profile">
+            <div class="avatar" style="background: linear-gradient(135deg, #7c3aed, #a855f7);">SG</div>
+            <div>
+              <h4>Sai Ganesh</h4>
+              <span>B.Tech CSE, 2026 · Final Year Student</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card featured animate-on-scroll">
+          <div class="testimonial-rating">★★★★★</div>
+          <p class="testimonial-text">
+            "Managing placements used to involve significant manual coordination. This system centralizes everything — from opportunity approvals to recruitment tracking — making the process far more organized and transparent."
+          </p>
+          <div class="testimonial-profile">
+            <div class="avatar" style="background: linear-gradient(135deg, #2563eb, #38bdf8);">SI</div>
+            <div>
+              <h4>Dr. S. Iyer</h4>
+              <span>Senior Placement Officer</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card animate-on-scroll">
+          <div class="testimonial-rating">★★★★★</div>
+          <p class="testimonial-text">
+            "The platform simplified our campus recruitment process. We could define eligibility criteria, review applications, and schedule interviews efficiently. The structured workflow helped us focus on selecting the right candidates."
+          </p>
+          <div class="testimonial-profile">
+            <div class="avatar" style="background: linear-gradient(135deg, #ec4899, #f472b6);">PS</div>
+            <div>
+              <h4>Priya Sharma</h4>
+              <span>Hiring Manager · TechCorp</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card animate-on-scroll">
+          <div class="testimonial-rating">★★★★½</div>
+          <p class="testimonial-text">
+            "Being able to help juniors through the referral system is a great initiative. The portal makes it easy to review candidate profiles and provide referrals where appropriate. A real game-changer."
+          </p>
+          <div class="testimonial-profile">
+            <div class="avatar" style="background: linear-gradient(135deg, #f97316, #fb923c);">RV</div>
+            <div>
+              <h4>Rahul Verma</h4>
+              <span>Software Engineer · Microsoft · 2024 Graduate</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  
+
+  <!-- FAQ Section -->
+  <section class="faq" id="faq">
+    <div class="container">
+      <div class="section-header animate-on-scroll">
+        <span class="tag-pill">❓ FAQ</span>
+        <h2>Frequently Asked<br><span class="gradient-text">Questions</span></h2>
+      </div>
+
+      <div class="faq-list">
+        <div class="faq-item animate-on-scroll">
+          <button class="faq-question" aria-expanded="false">
+            <span>Who can use CareerNest?</span>
+            <svg class="faq-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="faq-answer">
+            <p>CareerNest is designed for four key stakeholders in the campus placement ecosystem: <strong>Candidates</strong> (students seeking jobs/internships), <strong>Recruiters</strong> (companies hiring through campus), <strong>Alumni</strong> (graduates who can provide referrals), and <strong>Senior Placement Officers</strong> (who manage and oversee the process).</p>
+          </div>
+        </div>
+
+        <div class="faq-item animate-on-scroll">
+          <button class="faq-question" aria-expanded="false">
+            <span>How does the eligibility system work?</span>
+            <svg class="faq-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="faq-answer">
+            <p>When recruiters post opportunities, they define eligibility criteria such as minimum CGPA, branch, graduation year, and other requirements. The system automatically validates each candidate's profile against these criteria and only allows eligible students to apply, eliminating manual eligibility checking errors.</p>
+          </div>
+        </div>
+
+        <div class="faq-item animate-on-scroll">
+          <button class="faq-question" aria-expanded="false">
+            <span>How do alumni referrals work?</span>
+            <svg class="faq-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="faq-answer">
+            <p>Students can request referrals from alumni who are currently working in companies they've applied to. Alumni receive the request, review the candidate's profile and resume, and can choose to approve or decline. Approved referrals appear as indicators on the candidate's application, boosting their visibility to recruiters.</p>
+          </div>
+        </div>
+
+        <div class="faq-item animate-on-scroll">
+          <button class="faq-question" aria-expanded="false">
+            <span>Can recruiters see referral information?</span>
+            <svg class="faq-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="faq-answer">
+            <p>Yes. When reviewing candidate applications, recruiters can see referral indicators showing whether a candidate has been endorsed by an alumnus. This adds a layer of credibility and helps recruiters identify strong candidates who come recommended by professionals within their organization.</p>
+          </div>
+        </div>
+
+        <div class="faq-item animate-on-scroll">
+          <button class="faq-question" aria-expanded="false">
+            <span>What role does the Senior Placement Officer play?</span>
+            <svg class="faq-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="faq-answer">
+            <p>The Senior Placement Officer acts as the gatekeeper of the placement process. They review and approve job opportunities before they're published to students, enforce institutional placement rules and policies, monitor overall recruitment activity, manage recruiter relationships, and access comprehensive placement statistics and reports.</p>
+          </div>
+        </div>
+
+        <div class="faq-item animate-on-scroll">
+          <button class="faq-question" aria-expanded="false">
+            <span>Is CareerNest free for students?</span>
+            <svg class="faq-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="faq-answer">
+            <p>Yes! CareerNest is completely free for students. The platform is typically adopted by institutions who manage the system through their placement cell. Students simply sign up, complete their profile, and start exploring approved opportunities — all at no cost.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta" id="cta">
+    <div class="container">
+      <div class="cta-container animate-on-scroll">
+        <div class="cta-glow"></div>
+        <span class="tag">READY TO BEGIN?</span>
+        <h2>Simplifying Campus Placements<br>for Everyone</h2>
+        <p>
+          Whether you're a student seeking opportunities, a recruiter searching for talent,
+          or an alumnus supporting the next generation — CareerNest brings the entire
+          placement ecosystem together in one powerful platform.
+        </p>
+        <div class="cta-buttons">
+          <button class="btn-primary btn-lg" id="cta-get-started">
+            <span>Get Started</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer" id="footer">
+    <div class="container">
+      <div class="footer-container">
+        <!-- Brand -->
+        <div class="footer-brand">
+          <a href="#" class="logo">
+            <span class="logo-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="15"/></svg>
+            </span>
+            <span class="logo-text">CareerNest</span>
+          </a>
+          <p>
+            Transforming campus placements with intelligent automation and transparency.
+            Empowering students, recruiters, and institutions.
+          </p>
+          <div class="footer-contact">
+            <div><span class="contact-icon">✉️</span> hello@careernest.com</div>
+            <div><span class="contact-icon">📞</span> +91 123 456 7890</div>
+            <div><span class="contact-icon">📍</span> Hyderabad, India</div>
+          </div>
+        </div>
+
+        <!-- Links -->
+        <div class="footer-links-group">
+          <div class="footer-col">
+            <h4>Product</h4>
+            <a href="#features">Features</a>
+            <a href="#process">How it Works</a>
+            <a href="#">Pricing</a>
+            <a href="#">Integrations</a>
+          </div>
+          <div class="footer-col">
+            <h4>Company</h4>
+            <a href="#">About Us</a>
+            <a href="#">Careers</a>
+            <a href="#">Blog</a>
+            <a href="#">Press</a>
+          </div>
+          <div class="footer-col">
+            <h4>Support</h4>
+            <a href="#">Help Center</a>
+            <a href="#">Documentation</a>
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+          </div>
+        </div>
+
+        <!-- Newsletter -->
+        <div class="footer-newsletter">
+          <h4>Stay Updated</h4>
+          <p>Get the latest updates on placement trends and product features.</p>
+          <div class="subscribe-box">
+            <input type="email" placeholder="Enter your email" id="email-input" aria-label="Email address">
+            <button id="subscribe-btn">➤</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2026 CareerNest. All rights reserved.</p>
+        <div class="socials">
+          <a href="#" aria-label="LinkedIn">in</a>
+          <a href="#" aria-label="Twitter">𝕏</a>
+          <a href="#" aria-label="Facebook">f</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

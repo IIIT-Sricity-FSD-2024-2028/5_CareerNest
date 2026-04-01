@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <link rel="stylesheet" href="loginstyle.css">
+</head>
+
+<body class="candidate-bg">
+
+    <div class="main-wrapper">
+        <div class="actor-tabs">
+            <div class="actor-card active" data-role="candidate">
+                <div class="icon-box candidate-icon">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <p>Candidate</p>
+            </div>
+            <div class="actor-card" data-role="alumni">
+                <div class="icon-box alumni-icon">
+                    <i class="fa-solid fa-user-group"></i>
+                </div>
+                <p>Alumni</p>
+            </div>
+            <div class="actor-card" data-role="recruiter">
+                <div class="icon-box recruiter-icon">
+                    <i class="fa-solid fa-briefcase"></i>
+                </div>
+                <p>Recruiter</p>
+            </div>
+            <div class="actor-card" data-role="officer">
+                <div class="icon-box officer-icon">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <p>Placement Officer</p>
+            </div>
+        </div>
+
+        <div class="login-container">
+            <h1>Login</h1>
+
+            <div class="input-group">
+                <p class="label">Email ID</p>
+                <input type="email" id="email" placeholder="Enter your email">
+            </div>
+
+            <div class="input-group">
+                <p class="label">Password</p>
+                <div class="password-wrapper">
+                    <input type="password" id="password" placeholder="Enter your password">
+                    <span id="togglePassword">
+                        <i class="fa-solid fa-eye"></i>
+                    </span>
+                </div>
+            </div>
+
+            <button class="login-btn" onclick="login()">Login</button>
+
+            <p id="msg-display"></p>
+
+            
+        </div>
+
+        <div class="footer-action">
+            <button class="home-btn" onclick="window.location.href='/'">Back To Home</button>
+        </div>
+    </div>
+
+    <script src="loginscript.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CareerNest - Dashboard</title>
+    <link rel="stylesheet" href="../styles/p1.css" />
+</head>
+
+<body>
+    <div class="frame">
+        <!-- ═══ Sidebar ═══ -->
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <h2>CareerNest</h2>
+                <span>Placement Officer</span>
+            </div>
+
+            <ul class="sidebar-nav">
+                <li class="nav-item active" onclick="location.href='p1.html'">
+                    <span>Dashboard</span>
+                </li>
+                <li class="nav-item" onclick="location.href='p2.html'">
+                    <span>Review Opportunities</span>
+                </li>
+                <li class="nav-item" onclick="location.href='p3.html'">
+                    <span>Statistics</span>
+                </li>
+                <li class="nav-item" onclick="location.href='p4.html'">
+                    <span>Recruiters</span>
+                </li>
+                <li class="nav-item" onclick="location.href='p5.html'">
+                    <span>User Oversight</span>
+                </li>
+                <li class="nav-item" onclick="location.href='p6.html'">
+                    <span>App Tracking</span>
+                </li>
+            </ul>
+
+            <!-- ✅ Sign Out (FIXED) -->
+            <div class="sidebar-signout">
+                <a href="../../login.html" style="text-decoration: none; color: inherit;">
+                    <span>Sign Out</span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- ═══ Header ═══ -->
+        <header class="header">
+            <div class="header-title">Dashboard</div>
+
+            <div class="header-profile">
+                <div class="profile-dropdown">
+                    
+                    <!-- ✅ Sign Out (FIXED HERE ALSO) -->
+                    <a class="profile-dd-item signout" href="../../login.html">
+                        Sign Out
+                    </a>
+
+                </div>
+            </div>
+        </header>
+
+        <!-- ═══ Main Content ═══ -->
+        <main class="main-content" id="mainContent">
+            <div class="hero-card">
+                <h1>Placement Control Center</h1>
+                <p class="hero-sub">Senior Placement Officer Dashboard</p>
+                <p class="hero-desc">Manage placement drives, review recruiter submissions, and monitor student
+                    participation.</p>
+                <button class="hero-btn" onclick="location.href='p2.html'">Review Opportunities</button>
+                <button class="hero-btn hero-btn-outline" onclick="location.href='p3.html'">View Activity</button>
+            </div>
+
+            <div class="alert-bar" id="alertBar">
+                <div class="alert-left">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9f2d00" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                        </path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    <p id="alertText"></p>
+                </div>
+                <button class="alert-btn" onclick="location.href='p2.html'">Review</button>
+            </div>
+
+            <div class="stats-row" id="statsRow"></div>
+
+            <div class="panels-row">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3>Recent Submissions</h3>
+                        <a class="panel-link" href="p2.html">Review All →</a>
+                    </div>
+                    <div class="panel-body" id="submissionsBody"></div>
+                </div>
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3>Stakeholder Overview</h3>
+                    </div>
+                    <div class="panel-body" id="stakeholderBody"></div>
+                </div>
+            </div>
+
+            <div class="panels-row">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3>Active Placement Drives</h3>
+                    </div>
+                    <div class="panel-body" id="drivesBody"></div>
+                </div>
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3>Upcoming Interviews</h3>
+                    </div>
+                    <div class="panel-body" id="interviewsBody"></div>
+                </div>
+            </div>
+        </main>
+
+        <!-- ═══ Profile Content ═══ -->
+        <main class="main-content" id="profileContent" style="display:none;"></main>
+    </div>
+    <script src="../js files/mockdata.js"></script>
+    <script src="../js files/p1.js"></script>
+</body>
+
+</html>

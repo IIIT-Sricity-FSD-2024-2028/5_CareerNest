@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CareerNest - Statistics</title>
+    <link rel="stylesheet" href="../styles/p3.css">
+</head>
+<body>
+    <div class="frame">
+        <nav class="sidebar">
+
+            <div class="sidebar-brand">
+                <h2>CareerNest</h2>
+                <span>Placement Officer</span>
+            </div>
+
+            <ul class="sidebar-nav">
+                <li class="nav-item" onclick="location.href='p1.html'"><span>Dashboard</span></li>
+                <li class="nav-item" onclick="location.href='p2.html'"><span>Review Opportunities</span></li>
+                <li class="nav-item active" onclick="location.href='p3.html'"><span>Statistics</span></li>
+                <li class="nav-item" onclick="location.href='p4.html'"><span>Recruiters</span></li>
+                <li class="nav-item" onclick="location.href='p5.html'"><span>User Oversight</span></li>
+                <li class="nav-item" onclick="location.href='p6.html'"><span>App Tracking</span></li>
+            </ul>
+
+            <!-- ✅ FIXED SIGNOUT -->
+            <div class="sidebar-signout">
+                <a href="../../login.html" style="text-decoration:none; color:inherit;">
+                    <span>Sign Out</span>
+                </a>
+            </div>
+
+        </nav>
+
+        <header class="header">
+            <div class="header-title">Statistics</div>
+
+            <div class="header-profile">
+
+                <div class="profile-dropdown">
+
+                    <a class="profile-dd-item" onclick="location.href='p1.html?view=profile'">
+                        My Profile
+                    </a>
+
+                    <!-- ✅ FIXED SIGNOUT -->
+                    <a class="profile-dd-item signout" href="../../login.html">
+                        Sign Out
+                    </a>
+
+                </div>
+
+            </div>
+        </header>
+
+        <main class="main-content" id="mainContent">
+            <div class="stats-row" id="statsRow1"></div>
+            <div class="stats-row" id="statsRow2"></div>
+
+            <div class="chart-card full">
+                <div class="chart-header">
+                    <h3>Monthly Placements &amp; Internships Trend</h3>
+                    <div class="chart-toggles">
+                        <button class="chart-toggle active" id="btnFullTime" onclick="toggleLine('fulltime', this)"><span class="toggle-dot purple-dot"></span> Full Time</button>
+                        <button class="chart-toggle active" id="btnInternships" onclick="toggleLine('internships', this)"><span class="toggle-dot green-dot"></span> Internships</button>
+                    </div>
+                </div>
+                <canvas id="lineChart"></canvas>
+            </div>
+
+            <div class="charts-row">
+                <div class="chart-card"><h3>Branch-wise Placement</h3><canvas id="barChart"></canvas></div>
+                <div class="chart-card"><h3>Placements by Branch</h3><canvas id="doughnutChart"></canvas></div>
+            </div>
+
+            <div class="chart-card full">
+                <h3>Branch-wise Summary</h3>
+                <table class="summary-table">
+                    <thead><tr><th>Branch</th><th>Total Students</th><th>Placed</th><th>Rate</th><th>Progress</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </main>
+
+        <!-- ═══ Profile Content ═══ -->
+        <main class="main-content" id="profileContent" style="display:none;"></main>
+    </div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="../js files/mockdata.js"></script>
+<script src="../js files/p3.js"></script>
+</body>
+</html>

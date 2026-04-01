@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Assessments &amp; Interviews</title>
+
+  <!-- COMMON CSS -->
+  <link rel="stylesheet" href="../Style/style.css">
+
+  <!-- PAGE CSS -->
+  <link rel="stylesheet" href="../Style/assessments.css">
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+
+  <!-- SIDEBAR -->
+  <aside>
+    <div>
+      <h1>CareerNest</h1>
+      <p>Recruiter</p>
+
+      <a href="profile.html" style="text-decoration: none; color: inherit;">
+        <div class="profile" style="cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+          <div class="avatar">PK</div>
+          <div>
+            <p>Priya Kapo</p>
+            <p class="email">priya12@gmail.com</p>
+          </div>
+        </div>
+      </a>
+
+      <nav>
+        <ul>
+          <li><a href="index.html" style="display:flex; align-items:center; gap:10px;"><i data-lucide="layout-dashboard"></i> Dashboard</a></li>
+          <li><a href="post.html" style="display:flex; align-items:center; gap:10px;"><i data-lucide="send"></i> Post Opportunity</a></li>
+          <li><a href="myopportunities.html" style="display:flex; align-items:center; gap:10px;"><i data-lucide="briefcase"></i> My Opportunities</a></li>
+          <li><a href="applications.html" style="display:flex; align-items:center; gap:10px;"><i data-lucide="users"></i> Applications</a></li>
+          <li class="active"><a href="assessments.html" style="display:flex; align-items:center; gap:10px;"><i data-lucide="calendar-check"></i> Assessments</a></li>
+        </ul>
+      </nav>
+    </div>
+
+    <a href="../../login.html" class="logout" style="text-decoration: none; color: white; display: block; padding: 10px; text-align: center; border-radius: 8px; background: rgba(255,255,255,0.1);">Sign Out</a>
+  </aside>
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- NAVBAR -->
+    <header>
+      <h2>Assessments</h2>
+      <div class="nav-right" style="position: relative; display: flex; gap: 15px;">
+        <!-- Notification -->
+        <div style="position: relative;">
+          <a href="#" onclick="document.getElementById('notifMenu').classList.toggle('show')" style="color: #6A7282; display: flex; align-items: center; margin-top:5px;"><i data-lucide="bell"></i></a>
+          <div id="notifMenu" class="dropdown-menu">
+            <h4>Notifications</h4>
+            <hr>
+            <p>No new notifications right now.</p>
+          </div>
+        </div>
+        <!-- Profile -->
+        <div style="position: relative;">
+          <div class="avatar small" style="cursor: pointer;" onclick="document.getElementById('profileMenu').classList.toggle('show')">PK</div>
+          <div id="profileMenu" class="dropdown-menu">
+            <h4>Priya Kapo</h4>
+            <p style="font-size:12px; color:#6B7280;">priya12@gmail.com</p>
+            <hr>
+            <a href="profile.html" style="color: #374151; display: block; margin-bottom: 8px;">My Profile</a>
+            <a href="login.html" style="color:#DC2626; display: block;">Sign Out</a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- TOP SECTION -->
+    <section class="banner assessments-banner">
+      <div class="banner-content">
+        <h2>Assessments &amp; Interviews</h2>
+        <p>Schedule and manage recruitment rounds</p>
+      </div>
+      <button class="primary action-btn" onclick="openScheduleModal()">+ Schedule Round</button>
+    </section>
+
+    <!-- LIST SECTION -->
+    <section class="list-section" id="assessmentsList">
+       <!-- Dynamic content will be loaded here -->
+    </section>
+
+  </main>
+
+  <!-- SCHEDULE MODAL -->
+  <div class="overlay" id="scheduleModal">
+    <div class="modal large-modal">
+      <h3 style="text-align: left; margin-bottom: 20px;">Schedule New Round</h3>
+      <form id="scheduleForm" onsubmit="handleScheduleSubmit(event)">
+        <div class="form-group">
+          <label>Title</label>
+          <input type="text" id="m_title" placeholder="e.g. Technical Interview - Round 1" required>
+        </div>
+        
+        <div class="form-group">
+          <label>Role</label>
+          <input type="text" id="m_role" placeholder="e.g. Software Engineer" required>
+        </div>
+
+        <div class="row">
+          <div class="form-group">
+            <label>Date</label>
+            <input type="date" id="m_date" required>
+          </div>
+          <div class="form-group">
+            <label>Time</label>
+            <input type="time" id="m_time" required>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="form-group">
+            <label>Platform</label>
+            <input type="text" id="m_platform" placeholder="e.g. Google Meet, HackerRank" required>
+          </div>
+          <div class="form-group">
+            <label>Type</label>
+            <select id="m_type" required>
+              <option value="Online Test">Online Test</option>
+              <option value="Technical Interview">Technical Interview</option>
+              <option value="HR Interview">HR Interview</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Link</label>
+          <input type="url" id="m_link" placeholder="https://..." required>
+        </div>
+
+        <div class="actions" style="justify-content: flex-end; margin-top: 20px;">
+          <button type="button" class="secondary" onclick="closeScheduleModal()" style="color: #6B7280; border-color: #D1D5DB;">Cancel</button>
+          <button type="submit" class="primary" style="background: #0F8F63; color: white;">Schedule</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- SUCCESS MODAL -->
+  <div class="overlay" id="successModal">
+    <div class="modal">
+      <div class="icon-success"><i data-lucide="check"></i></div>
+      <h3>Round Scheduled</h3>
+      <p>Round details are scheduled</p>
+    </div>
+  </div>
+
+  <!-- DATA FILES -->
+  <script src="../data/mockdata-assessments.js"></script>
+  <!-- JS FILES -->
+  <script src="../js/assessments.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>College Admin — Students | CareerNest</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="../super-admin/style.css" />
+  <style>
+    .sidebar { background: #0c4a6e; }
+    .sidebar .brand p { color: #7dd3fc; }
+    .sidebar nav a { color: #7dd3fc; }
+    .sidebar nav a:hover, .sidebar nav a.active { background: rgba(14,165,233,.15); color: #fff; border-left-color: #0ea5e9; }
+    .sidebar .signout { border-top-color: #0369a1; }
+    .topbar .avatar { background: #0ea5e9; }
+    .btn-primary { background: #0ea5e9; }
+    .btn-primary:hover { background: #0284c7; }
+    .search-bar { display:flex;gap:10px;margin-bottom:16px; }
+    .search-bar input { flex:1;padding:9px 14px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px; }
+    .search-bar input:focus { outline:none;border-color:#0ea5e9; }
+  </style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="brand">
+    <h2><i class="fa-solid fa-building-columns" style="color:#7dd3fc;margin-right:6px"></i>CareerNest</h2>
+    <p id="sidebar-college">College Admin</p>
+  </div>
+  <nav>
+    <a href="index.html"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+    <a href="officers.html"><i class="fa-solid fa-shield-halved"></i> Placement Officers</a>
+    <a href="students.html" class="active"><i class="fa-solid fa-graduation-cap"></i> Students</a>
+  </nav>
+  <div class="signout">
+    <a href="../login.html" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Sign Out</a>
+  </div>
+</aside>
+
+<div class="main">
+  <header class="topbar">
+    <span class="title">Students</span>
+    <div class="user-pill">
+      <span id="topbar-name">College Admin</span>
+      <div class="avatar" id="topbar-avatar">CA</div>
+    </div>
+  </header>
+
+  <main class="content">
+    <div class="section-header">
+      <h2>Students — <span id="college-label">Your College</span></h2>
+      <span id="count-badge" class="badge badge-blue">0 students</span>
+    </div>
+
+    <div class="search-bar">
+      <input id="search" placeholder="Search by name, email or roll number…" oninput="filterStudents()" />
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Roll No.</th>
+            <th>Department</th>
+            <th>CGPA</th>
+            <th>Backlogs</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr><td colspan="6" style="text-align:center;padding:32px;color:#94a3b8">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<script type="module">
+  import { api } from '../api.js';
+
+  const role = localStorage.getItem('userRole');
+  if (role !== 'college_admin') window.location.href = '../login.html';
+
+  const name = localStorage.getItem('userName') || 'College Admin';
+  const collegeId = localStorage.getItem('collegeId');
+
+  document.getElementById('topbar-name').textContent = name;
+  document.getElementById('topbar-avatar').textContent =
+    name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+
+  let allStudents = [];
+
+  async function loadCollegeName() {
+    if (!collegeId || collegeId === 'null') return;
+    try {
+      const college = await api.get(`/colleges/${collegeId}`, 'college_admin');
+      document.getElementById('sidebar-college').textContent = college.name;
+      document.getElementById('college-label').textContent = college.name;
+    } catch (e) {}
+  }
+
+  async function loadStudents() {
+    const tbody = document.getElementById('tbody');
+    try {
+      const users = await api.get('/users', 'college_admin');
+      allStudents = users.filter(u => u.role === 'candidate');
+      document.getElementById('count-badge').textContent = `${allStudents.length} students`;
+      renderTable(allStudents);
+    } catch (e) {
+      tbody.innerHTML = `<tr><td colspan="6" style="color:#ef4444;padding:24px">${e.message}</td></tr>`;
+    }
+  }
+
+  function renderTable(students) {
+    const tbody = document.getElementById('tbody');
+    if (!students.length) {
+      tbody.innerHTML = '<tr><td colspan="6"><div class="empty"><i class="fa-solid fa-graduation-cap"></i><p>No students found.</p></div></td></tr>';
+      return;
+    }
+    tbody.innerHTML = students.map(u => `
+      <tr>
+        <td>
+          <div class="chip">
+            <div class="av ca">${(u.avatar || u.name.slice(0,2)).toUpperCase()}</div>
+            <div>
+              <div style="font-weight:600">${u.name}</div>
+              <div style="font-size:11px;color:#64748b">${u.email}</div>
+            </div>
+          </div>
+        </td>
+        <td style="font-size:12px;font-family:monospace">${u.rollNumber || '—'}</td>
+        <td style="font-size:13px">${u.department || '—'}</td>
+        <td style="font-weight:600;color:${(u.cgpa||0) >= 8 ? '#16a34a' : (u.cgpa||0) >= 6.5 ? '#d97706' : '#ef4444'}">${u.cgpa ?? '—'}</td>
+        <td>${u.backlogs > 0
+          ? `<span class="badge badge-red">${u.backlogs}</span>`
+          : '<span class="badge badge-green">0</span>'
+        }</td>
+        <td><span class="badge ${u.status === 'active' ? 'badge-green' : 'badge-gray'}">${u.status || 'active'}</span></td>
+      </tr>
+    `).join('');
+  }
+
+  window.filterStudents = () => {
+    const q = document.getElementById('search').value.toLowerCase();
+    const filtered = allStudents.filter(u =>
+      u.name.toLowerCase().includes(q) ||
+      (u.email || '').toLowerCase().includes(q) ||
+      (u.rollNumber || '').toLowerCase().includes(q)
+    );
+    renderTable(filtered);
+  };
+
+  window.logout = () => { localStorage.clear(); window.location.href = '../login.html'; };
+
+  loadCollegeName();
+  loadStudents();
+</script>
+</body>
+</html>

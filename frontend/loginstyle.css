@@ -1,18 +1,21 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
 :root {
-    --candidate-color: #6366F1;
-    --alumni-color: #F59E0B;
-    --recruiter-color: #10B981;
-    --officer-color: #8B5CF6;
+    --candidate-color:    #6366F1;
+    --alumni-color:       #F59E0B;
+    --recruiter-color:    #10B981;
+    --officer-color:      #8B5CF6;
+    --college-admin-color: #0ea5e9;
+    --super-admin-color:   #7c3aed;
 
     --candidate-bg: #1E2A44;
-    --alumni-bg: #E67E22;
+    --alumni-bg:    #E67E22;
     --recruiter-bg: #27AE60;
-    --officer-bg: #8E44AD;
+    --officer-bg:   #8E44AD;
 
     --transition-speed: 0.4s;
 }
+
 
 * {
     margin: 0;
@@ -48,7 +51,7 @@ body.officer-bg {
 
 .main-wrapper {
     width: 100%;
-    max-width: 850px;
+    max-width: 900px;
     padding: 20px;
     display: flex;
     flex-direction: column;
@@ -58,22 +61,23 @@ body.officer-bg {
 
 .actor-tabs {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
-    gap: 15px;
+    gap: 12px;
     width: 100%;
 }
 
 .actor-card {
     background: white;
-    padding: 20px;
+    padding: 16px 12px;
     border-radius: 16px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
-    width: 160px;
+    width: 130px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
@@ -113,10 +117,19 @@ body.officer-bg {
     background-color: var(--officer-color);
 }
 
+.college-admin-icon {
+    background-color: var(--college-admin-color);
+}
+
+.super-admin-icon {
+    background-color: var(--super-admin-color);
+}
+
 .actor-card p {
     font-weight: 600;
-    font-size: 14px;
+    font-size: 12px;
     color: #444;
+    text-align: center;
 }
 
 .login-container {
@@ -209,6 +222,13 @@ input:focus {
     min-height: 20px;
 }
 
+.demo-hint {
+    text-align: center;
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: -10px;
+}
+
 .forgot-link {
     text-align: center;
     color: #6366F1;
@@ -250,6 +270,12 @@ input:focus {
         flex-wrap: wrap;
     }
 
+    .actor-card {
+        width: calc(33% - 10px);
+    }
+}
+
+@media (max-width: 480px) {
     .actor-card {
         width: calc(50% - 10px);
     }

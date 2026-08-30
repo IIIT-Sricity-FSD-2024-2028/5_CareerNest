@@ -21,6 +21,14 @@ export class UsersService {
     return this.repo.findByRole(role);
   }
 
+  findByCollege(collegeId: number): User[] {
+    return this.repo.findByCollegeId(collegeId);
+  }
+
+  findByRoleAndCollege(role: string, collegeId: number): User[] {
+    return this.repo.findByRoleAndCollege(role, collegeId);
+  }
+
   create(dto: CreateUserDto): User {
     return this.repo.create(dto as Omit<User, 'id'>);
   }
@@ -34,7 +42,7 @@ export class UsersService {
   login(email: string, password: string): Omit<User, 'password'> {
     const user = this.repo.findByEmail(email);
     if (!user) throw new UnauthorizedException('Invalid email or password');
-    const pwd = user.password ?? '123';   // existing mock users have no password field → default '123'
+    const pwd = user.password ?? '123';   // existing mock users have no password → default '123'
     if (pwd !== password) throw new UnauthorizedException('Invalid email or password');
     // Never return the password field to the client
     const { password: _omit, ...safe } = user as any;

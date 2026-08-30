@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>College Admin — Dashboard | CareerNest</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="../super-admin/style.css" />
+  <style>
+    /* Override sidebar color for college admin */
+    .sidebar { background: #0c4a6e; }
+    .sidebar .brand p { color: #7dd3fc; }
+    .sidebar nav a { color: #7dd3fc; }
+    .sidebar nav a:hover, .sidebar nav a.active {
+      background: rgba(14,165,233,.15); color: #fff; border-left-color: #0ea5e9;
+    }
+    .sidebar .signout { border-top-color: #0369a1; }
+    .topbar .avatar { background: #0ea5e9; }
+    .btn-primary { background: #0ea5e9; }
+    .btn-primary:hover { background: #0284c7; }
+    .stat-card.accent .value { color: #0ea5e9; }
+  </style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="brand">
+    <h2><i class="fa-solid fa-building-columns" style="color:#7dd3fc;margin-right:6px"></i>CareerNest</h2>
+    <p id="sidebar-college">College Admin</p>
+  </div>
+  <nav>
+    <a href="index.html" class="active"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+    <a href="officers.html"><i class="fa-solid fa-shield-halved"></i> Placement Officers</a>
+    <a href="students.html"><i class="fa-solid fa-graduation-cap"></i> Students</a>
+  </nav>
+  <div class="signout">
+    <a href="../login.html" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Sign Out</a>
+  </div>
+</aside>
+
+<div class="main">
+  <header class="topbar">
+    <span class="title">College Dashboard</span>
+    <div class="user-pill">
+      <span id="topbar-name">College Admin</span>
+      <div class="avatar" id="topbar-avatar">CA</div>
+    </div>
+  </header>
+
+  <main class="content">
+    <!-- Welcome banner -->
+    <div style="background:linear-gradient(135deg,#0ea5e9,#0284c7);border-radius:12px;padding:24px;color:#fff;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <h2 style="font-size:20px;margin-bottom:4px">Welcome, <span id="welcome-name">Admin</span></h2>
+        <p style="opacity:.85;font-size:13px" id="college-name-banner">Managing your college portal</p>
+      </div>
+      <i class="fa-solid fa-building-columns" style="font-size:40px;opacity:.3"></i>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card accent"><span class="label">Students</span><span class="value" id="st-students">—</span></div>
+      <div class="stat-card"><span class="label">Placement Officers</span><span class="value" id="st-officers">—</span></div>
+      <div class="stat-card"><span class="label">Alumni</span><span class="value" id="st-alumni">—</span></div>
+      <div class="stat-card"><span class="label">Recruiters</span><span class="value" id="st-recruiters">—</span></div>
+      <div class="stat-card accent"><span class="label">Total Placed</span><span class="value" id="st-placed">—</span></div>
+    </div>
+
+    <!-- Quick links -->
+    <div class="section-header" style="margin-top:8px"><h2>Quick Actions</h2></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:28px">
+      <a href="officers.html" style="text-decoration:none">
+        <div style="background:#fff;border-radius:10px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,.08);border-left:4px solid #0ea5e9;cursor:pointer">
+          <i class="fa-solid fa-shield-halved" style="color:#0ea5e9;font-size:20px;margin-bottom:8px"></i>
+          <div style="font-weight:600">Placement Officers</div>
+          <div style="font-size:12px;color:#64748b;margin-top:2px">View & manage officers</div>
+        </div>
+      </a>
+      <a href="students.html" style="text-decoration:none">
+        <div style="background:#fff;border-radius:10px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,.08);border-left:4px solid #22c55e;cursor:pointer">
+          <i class="fa-solid fa-graduation-cap" style="color:#22c55e;font-size:20px;margin-bottom:8px"></i>
+          <div style="font-weight:600">Students</div>
+          <div style="font-size:12px;color:#64748b;margin-top:2px">View college students</div>
+        </div>
+      </a>
+      <a href="../placement total final/pages/p1.html" style="text-decoration:none">
+        <div style="background:#fff;border-radius:10px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,.08);border-left:4px solid #f59e0b;cursor:pointer">
+          <i class="fa-solid fa-briefcase" style="color:#f59e0b;font-size:20px;margin-bottom:8px"></i>
+          <div style="font-weight:600">Placement Portal</div>
+          <div style="font-size:12px;color:#64748b;margin-top:2px">Manage opportunities</div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Officers table -->
+    <div class="section-header">
+      <h2>Placement Officers</h2>
+      <a href="officers.html" class="btn btn-primary btn-sm"><i class="fa-solid fa-arrow-right"></i> View All</a>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Name</th><th>Email</th><th>Department</th><th>Status</th></tr>
+        </thead>
+        <tbody id="officers-tbody">
+          <tr><td colspan="4" style="text-align:center;padding:24px;color:#94a3b8">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<script type="module">
+  import { api } from '../api.js';
+
+  const role = localStorage.getItem('userRole');
+  if (role !== 'college_admin') { window.location.href = '../login.html'; }
+
+  const name = localStorage.getItem('userName') || 'College Admin';
+  const collegeId = localStorage.getItem('collegeId');
+
+  document.getElementById('topbar-name').textContent = name;
+  document.getElementById('welcome-name').textContent = name;
+  document.getElementById('topbar-avatar').textContent =
+    name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+
+  // Load college info
+  async function loadCollegeInfo() {
+    if (!collegeId || collegeId === 'null') return;
+    try {
+      const college = await api.get(`/colleges/${collegeId}`, 'college_admin');
+      document.getElementById('sidebar-college').textContent = college.name;
+      document.getElementById('college-name-banner').textContent = `Managing ${college.name}`;
+    } catch (e) { console.warn('Could not load college info:', e.message); }
+  }
+
+  // Load college users for stats
+  async function loadStats() {
+    if (!collegeId || collegeId === 'null') return;
+    try {
+      const users = await api.get(`/users?role=`, 'college_admin');
+      // Backend returns college-scoped users automatically via x-college-id header
+      const students = users.filter(u => u.role === 'candidate').length;
+      const officers = users.filter(u => u.role === 'placement_officer').length;
+      const alumni = users.filter(u => u.role === 'alumni').length;
+      const recruiters = users.filter(u => u.role === 'recruiter').length;
+      document.getElementById('st-students').textContent = students;
+      document.getElementById('st-officers').textContent = officers;
+      document.getElementById('st-alumni').textContent = alumni;
+      document.getElementById('st-recruiters').textContent = recruiters;
+      document.getElementById('st-placed').textContent = '—';
+
+      // Populate officers table
+      const officerRows = users.filter(u => u.role === 'placement_officer');
+      const tbody = document.getElementById('officers-tbody');
+      if (!officerRows.length) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:24px">No placement officers found</td></tr>';
+      } else {
+        tbody.innerHTML = officerRows.map(u => `
+          <tr>
+            <td>
+              <div class="chip">
+                <div class="av ca">${(u.avatar || u.name.slice(0,2)).toUpperCase()}</div>
+                <span style="font-weight:500">${u.name}</span>
+              </div>
+            </td>
+            <td style="font-size:12px;color:#64748b">${u.email}</td>
+            <td style="font-size:12px">${u.department || '—'}</td>
+            <td><span class="badge ${u.status === 'active' ? 'badge-green' : 'badge-gray'}">${u.status || 'active'}</span></td>
+          </tr>
+        `).join('');
+      }
+    } catch (e) { console.error('Stats load failed:', e.message); }
+  }
+
+  window.logout = () => { localStorage.clear(); window.location.href = '../login.html'; };
+
+  loadCollegeInfo();
+  loadStats();
+</script>
+</body>
+</html>

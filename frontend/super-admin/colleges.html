@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Super Admin — Colleges | CareerNest</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="brand">
+    <h2><i class="fa-solid fa-crown" style="color:#a78bfa;margin-right:6px"></i>CareerNest</h2>
+    <p>Super Admin Portal</p>
+  </div>
+  <nav>
+    <a href="index.html"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+    <a href="colleges.html" class="active"><i class="fa-solid fa-building-columns"></i> Colleges</a>
+    <a href="college-admin.html"><i class="fa-solid fa-user-shield"></i> College Admins</a>
+  </nav>
+  <div class="signout">
+    <a href="../login.html" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Sign Out</a>
+  </div>
+</aside>
+
+<div class="main">
+  <header class="topbar">
+    <span class="title">Colleges</span>
+    <div class="user-pill">
+      <span id="topbar-name">Super Admin</span>
+      <div class="avatar" id="topbar-avatar">SA</div>
+    </div>
+  </header>
+
+  <main class="content">
+    <div class="section-header">
+      <h2>All Colleges</h2>
+      <button class="btn btn-primary" onclick="openAddModal()">
+        <i class="fa-solid fa-plus"></i> Add College
+      </button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>College</th>
+            <th>Code</th>
+            <th>Contact</th>
+            <th>Students</th>
+            <th>Officers</th>
+            <th>Placed</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr><td colspan="8" style="text-align:center;padding:32px;color:#94a3b8">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<!-- ── Add College Modal ─────────────────────────────────────── -->
+<div class="modal-backdrop" id="add-modal">
+  <div class="modal">
+    <h3><i class="fa-solid fa-building-columns" style="color:#7c3aed;margin-right:6px"></i>Add New College</h3>
+    <div class="form-group"><label>College Name *</label><input id="f-name" placeholder="e.g. IIT Madras" /></div>
+    <div class="form-group"><label>Short Code *</label><input id="f-code" placeholder="e.g. IITM" /></div>
+    <div class="form-group"><label>Email *</label><input id="f-email" type="email" placeholder="admin@college.ac.in" /></div>
+    <div class="form-group"><label>Phone</label><input id="f-phone" placeholder="+91 44 0000 0000" /></div>
+    <div class="form-group"><label>Address</label><input id="f-address" placeholder="City, State" /></div>
+    <div class="form-group"><label>Website</label><input id="f-website" placeholder="https://college.ac.in" /></div>
+    <p id="add-err" style="color:#ef4444;font-size:12px;min-height:16px"></p>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeAddModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="addCollege()">Create College</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Edit Status Modal ─────────────────────────────────────── -->
+<div class="modal-backdrop" id="status-modal">
+  <div class="modal">
+    <h3>Update College Status</h3>
+    <div class="form-group">
+      <label>Status</label>
+      <select id="s-status">
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+        <option value="suspended">Suspended</option>
+      </select>
+    </div>
+    <p id="status-err" style="color:#ef4444;font-size:12px;min-height:16px"></p>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeStatusModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveStatus()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { SuperAdminAPI } from '../api.js';
+
+  const role = localStorage.getItem('userRole');
+  if (role !== 'super_admin') window.location.href = '../login.html';
+
+  const name = localStorage.getItem('userName') || 'Super Admin';
+  document.getElementById('topbar-name').textContent = name;
+  document.getElementById('topbar-avatar').textContent =
+    name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+
+  let colleges = [];
+  let editingCollegeId = null;
+
+  async function load() {
+    const tbody = document.getElementById('tbody');
+    try {
+      colleges = await SuperAdminAPI.getAllColleges();
+      if (!colleges.length) {
+        tbody.innerHTML = '<tr><td colspan="8"><div class="empty"><i class="fa-solid fa-building-columns"></i><p>No colleges yet. Click "Add College" to get started.</p></div></td></tr>';
+        return;
+      }
+      tbody.innerHTML = colleges.map(c => `
+        <tr>
+          <td>
+            <div class="chip">
+              <div class="av">${c.name.slice(0,2).toUpperCase()}</div>
+              <div>
+                <div style="font-weight:600">${c.name}</div>
+                <div style="font-size:11px;color:#64748b">${c.website || ''}</div>
+              </div>
+            </div>
+          </td>
+          <td><code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:12px">${c.code}</code></td>
+          <td>
+            <div style="font-size:12px">${c.email}</div>
+            <div style="font-size:11px;color:#64748b">${c.phone || ''}</div>
+          </td>
+          <td>${c.stats?.students ?? 0}</td>
+          <td>${c.stats?.placementOfficers ?? 0}</td>
+          <td><strong style="color:#16a34a">${c.stats?.placed ?? 0}</strong></td>
+          <td>
+            <button class="badge ${c.status === 'active' ? 'badge-green' : c.status === 'suspended' ? 'badge-red' : 'badge-gray'}"
+              style="cursor:pointer;border:none" onclick="openStatusModal(${c.id}, '${c.status}')">
+              ${c.status}
+            </button>
+          </td>
+          <td style="white-space:nowrap">
+            <a href="college-admin.html?collegeId=${c.id}&collegeName=${encodeURIComponent(c.name)}"
+               class="btn btn-outline btn-sm" title="Manage Admin">
+              <i class="fa-solid fa-user-shield"></i>
+            </a>
+          </td>
+        </tr>
+      `).join('');
+    } catch (e) {
+      tbody.innerHTML = `<tr><td colspan="8" style="color:#ef4444;padding:24px">${e.message}</td></tr>`;
+    }
+  }
+
+  window.openAddModal = () => {
+    document.getElementById('add-err').textContent = '';
+    ['f-name','f-code','f-email','f-phone','f-address','f-website'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('add-modal').classList.add('open');
+  };
+  window.closeAddModal = () => document.getElementById('add-modal').classList.remove('open');
+
+  window.addCollege = async () => {
+    const errEl = document.getElementById('add-err');
+    const name = document.getElementById('f-name').value.trim();
+    const code = document.getElementById('f-code').value.trim();
+    const email = document.getElementById('f-email').value.trim();
+    if (!name || !code || !email) { errEl.textContent = 'Name, code and email are required.'; return; }
+    try {
+      await SuperAdminAPI.createCollege({
+        name, code, email,
+        phone: document.getElementById('f-phone').value.trim() || undefined,
+        address: document.getElementById('f-address').value.trim() || undefined,
+        website: document.getElementById('f-website').value.trim() || undefined,
+      });
+      closeAddModal();
+      load();
+    } catch (e) { errEl.textContent = e.message; }
+  };
+
+  window.openStatusModal = (id, currentStatus) => {
+    editingCollegeId = id;
+    document.getElementById('s-status').value = currentStatus;
+    document.getElementById('status-err').textContent = '';
+    document.getElementById('status-modal').classList.add('open');
+  };
+  window.closeStatusModal = () => document.getElementById('status-modal').classList.remove('open');
+
+  window.saveStatus = async () => {
+    const status = document.getElementById('s-status').value;
+    try {
+      await SuperAdminAPI.updateCollegeStatus(editingCollegeId, status);
+      closeStatusModal();
+      load();
+    } catch (e) { document.getElementById('status-err').textContent = e.message; }
+  };
+
+  window.logout = () => { localStorage.clear(); window.location.href = '../login.html'; };
+
+  load();
+</script>
+</body>
+</html>

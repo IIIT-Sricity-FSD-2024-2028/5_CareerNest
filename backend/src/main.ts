@@ -2,6 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { LogFileService } from './common/middleware/log-file.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -10,7 +12,7 @@ async function bootstrap() {
   app.enableCors({
     origin: '*',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    allowedHeaders: 'Content-Type, Accept, x-role',
+    allowedHeaders: 'Content-Type, Accept, x-role, x-user-id, x-college-id',
   });
 
   // Global validation pipe
@@ -21,6 +23,10 @@ async function bootstrap() {
       transform: true,
     }),
   );
+
+  // Global error-handling filter — catches ALL exceptions and writes to log files
+  const logFileService = app.get(LogFileService);
+  app.useGlobalFilters(new AllExceptionsFilter(logFileService));
 
   // Serve Swagger documentation from static JSON file
   const fs = require('fs');

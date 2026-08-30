@@ -26,6 +26,7 @@ export interface Application {
   remarks?: string;
   resumeFile?: string;
   initials?: string;
+  collegeId?: number;
   rounds?: {
     resume?: string;
     assessment?: string;
@@ -33,6 +34,7 @@ export interface Application {
     hr?: string;
   };
 }
+
 
 @Injectable()
 export class ApplicationsRepository {
@@ -158,6 +160,10 @@ export class ApplicationsRepository {
     );
   }
 
+  findByCollege(collegeId: number): Application[] {
+    return this.applications.filter(a => a.collegeId === collegeId);
+  }
+
   create(data: Omit<Application, 'id'>): Application {
     const app: Application = { id: this.nextId++, ...data };
     this.applications.push(app);
@@ -178,3 +184,4 @@ export class ApplicationsRepository {
     return true;
   }
 }
+

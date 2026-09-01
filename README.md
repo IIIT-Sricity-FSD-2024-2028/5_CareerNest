@@ -30,7 +30,7 @@
 10. [REST API & Swagger Documentation](#-rest-api--swagger-documentation)
 11. [Project Directory Structure](#-project-directory-structure)
 12. [Installation, Setup & Running Guide](#-installation-setup--running-guide)
-13. [Demo & Test Credentials](#-demo--test-credentials)
+13. [Demo & Test Credentials & Tier Access Matrix](#-demo--test-credentials--tier-access-matrix)
 
 ---
 

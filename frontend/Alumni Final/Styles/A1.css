@@ -1,0 +1,142 @@
+/* ===== DASHBOARD PAGE ===== */
+
+/* Dashboard Content Area */
+.dash-content { display: flex; flex-direction: column; gap: 24px; padding: 0 32px 32px; }
+
+/* Welcome Banner */
+.welcome-banner {
+  background: linear-gradient(135deg, #e76a00, #c65400);
+  border-radius: 16px; padding: 40px;
+  color: #fff; display: flex; flex-direction: column; gap: 8px;
+}
+.welcome-title { font-weight: 700; font-size: 28px; }
+.welcome-sub { font-size: 15px; color: #ffffffcc; }
+.welcome-desc { font-size: 14px; color: #ffffffb2; line-height: 1.6; max-width: 600px; margin-top: 4px; }
+.welcome-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: #fff; color: #c65400; font-weight: 600; font-size: 14px;
+  padding: 10px 24px; border-radius: 8px; margin-top: 12px; width: fit-content;
+  transition: background 0.2s, transform 0.2s;
+}
+.welcome-btn:hover { background: #fff7ed; transform: translateX(4px); }
+
+/* Stats Row */
+.stats-row { display: flex; gap: 20px; }
+.stat-card {
+  flex: 1; background: #fff; border-radius: 14px; padding: 24px;
+  box-shadow: 0 1px 3px #0000001a;
+  display: flex; flex-direction: column; gap: 8px;
+  cursor: pointer; transition: box-shadow 0.2s, transform 0.2s;
+  user-select: none;
+}
+.stat-card:hover { box-shadow: 0 4px 12px #0000001a; transform: translateY(-2px); }
+.stat-icon {
+  width: 44px; height: 44px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+}
+.stat-icon--pending { background: #fef3c7; }
+.stat-icon--approved { background: #d1fae5; }
+.stat-icon--total { background: #dbeafe; }
+.stat-icon--declined { background: #fee2e2; }
+.stat-number { font-weight: 700; font-size: 32px; color: #101828; }
+.stat-label { font-size: 14px; color: #6b7280; }
+
+/* Dashboard Bottom Grid */
+.dash-bottom { display: flex; gap: 24px; }
+.dash-pending { flex: 1.5; display: flex; flex-direction: column; gap: 16px; }
+.dash-profile-col { flex: 1; display: flex; flex-direction: column; gap: 16px; }
+
+.dash-section-head { display: flex; align-items: center; gap: 10px; }
+.dash-section-title { font-weight: 600; font-size: 18px; color: #101828; }
+.dash-count-badge {
+  background: #e76a00; color: #fff; font-weight: 600; font-size: 13px;
+  width: 26px; height: 26px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* Mini Cards (Pending preview) */
+.mini-card {
+  background: #fff; border-radius: 14px; padding: 20px;
+  box-shadow: 0 1px 3px #0000001a;
+  display: flex; flex-direction: column; gap: 10px;
+  user-select: none;
+}
+.mini-card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+.mini-card-left { display: flex; gap: 12px; align-items: center; }
+.avatar--mini { width: 40px; height: 40px; font-size: 14px; }
+.mini-name { font-weight: 600; font-size: 15px; color: #101828; word-break: break-word; overflow-wrap: anywhere; }
+.mini-detail { font-size: 13px; color: #6b7280; }
+.badge--sm { font-size: 12px; padding: 4px 12px; }
+.mini-for { font-size: 13px; color: #4b5563; word-break: break-word; overflow-wrap: anywhere; }
+.mini-msg { font-size: 13px; color: #6b7280; font-style: italic; line-height: 1.5; word-break: break-word; overflow-wrap: anywhere; }
+.mini-actions { display: flex; gap: 10px; margin-top: 4px; }
+.mini-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 500;
+  transition: 0.2s;
+}
+.mini-btn--approve { background: #e76a00; color: #fff; }
+.mini-btn--approve:hover { background: #c65400; }
+.mini-btn--review { background: #fff; color: #374151; border: 1px solid #d1d5db; }
+.mini-btn--review:hover { background: #f9fafb; }
+
+/* Alumni Profile Card */
+.alumni-card {
+  background: #fff; border-radius: 14px; padding: 24px;
+  box-shadow: 0 1px 3px #0000001a;
+  user-select: none;
+}
+.alumni-card-body { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.avatar--lg { width: 72px; height: 72px; font-size: 24px; }
+.alumni-name { font-weight: 600; font-size: 18px; color: #101828; }
+.alumni-company { font-size: 14px; color: #6b7280; }
+.alumni-tags { display: flex; gap: 8px; margin-top: 4px; }
+.alumni-tag {
+  font-size: 12px; font-weight: 500; padding: 4px 14px; border-radius: 9999px;
+}
+.alumni-tag--orange { background: #fef3c7; color: #d97706; }
+.alumni-tag--gray { background: #f1f3f5; color: #4a5568; }
+.alumni-stats {
+  width: 100%; margin-top: 16px; display: flex; flex-direction: column; gap: 12px;
+  border-top: 1px solid #e5e7eb; padding-top: 16px;
+}
+.alumni-stat-row {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 14px; color: #6b7280;
+}
+.alumni-stat-row span { display: flex; align-items: center; gap: 8px; }
+.alumni-stat-row strong { color: #101828; }
+
+/* Impact Card */
+.impact-card {
+  background: #fff7ed; border-radius: 14px; padding: 20px;
+  display: flex; gap: 16px; align-items: flex-start;
+  border: 1px solid #fed7aa;
+}
+.impact-icon {
+  width: 44px; height: 44px; background: #ffedd5; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.impact-title { font-weight: 600; font-size: 15px; color: #c2410c; margin-bottom: 4px; }
+.impact-desc { font-size: 13px; color: #78350f; line-height: 1.5; }
+
+/* Topbar right side (for dashboard avatar) */
+.topbar-right { display: flex; align-items: center; gap: 16px; }
+.avatar--topbar {
+  width: 36px; height: 36px; font-size: 13px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+a.avatar--topbar { text-decoration: none; color: #fff; }
+a.avatar--topbar:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.3);
+}
+
+/* Sidebar profile link */
+a.sidebar-profile {
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+a.sidebar-profile:hover { background: #ffffff1a; }

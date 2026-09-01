@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Saved Drives — CareerNest</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',system-ui,sans-serif;background:#f1f5f9;min-height:100vh}
+    .topbar{background:#1e293b;padding:14px 24px;display:flex;align-items:center;gap:16px}
+    .topbar a{color:#94a3b8;font-size:13px;text-decoration:none}.topbar a:hover{color:#fff}
+    .topbar .title{color:#fff;font-weight:600;font-size:15px}
+    .page{max-width:900px;margin:0 auto;padding:28px 20px}
+    h1{font-size:22px;font-weight:700;color:#1e293b;margin-bottom:4px}
+    .sub{font-size:13px;color:#64748b;margin-bottom:24px}
+    .empty{text-align:center;padding:60px 20px}
+    .empty h3{font-size:18px;color:#64748b;margin-bottom:8px}
+    .empty p{font-size:13px;color:#94a3b8}
+    .empty a{display:inline-block;margin-top:16px;background:#6366f1;color:#fff;padding:10px 22px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600}
+    .drives-list{display:flex;flex-direction:column;gap:14px}
+    .drive-card{background:#fff;border-radius:12px;padding:20px 24px;border:1px solid #e2e8f0;display:flex;align-items:center;gap:20px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+    .drive-icon{width:48px;height:48px;border-radius:10px;background:#eff6ff;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+    .drive-info{flex:1}
+    .drive-title{font-weight:700;font-size:15px;color:#1e293b}
+    .drive-company{font-size:13px;color:#6366f1;font-weight:500;margin-bottom:6px}
+    .drive-tags{display:flex;flex-wrap:wrap;gap:6px}
+    .tag{font-size:11px;padding:3px 8px;border-radius:20px;font-weight:500}
+    .tag-blue{background:#eff6ff;color:#1d4ed8}
+    .tag-green{background:#dcfce7;color:#166534}
+    .tag-orange{background:#fef3c7;color:#92400e}
+    .tag-gray{background:#f1f5f9;color:#475569}
+    .drive-actions{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+    .btn-apply{background:#6366f1;color:#fff;border:none;border-radius:8px;padding:8px 18px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+    .btn-remove{background:transparent;color:#ef4444;border:1px solid #fecaca;border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer;white-space:nowrap}
+    .btn-apply:hover{background:#4f46e5}
+    .btn-remove:hover{background:#fef2f2}
+    .saved-date{font-size:11px;color:#94a3b8}
+    .deadline-chip{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:600}
+    .deadline-urgent{background:#fee2e2;color:#dc2626}
+    .deadline-ok{background:#dcfce7;color:#166534}
+    .loading{text-align:center;padding:40px;color:#94a3b8}
+    .toast{position:fixed;bottom:24px;right:24px;background:#1e293b;color:#fff;padding:12px 18px;border-radius:10px;font-size:13px;z-index:9999;display:none}
+  </style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">← Dashboard</a>
+  <span style="color:#475569">|</span>
+  <span class="title">⭐ Saved Drives</span>
+</div>
+
+<div class="page">
+  <h1>Your Saved Drives</h1>
+  <p class="sub">Drives you bookmarked — apply before the deadline!</p>
+  <div id="list"><div class="loading">Loading saved drives...</div></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+  import { FeaturesAPI } from '../../api.js';
+
+  const role = localStorage.getItem('userRole');
+  const collegeId = localStorage.getItem('collegeId');
+  if (role !== 'candidate' || !collegeId) window.location.href = 'index.html';
+
+  async function load() {
+    const list = document.getElementById('list');
+    try {
+      const drives = await FeaturesAPI.candidate.getSavedDrives();
+      if (!drives || !drives.length) {
+        list.innerHTML = `
+          <div class="empty">
+            <h3>No saved drives yet</h3>
+            <p>Use the Advanced Search to browse drives and save the ones you're interested in.</p>
+            <a href="advanced-search.html">Browse Drives →</a>
+          </div>`;
+        return;
+      }
+      list.innerHTML = `<div class="drives-list">${drives.map(d => renderCard(d)).join('')}</div>`;
+    } catch(err) {
+      const msg = err?.message || '';
+      if (msg.includes('STANDARD') || msg.includes('403')) {
+        list.innerHTML = `<div class="empty"><h3>🔒 Standard Plan Required</h3><p>Saved Drives requires the Standard plan.</p></div>`;
+      } else {
+        list.innerHTML = `<div class="empty"><h3>Error loading drives</h3><p>${msg}</p></div>`;
+      }
+    }
+  }
+
+  function renderCard(d) {
+    const isIntern = d.type === 'internship';
+    const pkgLabel = isIntern ? `₹${(d.package/1000).toFixed(0)}K/mo stipend` : `${d.package} LPA`;
+    const daysLeft = Math.ceil((new Date(d.deadline) - new Date()) / 86400000);
+    const deadlineClass = daysLeft < 5 ? 'deadline-urgent' : 'deadline-ok';
+    return `
+      <div class="drive-card" id="card-${d.id}">
+        <div class="drive-icon">${isIntern ? '🎓' : '💼'}</div>
+        <div class="drive-info">
+          <div class="drive-title">${d.title}</div>
+          <div class="drive-company">${d.company}</div>
+          <div class="drive-tags">
+            <span class="tag tag-green">💰 ${pkgLabel}</span>
+            <span class="tag tag-blue">📍 ${d.location}</span>
+            <span class="tag tag-gray">🎓 CGPA ≥ ${d.minCgpa}</span>
+            <span class="deadline-chip ${deadlineClass}">⏰ ${daysLeft}d left</span>
+          </div>
+        </div>
+        <div class="drive-actions">
+          <button class="btn-apply" onclick="applyDrive('${d.id}')">Apply Now</button>
+          <button class="btn-remove" onclick="removeSaved('${d.id}')">✕ Remove</button>
+        </div>
+      </div>`;
+  }
+
+  window.removeSaved = async (driveId) => {
+    try {
+      await FeaturesAPI.candidate.unsaveDrive(driveId);
+      document.getElementById('card-' + driveId)?.remove();
+      showToast('Removed from saved drives');
+      if (!document.querySelector('.drive-card')) load();
+    } catch(e) { showToast('Error: ' + (e?.message || '')); }
+  };
+
+  window.applyDrive = (driveId) => {
+    showToast('Redirecting to application...');
+    // In a real flow, redirect to applications page with driveId pre-filled
+  };
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.style.display = 'block';
+    setTimeout(() => { t.style.display = 'none'; }, 3000);
+  }
+
+  load();
+</script>
+</body>
+</html>

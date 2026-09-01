@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hiring Report — CareerNest Recruiter</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',system-ui,sans-serif;background:#f1f5f9;min-height:100vh}
+    .topbar{background:#1e293b;padding:14px 24px;display:flex;align-items:center;gap:16px}
+    .topbar a{color:#94a3b8;font-size:13px;text-decoration:none}.topbar a:hover{color:#fff}
+    .topbar .title{color:#fff;font-weight:600;font-size:15px}
+    .badge-prm{background:#faf5ff;color:#7c3aed;border:1px solid #ddd6fe;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600}
+    .page{max-width:1000px;margin:0 auto;padding:28px 20px}
+    h1{font-size:22px;font-weight:700;color:#1e293b;margin-bottom:4px}
+    .sub{font-size:13px;color:#64748b;margin-bottom:24px}
+    .summary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-bottom:28px}
+    .summary-card{background:#fff;border-radius:12px;padding:18px 20px;border:1px solid #e2e8f0;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+    .sum-label{font-size:11px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+    .sum-val{font-size:28px;font-weight:800;color:#1e293b}
+    .sum-val.blue{color:#3b82f6}.sum-val.green{color:#059669}.sum-val.orange{color:#d97706}.sum-val.purple{color:#7c3aed}
+    .drive-list{display:flex;flex-direction:column;gap:20px}
+    .drive-card{background:#fff;border-radius:14px;padding:24px;border:1px solid #e2e8f0;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+    .drive-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+    .drive-title{font-weight:700;font-size:16px;color:#1e293b}
+    .drive-date{font-size:12px;color:#94a3b8}
+    .funnel{display:flex;align-items:flex-end;gap:8px;height:140px}
+    .funnel-bar-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1}
+    .funnel-bar{width:100%;border-radius:6px 6px 0 0;transition:height .5s ease;position:relative;min-height:8px;display:flex;align-items:flex-start;justify-content:center}
+    .funnel-val{font-size:13px;font-weight:700;color:#fff;padding-top:6px;text-shadow:0 1px 2px rgba(0,0,0,.2)}
+    .funnel-label{font-size:11px;color:#64748b;font-weight:500;text-align:center}
+    .funnel-sub{font-size:10px;color:#94a3b8;text-align:center}
+    .rate-pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;background:#dcfce7;color:#166534;margin-left:8px}
+    .loading{text-align:center;padding:40px;color:#94a3b8}
+    .empty{text-align:center;padding:60px;color:#94a3b8}
+  </style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">← Dashboard</a>
+  <span style="color:#475569">|</span>
+  <span class="title">Hiring Reports</span>
+  <span class="badge-prm">👑 Premium</span>
+</div>
+
+<div class="page">
+  <h1>Drive Hiring Reports</h1>
+  <p class="sub">Detailed funnel analysis for every placement drive you've conducted.</p>
+
+  <div class="summary-grid" id="summary"><div style="grid-column:1/-1;text-align:center;padding:20px;color:#94a3b8">Loading...</div></div>
+  <div class="drive-list" id="list"><div class="loading">Loading drive reports...</div></div>
+</div>
+
+<script type="module">
+  import { FeaturesAPI } from '../../api.js';
+
+  const role = localStorage.getItem('userRole');
+  const collegeId = localStorage.getItem('collegeId');
+  if (role !== 'recruiter' || !collegeId) window.location.href = 'index.html';
+
+  async function load() {
+    const list = document.getElementById('list');
+    const summary = document.getElementById('summary');
+    try {
+      const reports = await FeaturesAPI.recruiter.getReports();
+      if (!reports || !reports.length) {
+        list.innerHTML = '<div class="empty"><h3>No drive reports yet</h3><p>Reports appear after drives are created.</p></div>';
+        summary.innerHTML = '';
+        return;
+      }
+      // Aggregate totals
+      const totals = reports.reduce((acc, r) => ({
+        applied: acc.applied + r.applied,
+        shortlisted: acc.shortlisted + r.shortlisted,
+        interviewed: acc.interviewed + r.interviewed,
+        offered: acc.offered + r.offered,
+        accepted: acc.accepted + r.accepted,
+      }), { applied:0, shortlisted:0, interviewed:0, offered:0, accepted:0 });
+
+      summary.innerHTML = `
+        <div class="summary-card"><div class="sum-label">Total Applied</div><div class="sum-val blue">${totals.applied}</div></div>
+        <div class="summary-card"><div class="sum-label">Shortlisted</div><div class="sum-val orange">${totals.shortlisted}</div></div>
+        <div class="summary-card"><div class="sum-label">Interviewed</div><div class="sum-val purple">${totals.interviewed}</div></div>
+        <div class="summary-card"><div class="sum-label">Offered</div><div class="sum-val green">${totals.offered}</div></div>
+        <div class="summary-card"><div class="sum-label">Accepted</div><div class="sum-val green">${totals.accepted}</div></div>
+        <div class="summary-card"><div class="sum-label">Offer Rate</div><div class="sum-val">${totals.applied ? Math.round(totals.offered/totals.applied*100) : 0}%</div></div>
+      `;
+
+      list.innerHTML = reports.map(r => renderDriveReport(r)).join('');
+    } catch(err) {
+      const msg = err?.message || '';
+      if (msg.includes('PREMIUM') || msg.includes('403')) {
+        list.innerHTML = '<div class="empty"><h3>👑 Premium Plan Required</h3><p>Hiring Reports require the Premium plan.</p></div>';
+        summary.innerHTML = '';
+      } else {
+        list.innerHTML = `<div class="empty"><h3>Error</h3><p>${msg}</p></div>`;
+      }
+    }
+  }
+
+  function renderDriveReport(r) {
+    const maxVal = r.applied;
+    const bars = [
+      { label: 'Applied',     val: r.applied,     color: '#6366f1', pct: 100 },
+      { label: 'Shortlisted', val: r.shortlisted,  color: '#f59e0b', pct: Math.round(r.shortlisted/maxVal*100) },
+      { label: 'Interviewed', val: r.interviewed,  color: '#8b5cf6', pct: Math.round(r.interviewed/maxVal*100) },
+      { label: 'Offered',     val: r.offered,      color: '#10b981', pct: Math.round(r.offered/maxVal*100) },
+      { label: 'Accepted',    val: r.accepted,     color: '#059669', pct: Math.round(r.accepted/maxVal*100) },
+    ];
+    const offerRate = maxVal ? Math.round(r.offered/maxVal*100) : 0;
+    const funnelHtml = bars.map(b => `
+      <div class="funnel-bar-wrap">
+        <div class="funnel-bar" style="background:${b.color};height:${Math.max(b.pct,6)}%"><span class="funnel-val">${b.val}</span></div>
+        <div class="funnel-label">${b.label}</div>
+        <div class="funnel-sub">${b.pct}%</div>
+      </div>`).join('');
+    return `
+      <div class="drive-card">
+        <div class="drive-head">
+          <div>
+            <div class="drive-title">${r.driveTitle} — ${r.company}<span class="rate-pill">${offerRate}% offer rate</span></div>
+            <div class="drive-date">Drive started: ${r.createdAt.split('T')[0]}</div>
+          </div>
+        </div>
+        <div class="funnel">${funnelHtml}</div>
+      </div>`;
+  }
+
+  load();
+</script>
+</body>
+</html>

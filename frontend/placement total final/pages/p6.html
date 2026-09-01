@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CareerNest - Application Tracking</title>
+    <link rel="stylesheet" href="../styles/p1.css" />
+    <link rel="stylesheet" href="../styles/p6.css" />
+    <style>
+        .search-container {
+            position: relative;
+            max-width: 400px;
+            margin-bottom: 24px;
+        }
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            pointer-events: none;
+        }
+        .app-search-input {
+            width: 100%;
+            padding: 12px 16px 12px 42px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            font-size: 15px;
+            color: #1e2939;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+            outline: none;
+            box-sizing: border-box;
+            background: #ffffff;
+        }
+        .app-search-input:focus {
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+        .app-search-input::placeholder {
+            color: #94a3b8;
+        }
+        .kanban-board {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            min-height: calc(100vh - 160px);
+            padding-bottom: 24px;
+            padding-right: 20px;
+        }
+        .kanban-col {
+            flex: 0 0 290px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+        .kanban-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            padding: 0 4px;
+            margin-bottom: 8px;
+        }
+        .kanban-badge {
+            border-radius: 20px;
+            padding: 2px 10px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+        .app-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -1px rgba(0,0,0,0.02);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+        }
+        .app-card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04);
+            transform: translateY(-4px);
+            border-color: #cbd5e1;
+        }
+        .app-candidate {
+            font-weight: 700;
+            color: #0f172a;
+            font-size: 15px;
+            letter-spacing: -0.2px;
+        }
+        .app-role {
+            font-size: 13px;
+            color: #334155;
+        }
+        .app-company {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #64748b;
+        }
+        .app-date {
+            font-size: 11px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="frame">
+
+        <nav class="sidebar">
+
+            <div class="sidebar-brand">
+                <h2>CareerNest</h2>
+                <span>Placement Officer</span>
+            </div>
+
+            <ul class="sidebar-nav">
+                <li class="nav-item" onclick="location.href='p1.html'"><span>Dashboard</span></li>
+                <li class="nav-item" onclick="location.href='p2.html'"><span>Review Opportunities</span></li>
+                <li class="nav-item" onclick="location.href='p3.html'"><span>Statistics</span></li>
+                <li class="nav-item" onclick="location.href='p4.html'"><span>Recruiters</span></li>
+                <li class="nav-item" onclick="location.href='p5.html'"><span>User Oversight</span></li>
+                <li class="nav-item active" onclick="location.href='p6.html'"><span>App Tracking</span></li>
+            </ul>
+
+            <!-- ✅ FIXED SIGNOUT -->
+            <div class="sidebar-signout">
+                <a href="../../login.html" style="text-decoration:none; color:inherit;">
+                    <span>Sign Out</span>
+                </a>
+            </div>
+
+        </nav>
+
+        <header class="header">
+            <div class="header-title">Application Tracking</div>
+
+            <div class="header-profile">
+                <div class="profile-dropdown">
+
+                    <a class="profile-dd-item" onclick="location.href='p1.html?view=profile'">
+                        My Profile
+                    </a>
+
+                    <!-- ✅ FIXED SIGNOUT -->
+                    <a class="profile-dd-item signout" href="../../login.html">
+                        Sign Out
+                    </a>
+
+                </div>
+            </div>
+        </header>
+
+        <!-- ═══ Main Content ═══ -->
+        <main class="main-content" id="mainContent">
+            <div class="search-container">
+                <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" class="app-search-input" id="appSearch" placeholder="Search by candidate, company, or role..." oninput="searchApps(this.value)">
+            </div>
+            
+            <div class="kanban-board" id="kanbanBoard">
+                <!-- Kanban columns and cards injected by JS -->
+            </div>
+        </main>
+    </div>
+
+    <!-- JavaScript Files -->
+    <script src="../js files/mockdata.js"></script>
+    <script src="../js files/p6.js"></script>
+    <script>
+        function toggleProfileDropdown(e){
+            e.stopPropagation();
+            var p = document.getElementById('profileDropdown');
+            p.style.display = p.style.display === 'block' ? 'none' : 'block';
+        }
+        document.addEventListener('click', function(e) {
+            var p = document.getElementById('profileDropdown');
+            if (p && !e.target.closest('.header-profile')) {
+                p.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

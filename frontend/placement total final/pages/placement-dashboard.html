@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Placement Dashboard — Placement Officer</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',system-ui,sans-serif;background:#f1f5f9;min-height:100vh}
+    .topbar{background:#1e293b;padding:14px 24px;display:flex;align-items:center;gap:16px}
+    .topbar a{color:#94a3b8;font-size:13px;text-decoration:none}.topbar a:hover{color:#fff}
+    .topbar .title{color:#fff;font-weight:600;font-size:15px}
+    .badge-prm{background:#faf5ff;color:#7c3aed;border:1px solid #ddd6fe;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600}
+    .page{max-width:1100px;margin:0 auto;padding:28px 20px}
+    h1{font-size:22px;font-weight:700;color:#1e293b;margin-bottom:4px}
+    .sub{font-size:13px;color:#64748b;margin-bottom:24px}
+    /* KPI row */
+    .kpi-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-bottom:28px}
+    .kpi{background:#fff;border-radius:14px;padding:20px 22px;border:1px solid #e2e8f0;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+    .kpi-label{font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+    .kpi-val{font-size:30px;font-weight:800;color:#1e293b;line-height:1}
+    .kpi-sub{font-size:12px;color:#64748b;margin-top:4px}
+    .kpi-val.green{color:#059669}.kpi-val.blue{color:#3b82f6}.kpi-val.purple{color:#7c3aed}
+    /* Two-col layout */
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+    @media(max-width:700px){.two-col{grid-template-columns:1fr}}
+    .panel{background:#fff;border-radius:14px;border:1px solid #e2e8f0;box-shadow:0 1px 4px rgba(0,0,0,.05);overflow:hidden}
+    .panel-hd{font-size:14px;font-weight:700;color:#1e293b;padding:16px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:8px}
+    /* Top companies table */
+    .company-row{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid #f9fafb}
+    .company-row:last-child{border-bottom:none}
+    .company-name{font-weight:600;font-size:13px;color:#1e293b}
+    .company-offers{font-size:12px;color:#64748b}
+    .company-pkg{font-weight:700;font-size:13px;color:#7c3aed}
+    /* Trend chart */
+    .trend-chart{display:flex;align-items:flex-end;gap:6px;height:120px;padding:16px 20px}
+    .trend-bar-wrap{display:flex;flex-direction:column;align-items:center;flex:1;gap:4px}
+    .trend-bar{width:100%;border-radius:4px 4px 0 0;background:#6366f1;min-height:4px;transition:height .5s}
+    .trend-month{font-size:10px;color:#94a3b8;font-weight:500}
+    .trend-val{font-size:10px;color:#6366f1;font-weight:700}
+    /* Dept mini-chart */
+    .dept-row-pm{display:flex;align-items:center;padding:10px 20px;border-bottom:1px solid #f9fafb;gap:12px}
+    .dept-row-pm:last-child{border-bottom:none}
+    .dept-name{font-size:13px;font-weight:600;color:#374151;min-width:50px}
+    .dept-bar-wrap{flex:1}
+    .dept-bar{height:10px;border-radius:5px;background:#e2e8f0;overflow:hidden}
+    .dept-fill{height:100%;border-radius:5px;background:#6366f1;transition:width .6s}
+    .dept-rate{font-size:12px;font-weight:700;color:#6366f1;min-width:38px;text-align:right}
+    .dept-placed{font-size:11px;color:#94a3b8;min-width:60px;text-align:right}
+    .loading{text-align:center;padding:40px;color:#94a3b8}
+    .empty{text-align:center;padding:60px;color:#94a3b8}
+  </style>
+</head>
+<body>
+<div class="topbar">
+  <a href="p1.html">← Dashboard</a>
+  <span style="color:#475569">|</span>
+  <span class="title">Advanced Placement Dashboard</span>
+  <span class="badge-prm">👑 Premium</span>
+</div>
+
+<div class="page">
+  <h1>Advanced Placement Dashboard</h1>
+  <p class="sub">Real-time placement analytics — KPIs, department performance, top companies, and monthly trends.</p>
+
+  <div id="content"><div class="loading">Loading dashboard...</div></div>
+</div>
+
+<script type="module">
+  import { FeaturesAPI } from '../../api.js';
+
+  const role = localStorage.getItem('userRole');
+  const collegeId = localStorage.getItem('collegeId');
+  if (!['placement_officer','college_admin'].includes(role) || !collegeId) window.location.href = 'p1.html';
+
+  async function load() {
+    const content = document.getElementById('content');
+    try {
+      const d = await FeaturesAPI.officer.getPlacementDashboard();
+      const maxTrend = Math.max(...d.monthlyTrend.map(m => m.placements));
+      const trendBars = d.monthlyTrend.map(m => `
+        <div class="trend-bar-wrap">
+          <div class="trend-val">${m.placements}</div>
+          <div class="trend-bar" style="height:${Math.round(m.placements/maxTrend*100)}%"></div>
+          <div class="trend-month">${m.month}</div>
+        </div>`).join('');
+      const topCompanies = d.topCompanies.slice(0, 6).map((c, i) => `
+        <div class="company-row">
+          <div>
+            <div class="company-name">${i+1}. ${c.company}</div>
+            <div class="company-offers">${c.offers} offers</div>
+          </div>
+          <div class="company-pkg">${c.avgPackage} LPA avg</div>
+        </div>`).join('');
+      const deptRows = [...d.byDept].sort((a,b)=>b.rate-a.rate).map(d => `
+        <div class="dept-row-pm">
+          <div class="dept-name">${d.dept}</div>
+          <div class="dept-bar-wrap">
+            <div class="dept-bar"><div class="dept-fill" style="width:${d.rate}%"></div></div>
+          </div>
+          <div class="dept-rate">${d.rate}%</div>
+          <div class="dept-placed">${d.placed}/${d.total}</div>
+        </div>`).join('');
+      content.innerHTML = `
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi-label">Total Students</div><div class="kpi-val blue">${d.totalStudents}</div><div class="kpi-sub">Registered</div></div>
+          <div class="kpi"><div class="kpi-label">Placed</div><div class="kpi-val green">${d.totalPlaced}</div><div class="kpi-sub">This cycle</div></div>
+          <div class="kpi"><div class="kpi-label">Placement Rate</div><div class="kpi-val">${d.placementRate}%</div><div class="kpi-sub">Overall</div></div>
+          <div class="kpi"><div class="kpi-label">Avg Package</div><div class="kpi-val purple">${d.avgPackage}</div><div class="kpi-sub">LPA</div></div>
+          <div class="kpi"><div class="kpi-label">Highest Package</div><div class="kpi-val">${d.highestPackage}</div><div class="kpi-sub">LPA</div></div>
+        </div>
+        <div class="two-col">
+          <div class="panel">
+            <div class="panel-hd">🏢 Top Companies</div>
+            ${topCompanies}
+          </div>
+          <div class="panel">
+            <div class="panel-hd">📊 Department Performance</div>
+            ${deptRows}
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-hd">📈 Monthly Placement Trend</div>
+          <div class="trend-chart">${trendBars}</div>
+        </div>`;
+    } catch(err) {
+      const msg = err?.message || '';
+      content.innerHTML = msg.includes('PREMIUM') || msg.includes('403')
+        ? '<div class="empty"><h3>👑 Premium Plan Required</h3><p>The Advanced Placement Dashboard is a Premium feature. Contact your college admin to upgrade.</p></div>'
+        : `<div class="empty"><h3>Error loading dashboard</h3><p>${msg}</p></div>`;
+    }
+  }
+
+  load();
+</script>
+</body>
+</html>

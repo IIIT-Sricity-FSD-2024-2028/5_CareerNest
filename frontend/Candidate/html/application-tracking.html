@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Application Tracking — CareerNest</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',system-ui,sans-serif;background:#f1f5f9;min-height:100vh}
+    .topbar{background:#1e293b;padding:14px 24px;display:flex;align-items:center;gap:16px}
+    .topbar a{color:#94a3b8;font-size:13px;text-decoration:none}.topbar a:hover{color:#fff}
+    .topbar .title{color:#fff;font-weight:600;font-size:15px}
+    .badge-prm{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;background:#faf5ff;color:#7c3aed;border:1px solid #ddd6fe}
+    .page{max-width:960px;margin:0 auto;padding:28px 20px}
+    h1{font-size:22px;font-weight:700;color:#1e293b;margin-bottom:4px}
+    .sub{font-size:13px;color:#64748b;margin-bottom:24px}
+    /* Stats row */
+    .stats-row{display:flex;gap:14px;margin-bottom:28px;flex-wrap:wrap}
+    .stat-card{background:#fff;border-radius:12px;padding:16px 22px;border:1px solid #e2e8f0;flex:1;min-width:130px}
+    .stat-label{font-size:11px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+    .stat-val{font-size:26px;font-weight:800;color:#1e293b}
+    .stat-val.green{color:#059669}.stat-val.blue{color:#3b82f6}.stat-val.red{color:#ef4444}
+    /* Application cards */
+    .app-list{display:flex;flex-direction:column;gap:20px}
+    .app-card{background:#fff;border-radius:14px;padding:22px 24px;border:1px solid #e2e8f0;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+    .app-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+    .app-title{font-weight:700;font-size:16px;color:#1e293b}
+    .app-company{font-size:13px;color:#6366f1;font-weight:500}
+    .app-date{font-size:12px;color:#94a3b8}
+    /* Pipeline */
+    .pipeline{display:flex;align-items:flex-start;gap:0;overflow-x:auto;padding-bottom:4px}
+    .stage{display:flex;flex-direction:column;align-items:center;flex:1;min-width:90px;position:relative}
+    .stage:not(:last-child)::after{content:'';position:absolute;top:14px;left:50%;width:100%;height:2px;background:#e2e8f0;z-index:0}
+    .stage.passed::after{background:#6366f1}
+    .stage-dot{width:28px;height:28px;border-radius:50%;border:3px solid #e2e8f0;background:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;z-index:1;position:relative}
+    .stage.passed .stage-dot{background:#6366f1;border-color:#6366f1;color:#fff}
+    .stage.current .stage-dot{background:#fff;border-color:#f59e0b;box-shadow:0 0 0 4px #fef3c7;animation:pulse 2s infinite}
+    .stage.failed .stage-dot{background:#fee2e2;border-color:#ef4444;color:#ef4444}
+    @keyframes pulse{0%,100%{box-shadow:0 0 0 4px #fef3c7}50%{box-shadow:0 0 0 8px #fef9c3}}
+    .stage-label{font-size:10px;color:#94a3b8;text-align:center;margin-top:8px;font-weight:500;line-height:1.3}
+    .stage.passed .stage-label{color:#6366f1;font-weight:600}
+    .stage.current .stage-label{color:#f59e0b;font-weight:700}
+    .stage.failed .stage-label{color:#ef4444}
+    .stage-note{font-size:10px;color:#64748b;text-align:center;margin-top:3px;font-style:italic;max-width:90px}
+    .stage-date{font-size:9px;color:#94a3b8;text-align:center;margin-top:2px}
+    /* Status chip */
+    .status-chip{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600}
+    .status-active{background:#fef3c7;color:#92400e}
+    .status-rejected{background:#fee2e2;color:#dc2626}
+    .status-offer{background:#dcfce7;color:#166534}
+    .loading{text-align:center;padding:40px;color:#94a3b8}
+    .empty{text-align:center;padding:60px;color:#94a3b8}
+  </style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">← Dashboard</a>
+  <span style="color:#475569">|</span>
+  <span class="title">Application Tracking</span>
+  <span class="badge-prm">👑 Premium</span>
+</div>
+
+<div class="page">
+  <h1>Application Pipeline Tracker</h1>
+  <p class="sub">Track exactly where each application stands — from submission to offer.</p>
+
+  <div class="stats-row" id="stats-row">
+    <div class="stat-card"><div class="stat-label">Total Applied</div><div class="stat-val" id="st-total">—</div></div>
+    <div class="stat-card"><div class="stat-label">Active Processes</div><div class="stat-val blue" id="st-active">—</div></div>
+    <div class="stat-card"><div class="stat-label">Offers Received</div><div class="stat-val green" id="st-offers">—</div></div>
+    <div class="stat-card"><div class="stat-label">Rejected</div><div class="stat-val red" id="st-rejected">—</div></div>
+  </div>
+
+  <div class="app-list" id="app-list"><div class="loading">Loading your applications...</div></div>
+</div>
+
+<script type="module">
+  import { FeaturesAPI } from '../../api.js';
+
+  const role = localStorage.getItem('userRole');
+  const collegeId = localStorage.getItem('collegeId');
+  if (role !== 'candidate' || !collegeId) window.location.href = 'index.html';
+
+  async function load() {
+    const list = document.getElementById('app-list');
+    try {
+      const [timeline, stats] = await Promise.all([
+        FeaturesAPI.candidate.getAppTimeline(),
+        FeaturesAPI.candidate.getAppStats(),
+      ]);
+      // Stats
+      document.getElementById('st-total').textContent    = stats.total || 0;
+      document.getElementById('st-active').textContent   = stats.active || 0;
+      document.getElementById('st-offers').textContent   = stats.offers || 0;
+      document.getElementById('st-rejected').textContent = stats.rejected || 0;
+
+      if (!timeline || !timeline.length) {
+        list.innerHTML = '<div class="empty"><h3>No applications yet</h3><p>Apply to drives to see tracking here.</p></div>';
+        return;
+      }
+      list.innerHTML = timeline.map(app => renderApp(app)).join('');
+    } catch(err) {
+      const msg = err?.message || '';
+      if (msg.includes('PREMIUM') || msg.includes('403')) {
+        list.innerHTML = `<div class="empty"><h3>👑 Premium Plan Required</h3><p>Application Pipeline Tracking is a Premium feature. Contact your college admin to upgrade.</p></div>`;
+      } else {
+        list.innerHTML = `<div class="empty"><h3>Error loading applications</h3><p>${msg}</p></div>`;
+      }
+    }
+  }
+
+  function getStatusChip(stages) {
+    const hasOffer  = stages.find(s => (s.name.toLowerCase().includes('offer')) && (s.status === 'current' || s.status === 'passed'));
+    const hasFailed = stages.some(s => s.status === 'failed');
+    const hasCurrent= stages.some(s => s.status === 'current');
+    if (hasOffer)   return '<span class="status-chip status-offer">🎉 Offer</span>';
+    if (hasFailed)  return '<span class="status-chip status-rejected">✕ Rejected</span>';
+    if (hasCurrent) return '<span class="status-chip status-active">⏳ In Progress</span>';
+    return '<span class="status-chip" style="background:#f1f5f9;color:#64748b">Pending</span>';
+  }
+
+  function renderApp(app) {
+    const statusChip = getStatusChip(app.stages);
+    const stagesHtml = app.stages.map(s => `
+      <div class="stage ${s.status}">
+        <div class="stage-dot">${s.status === 'passed' ? '✓' : s.status === 'failed' ? '✕' : s.status === 'current' ? '●' : ''}</div>
+        <div class="stage-label">${s.name}</div>
+        ${s.date ? `<div class="stage-date">${s.date}</div>` : ''}
+        ${s.note ? `<div class="stage-note">${s.note}</div>` : ''}
+      </div>`).join('');
+    return `
+      <div class="app-card">
+        <div class="app-head">
+          <div>
+            <div class="app-title">${app.driveTitle}</div>
+            <div class="app-company">${app.company} &bull; Applied ${app.appliedAt.split('T')[0]}</div>
+          </div>
+          ${statusChip}
+        </div>
+        <div class="pipeline">${stagesHtml}</div>
+      </div>`;
+  }
+
+  load();
+</script>
+</body>
+</html>

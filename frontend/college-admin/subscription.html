@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Subscription Plan | CareerNest College Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="../super-admin/style.css" />
+  <style>
+    .sidebar { background: #0c4a6e; }
+    .sidebar .brand p { color: #7dd3fc; }
+    .sidebar nav a { color: #7dd3fc; }
+    .sidebar nav a:hover, .sidebar nav a.active {
+      background: rgba(14,165,233,.15); color: #fff; border-left-color: #0ea5e9;
+    }
+    .sidebar .signout { border-top-color: #0369a1; }
+    .topbar .avatar { background: #0ea5e9; }
+    .btn-primary { background: #0ea5e9; }
+    .btn-primary:hover { background: #0284c7; }
+    #sub-panel { min-height: 200px; }
+    .loading-spin { text-align:center; padding:60px; color:#94a3b8; font-size:15px; }
+  </style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="brand">
+    <h2><i class="fa-solid fa-building-columns" style="color:#7dd3fc;margin-right:6px"></i>CareerNest</h2>
+    <p id="sidebar-college">College Admin</p>
+  </div>
+  <nav>
+    <a href="index.html"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+    <a href="officers.html"><i class="fa-solid fa-shield-halved"></i> Placement Officers</a>
+    <a href="students.html"><i class="fa-solid fa-graduation-cap"></i> Students</a>
+    <a href="subscription.html" class="active"><i class="fa-solid fa-crown"></i> Subscription</a>
+  </nav>
+  <div class="signout">
+    <a href="../login.html" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Sign Out</a>
+  </div>
+</aside>
+
+<div class="main">
+  <header class="topbar">
+    <span class="title">Subscription Plan</span>
+    <div class="user-pill">
+      <span id="topbar-name">College Admin</span>
+      <div class="avatar" id="topbar-avatar">CA</div>
+    </div>
+  </header>
+
+  <main class="content">
+    <div id="sub-panel">
+      <div class="loading-spin"><i class="fa-solid fa-spinner fa-spin"></i> Loading subscription…</div>
+    </div>
+  </main>
+</div>
+
+<script type="module">
+  import { api } from '../api.js';
+  import { loadSubscription, renderSubscriptionPanel, clearSubscriptionCache } from '../subscription.js';
+
+  const role      = localStorage.getItem('userRole');
+  if (role !== 'college_admin') { window.location.href = '../login.html'; }
+
+  const name      = localStorage.getItem('userName') || 'College Admin';
+  const collegeId = localStorage.getItem('collegeId');
+
+  document.getElementById('topbar-name').textContent = name;
+  document.getElementById('topbar-avatar').textContent =
+    name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+
+  async function loadPage() {
+    if (!collegeId || collegeId === 'null') {
+      document.getElementById('sub-panel').innerHTML =
+        '<div style="color:#ef4444;padding:40px;text-align:center">No college linked to your account. Contact Super Admin.</div>';
+      return;
+    }
+
+    try {
+      const college = await api.get(`/colleges/${collegeId}`, 'college_admin');
+      document.getElementById('sidebar-college').textContent = college.name;
+    } catch {}
+
+    const sub = await loadSubscription(collegeId, 'college_admin');
+    if (!sub) {
+      document.getElementById('sub-panel').innerHTML =
+        '<div style="color:#ef4444;padding:40px;text-align:center">Could not load subscription. Is the backend running?</div>';
+      return;
+    }
+    renderSubscriptionPanel(sub, 'sub-panel');
+  }
+
+  window.logout = () => { localStorage.clear(); window.location.href = '../login.html'; };
+  loadPage();
+</script>
+</body>
+</html>

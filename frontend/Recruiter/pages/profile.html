@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - Recruiter</title>
+    
+    <!-- COMMON CSS -->
+    <link rel="stylesheet" href="../Style/style.css">
+    
+    <!-- PAGE CSS -->
+    <link rel="stylesheet" href="../Style/profile.css">
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <!-- SIDEBAR -->
+    <aside>
+        <div>
+        <h1>CareerNest</h1>
+        <p>Recruiter</p>
+
+        <a href="profile.html" style="text-decoration: none; color: inherit;">
+            <div class="profile" style="cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                <div class="avatar">PK</div>
+                <div>
+                    <p>Priya Kapo</p>
+                    <p class="email">priya12@gmail.com</p>
+                </div>
+            </div>
+        </a>
+
+        <nav>
+            <ul>
+            <li><a href="index.html" style="display:flex; align-items:center; gap:10px;"><i data-lucide="layout-dashboard"></i> Dashboard</a></li>
+            <li><a href="post.html" style="display:flex; align-items:center; gap:10px;"><i data-lucide="send"></i> Post Opportunity</a></li>
+            <li><a href="myopportunities.html" style="display:flex; align-items:center; gap:10px;"><i data-lucide="briefcase"></i> My Opportunities</a></li>
+            <li><a href="applications.html" style="display:flex; align-items:center; gap:10px;"><i data-lucide="users"></i> Applications</a></li>
+            <li><a href="assessments.html" style="display:flex; align-items:center; gap:10px;"><i data-lucide="calendar-check"></i> Assessments</a></li>
+            </ul>
+        </nav>
+        </div>
+        
+        <a href="../../login.html" class="logout" style="text-decoration: none; color: white; display: block; padding: 10px; text-align: center; border-radius: 8px; background: rgba(255,255,255,0.1);">Sign Out</a>
+    </aside>
+
+    <main class="main-content" style="padding: 24px;">
+        <!-- NAVBAR -->
+        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <h2 style="font-size: 24px; font-weight: 600;">My Profile</h2>
+        <div class="nav-right" style="position: relative; display: flex; gap: 15px;">
+            <div style="position: relative;">
+            <a href="#" onclick="document.getElementById('notifMenu').classList.toggle('show')" style="color: #6A7282; display: flex; align-items: center; margin-top:5px;"><i data-lucide="bell"></i></a>
+            <div id="notifMenu" class="dropdown-menu">
+                <h4>Notifications</h4>
+                <hr>
+                <p>No new notifications right now.</p>
+            </div>
+            </div>
+            <div style="position: relative;">
+            <div class="avatar small" style="cursor: pointer;" onclick="document.getElementById('profileMenu').classList.toggle('show')">PK</div>
+            <div id="profileMenu" class="dropdown-menu">
+                <h4>Priya Kapo</h4>
+                <p style="font-size:12px; color:#6B7280;">priya12@gmail.com</p>
+                <hr>
+                <a href="profile.html" style="color: #374151; display: block; margin-bottom: 8px;">My Profile</a>
+                <a href="login.html" style="color:#DC2626; display: block;">Sign Out</a>
+            </div>
+            </div>
+        </div>
+        </header>
+
+        <!-- PROFILE CONTENT -->
+        <div style="display: flex; justify-content: center; margin-top: 20px;">
+            <div class="profile-container" style="width: 100%;">
+                <div class="profile-header">
+                <div class="profile-avatar">PK</div>
+                <div>
+                    <h2 style="font-size: 24px; color: #111827; margin: 0;">Priya Kapo <span class="profile-badge">Verified</span></h2>
+                    <p style="color: #6B7280; font-weight: 400; font-size: 15px; margin: 4px 0 0 0;">Senior Technical Recruiter</p>
+                </div>
+            </div>
+            
+            <div class="details-grid">
+                <div class="detail-item">
+                    <h5>Company</h5>
+                    <p>TechCorp Solutions</p>
+                </div>
+                <div class="detail-item">
+                    <h5>Location</h5>
+                    <p>Bangalore, India</p>
+                </div>
+                <div class="detail-item">
+                    <h5>Email Details</h5>
+                    <p style="color: #0F8A5F;">priya12@gmail.com</p>
+                </div>
+                <div class="detail-item">
+                    <h5>Contact</h5>
+                    <p>+91 98765 43210</p>
+                </div>
+                <div class="detail-item">
+                    <h5>Experience</h5>
+                    <p>5+ Years</p>
+                </div>
+                <div class="detail-item">
+                    <h5>Joined Date</h5>
+                    <p>March 2021</p>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 30px;">
+                <h4 style="font-size: 15px; text-transform: uppercase; letter-spacing: 0.5px; color: #6B7280; margin: 0 0 16px 0;">About Me</h4>
+                <p style="color: #4B5563; line-height: 1.6; font-size: 15px;">
+                    Passionate Technical Recruiter with over 5 years of experience in talent acquisition, specializing in engineering and product roles. Proven track record of identifying and hiring top-tier technical talent for Fortune 500 companies. Committed to providing an exceptional candidate experience and building diverse, high-performing teams.
+                </p>
+            </div>
+
+            <div style="margin-bottom: 30px;">
+                <h4 style="font-size: 15px; text-transform: uppercase; letter-spacing: 0.5px; color: #6B7280; margin: 0 0 16px 0;">Expertise</h4>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    <span style="background: #EEF2FF; color: #4F46E5; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 500;">Technical Recruiting</span>
+                    <span style="background: #EEF2FF; color: #4F46E5; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 500;">Strategic Sourcing</span>
+                    <span style="background: #EEF2FF; color: #4F46E5; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 500;">Talent Pipeline Management</span>
+                    <span style="background: #EEF2FF; color: #4F46E5; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 500;">Interviewing &amp; Assessment</span>
+                    <span style="background: #EEF2FF; color: #4F46E5; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 500;">Diversity &amp; Inclusion Sourcing</span>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 30px;">
+                <h4 style="font-size: 15px; text-transform: uppercase; letter-spacing: 0.5px; color: #6B7280; margin: 0 0 16px 0;">Education</h4>
+                <div style="border-left: 2px solid #E5E7EB; padding-left: 20px; margin-left: 10px;">
+                    <div style="margin-bottom: 15px; position: relative;">
+                        <span style="position: absolute; left: -26px; top: 0; width: 10px; height: 10px; background: #0F8A5F; border-radius: 50%;"></span>
+                        <h5 style="margin: 0; font-size: 15px; color: #111827;">Master of Business Administration (HR)</h5>
+                        <p style="margin: 2px 0 0 0; font-size: 13px; color: #6B7280;">Indian Institute of Management • 2018 - 2020</p>
+                    </div>
+                    <div style="position: relative;">
+                        <span style="position: absolute; left: -26px; top: 0; width: 10px; height: 10px; background: #0F8A5F; border-radius: 50%;"></span>
+                        <h5 style="margin: 0; font-size: 15px; color: #111827;">Bachelor of Technology (CSE)</h5>
+                        <p style="margin: 2px 0 0 0; font-size: 13px; color: #6B7280;">BITS Pilani • 2014 - 2018</p>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h4 style="font-size: 15px; text-transform: uppercase; letter-spacing: 0.5px; color: #6B7280; margin: 0 0 16px 0;">Performance Metrics</h4>
+                <div class="metrics-container">
+                    <div class="metric-card">
+                        <p class="metric-value">142</p>
+                        <p class="metric-label">Opportunities Posted</p>
+                    </div>
+                    <div class="metric-card">
+                        <p class="metric-value">85%</p>
+                        <p class="metric-label">Offer Acceptance</p>
+                    </div>
+                    <div class="metric-card">
+                        <p class="metric-value">4.9</p>
+                        <p class="metric-label">Candidate Rating</p>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- JS FILES -->
+    <script src="../js/profile.js"></script>
+</body>
+</html>

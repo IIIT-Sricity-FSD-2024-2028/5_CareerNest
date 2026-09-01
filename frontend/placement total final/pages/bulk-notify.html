@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bulk Notifications — Placement Officer</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',system-ui,sans-serif;background:#f1f5f9;min-height:100vh}
+    .topbar{background:#1e293b;padding:14px 24px;display:flex;align-items:center;gap:16px}
+    .topbar a{color:#94a3b8;font-size:13px;text-decoration:none}.topbar a:hover{color:#fff}
+    .topbar .title{color:#fff;font-weight:600;font-size:15px}
+    .badge-std{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600}
+    .page{max-width:900px;margin:0 auto;padding:28px 20px}
+    h1{font-size:22px;font-weight:700;color:#1e293b;margin-bottom:4px}
+    .sub{font-size:13px;color:#64748b;margin-bottom:24px}
+    .compose-card{background:#fff;border-radius:14px;padding:24px;border:1px solid #e2e8f0;box-shadow:0 1px 4px rgba(0,0,0,.05);margin-bottom:28px}
+    .compose-card h2{font-size:15px;font-weight:700;color:#1e293b;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+    .form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+    .form-group label{font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.5px}
+    .form-group input,.form-group select,.form-group textarea{border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px;font-size:14px;color:#1e293b;background:#f8fafc;outline:none;font-family:inherit}
+    .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:#6366f1;background:#fff}
+    .form-group textarea{resize:vertical;min-height:100px}
+    .target-options{display:flex;gap:10px;flex-wrap:wrap}
+    .target-btn{padding:8px 18px;border-radius:20px;border:2px solid #e2e8f0;background:#f8fafc;font-size:13px;font-weight:600;cursor:pointer;color:#64748b;transition:all .15s}
+    .target-btn.active{border-color:#6366f1;background:#eff6ff;color:#4f46e5}
+    .send-btn{background:#6366f1;color:#fff;border:none;border-radius:10px;padding:12px 32px;font-size:14px;font-weight:700;cursor:pointer;width:100%;margin-top:4px}
+    .send-btn:hover{background:#4f46e5}
+    .send-btn:disabled{background:#a5b4fc;cursor:not-allowed}
+    .success-msg{display:none;background:#dcfce7;border:1px solid #bbf7d0;border-radius:10px;padding:14px 18px;color:#166534;font-size:13px;font-weight:600;margin-top:14px}
+    /* History */
+    .history-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+    .history-head h2{font-size:16px;font-weight:700;color:#1e293b}
+    .notif-list{display:flex;flex-direction:column;gap:12px}
+    .notif-card{background:#fff;border-radius:12px;padding:18px 20px;border:1px solid #e2e8f0;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+    .notif-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
+    .notif-title{font-weight:700;font-size:14px;color:#1e293b}
+    .notif-date{font-size:11px;color:#94a3b8}
+    .notif-body{font-size:13px;color:#475569;line-height:1.6;margin-bottom:10px}
+    .notif-meta{display:flex;gap:10px;align-items:center}
+    .target-chip{font-size:11px;padding:2px 10px;border-radius:20px;font-weight:600;background:#eff6ff;color:#1d4ed8}
+    .rcpt-count{font-size:11px;color:#64748b}
+    .loading{text-align:center;padding:30px;color:#94a3b8}
+    .empty{text-align:center;padding:40px;color:#94a3b8}
+  </style>
+</head>
+<body>
+<div class="topbar">
+  <a href="p1.html">← Dashboard</a>
+  <span style="color:#475569">|</span>
+  <span class="title">Bulk Notifications</span>
+  <span class="badge-std">⭐ Standard</span>
+</div>
+
+<div class="page">
+  <h1>Send Bulk Notifications</h1>
+  <p class="sub">Compose and send notifications to your students, alumni, or recruiters instantly.</p>
+
+  <!-- Compose form -->
+  <div class="compose-card">
+    <h2>📢 Compose Notification</h2>
+    <div class="form-group">
+      <label>Title</label>
+      <input id="notif-title" type="text" placeholder="e.g. TCS Drive Tomorrow — All CSE Students" />
+    </div>
+    <div class="form-group">
+      <label>Message</label>
+      <textarea id="notif-message" placeholder="Write your notification message here..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>Send To</label>
+      <div class="target-options">
+        <button class="target-btn active" data-target="students" onclick="selectTarget(this)">👩‍🎓 Students</button>
+        <button class="target-btn" data-target="alumni" onclick="selectTarget(this)">🎓 Alumni</button>
+        <button class="target-btn" data-target="recruiters" onclick="selectTarget(this)">💼 Recruiters</button>
+        <button class="target-btn" data-target="all" onclick="selectTarget(this)">🌐 Everyone</button>
+      </div>
+    </div>
+    <button class="send-btn" id="send-btn" onclick="sendNotification()">📤 Send Notification</button>
+    <div class="success-msg" id="success-msg"></div>
+  </div>
+
+  <!-- History -->
+  <div class="history-head">
+    <h2>📋 Notification History</h2>
+  </div>
+  <div class="notif-list" id="history"><div class="loading">Loading history...</div></div>
+</div>
+
+<script type="module">
+  import { FeaturesAPI } from '../../api.js';
+
+  const role = localStorage.getItem('userRole');
+  const collegeId = localStorage.getItem('collegeId');
+  if (!['placement_officer','college_admin'].includes(role) || !collegeId) window.location.href = 'p1.html';
+
+  let selectedTarget = 'students';
+
+  window.selectTarget = (btn) => {
+    document.querySelectorAll('.target-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedTarget = btn.dataset.target;
+  };
+
+  window.sendNotification = async () => {
+    const title = document.getElementById('notif-title').value.trim();
+    const message = document.getElementById('notif-message').value.trim();
+    if (!title || !message) { alert('Please fill in both title and message.'); return; }
+    const btn = document.getElementById('send-btn');
+    btn.disabled = true; btn.textContent = 'Sending...';
+    try {
+      const result = await FeaturesAPI.officer.sendNotification({ title, message, targetGroup: selectedTarget });
+      const successMsg = document.getElementById('success-msg');
+      successMsg.textContent = `✓ Sent to ${result.recipientCount} recipients at ${new Date(result.sentAt).toLocaleTimeString()}`;
+      successMsg.style.display = 'block';
+      document.getElementById('notif-title').value = '';
+      document.getElementById('notif-message').value = '';
+      setTimeout(() => { successMsg.style.display = 'none'; }, 5000);
+      loadHistory();
+    } catch(err) {
+      alert('Error: ' + (err?.message || ''));
+    } finally { btn.disabled = false; btn.textContent = '📤 Send Notification'; }
+  };
+
+  async function loadHistory() {
+    const history = document.getElementById('history');
+    try {
+      const notifs = await FeaturesAPI.officer.getNotifications();
+      if (!notifs || !notifs.length) {
+        history.innerHTML = '<div class="empty">No notifications sent yet</div>';
+        return;
+      }
+      history.innerHTML = notifs.map(n => `
+        <div class="notif-card">
+          <div class="notif-head">
+            <div class="notif-title">${n.title}</div>
+            <div class="notif-date">${new Date(n.sentAt).toLocaleString()}</div>
+          </div>
+          <div class="notif-body">${n.message}</div>
+          <div class="notif-meta">
+            <span class="target-chip">To: ${n.targetGroup}</span>
+            <span class="rcpt-count">📨 ${n.recipientCount} recipients</span>
+          </div>
+        </div>`).join('');
+    } catch(err) {
+      const msg = err?.message || '';
+      history.innerHTML = msg.includes('STANDARD') || msg.includes('403')
+        ? '<div class="empty">🔒 Standard Plan Required for Bulk Notifications</div>'
+        : `<div class="empty">Error: ${msg}</div>`;
+    }
+  }
+
+  loadHistory();
+</script>
+</body>
+</html>

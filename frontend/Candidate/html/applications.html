@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CareerNest - My Applications</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Boxicons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="../Css/style.css">
+    <link rel="stylesheet" href="../Css/applications.css">
+</head>
+<body>
+
+<div class="app-layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <!-- Brand -->
+        <div class="brand">
+            <div class="brand-icon">
+                <i class='bx bxs-graduation'></i>
+            </div>
+            <div class="brand-text">
+                <h2>CareerNest</h2>
+                <p>College Placement Cell</p>
+            </div>
+        </div>
+
+        <!-- User Profile Card in Sidebar -->
+        <div class="sidebar-user-card" onclick="window.location.href='profile.html'" style="cursor: pointer;" title="View Profile">
+            <div class="user-avatar" id="sidebar-avatar">SB</div>
+            <div class="user-info">
+                <h4 id="sidebar-name">Loading...</h4>
+                <p id="sidebar-role">Loading...</p>
+            </div>
+        </div>
+
+        <!-- Navigation Menu -->
+        <nav class="sidebar-nav">
+            <ul>
+                <li class="nav-item">
+                    <a href="index.html">
+                        <i class='bx bx-grid-alt'></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="opportunities.html">
+                        <i class='bx bx-briefcase-alt-2'></i>
+                        <span>Browse Opportunities</span>
+                    </a>
+                </li>
+                <li class="nav-item active-applications">
+                    <a href="applications.html">
+                        <i class='bx bx-file-blank'></i>
+                        <span>My Applications</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="referrals.html">
+                        <i class='bx bx-user-plus'></i>
+                        <span>Referrals</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="changepassword.html">
+                        <i class='bx bx-lock-alt'></i>
+                        <span>Change Password</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Sign Out Footer -->
+        <div class="sidebar-footer">
+            <a href="../../login.html" class="sign-out">
+                <i class='bx bx-log-out'></i>
+                <span>Sign Out</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content page-enter">
+        <!-- TOP HEADER -->
+        <header class="top-header">
+            <h1 class="page-title">My Applications</h1>
+            <div class="header-actions">
+                <div class="notification-container" style="position: relative;">
+                    <div class="notification-btn" id="notif-btn" style="cursor: pointer;">
+                        <i class='bx bx-bell'></i>
+                        <span class="badge red-badge" id="notif-count" style="display:none;">0</span>
+                    </div>
+                    <div class="notification-dropdown" id="notif-dropdown">
+                        <div class="notif-header">
+                            <h5>Notifications</h5>
+                            <a href="#" id="mark-read-btn">Mark all read</a>
+                        </div>
+                        <div class="notif-body" id="notif-list-container">
+                        </div>
+                    </div>
+                </div>
+                <div class="top-avatar" id="top-avatar" onclick="window.location.href='profile.html'" style="cursor: pointer;" title="View Profile">SB</div>
+            </div>
+        </header>
+
+        <!-- APPLICATIONS CONTAINER -->
+        <div class="dashboard-scroll-area">
+            
+            <p class="applications-header-text">Track your application status across all recruitment stages</p>
+
+            <!-- Stats -->
+            <section class="stats-grid-4">
+                <div class="stat-card-clean">
+                    <h3 id="stat-shortlisted">0</h3>
+                    <p>Shortlisted</p>
+                </div>
+                <div class="stat-card-clean">
+                    <h3 id="stat-interviews">0</h3>
+                    <p>Interviews</p>
+                </div>
+                <div class="stat-card-clean">
+                    <h3 id="stat-offers">0</h3>
+                    <p>Offers</p>
+                </div>
+                <div class="stat-card-clean">
+                    <h3 id="stat-rejected">0</h3>
+                    <p>Rejected</p>
+                </div>
+            </section>
+
+            <!-- Search & Filters -->
+            <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px;">
+                <div class="search-container" style="max-width: 400px; display: flex; align-items: center; background: white; padding: 12px 16px; border-radius: var(--radius-full); border: 1px solid #e2e8f0; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                    <i class='bx bx-search' style="color: #94a3b8; font-size: 20px; margin-right: 8px;"></i>
+                    <input type="text" id="app-search-input" placeholder="Search by company or role..." style="border: none; outline: none; width: 100%; font-size: 14px; font-family: var(--font-sans);">
+                </div>
+
+                <!-- Filters -->
+                <div class="filter-pills-row" id="filters-container">
+                    <button class="filter-pill active" data-filter="All">All (3)</button>
+                    <button class="filter-pill" data-filter="Interview">Interview (1)</button>
+                    <button class="filter-pill" data-filter="Shortlisted">Shortlisted (1)</button>
+                    <button class="filter-pill" data-filter="Applied">Applied (1)</button>
+                    <button class="filter-pill" data-filter="Rejected">Rejected (0)</button>
+                    <button class="filter-pill" data-filter="Withdrawn">Withdrawn (0)</button>
+                </div>
+            </div>
+
+            <!-- Applications List -->
+            <div class="applications-rows" id="applications-container">
+                <!-- Javascript will inject cards here -->
+            </div>
+
+        </div>
+    </main>
+</div>
+
+<script type="module" src="../Js/applications.js"></script>
+</body>
+</html>

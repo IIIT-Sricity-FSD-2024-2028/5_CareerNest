@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Candidate Filter — Placement Officer</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',system-ui,sans-serif;background:#f1f5f9;min-height:100vh}
+    .topbar{background:#1e293b;padding:14px 24px;display:flex;align-items:center;gap:16px}
+    .topbar a{color:#94a3b8;font-size:13px;text-decoration:none}.topbar a:hover{color:#fff}
+    .topbar .title{color:#fff;font-weight:600;font-size:15px}
+    .badge-std{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600}
+    .page{max-width:1100px;margin:0 auto;padding:28px 20px}
+    h1{font-size:22px;font-weight:700;color:#1e293b;margin-bottom:4px}
+    .sub{font-size:13px;color:#64748b;margin-bottom:24px}
+    .filter-bar{background:#fff;border-radius:12px;padding:18px 20px;display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:24px;border:1px solid #e2e8f0}
+    .filter-group{display:flex;flex-direction:column;gap:5px}
+    .filter-group label{font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.5px}
+    .filter-group select,.filter-group input{border:1px solid #e2e8f0;border-radius:8px;padding:8px 12px;font-size:13px;color:#1e293b;background:#f8fafc;outline:none;min-width:130px}
+    .filter-group select:focus,.filter-group input:focus{border-color:#6366f1;background:#fff}
+    .btn-filter{background:#6366f1;color:#fff;border:none;border-radius:8px;padding:9px 22px;font-size:13px;font-weight:600;cursor:pointer;margin-top:auto}
+    .btn-filter:hover{background:#4f46e5}
+    .btn-clear{background:transparent;color:#64748b;border:1px solid #e2e8f0;border-radius:8px;padding:9px 16px;font-size:13px;cursor:pointer;margin-top:auto}
+    .table-wrap{background:#fff;border-radius:12px;border:1px solid #e2e8f0;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+    .table-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #f1f5f9}
+    .table-head h3{font-size:14px;font-weight:700;color:#1e293b}
+    .count-badge{background:#f1f5f9;color:#475569;font-size:12px;padding:3px 10px;border-radius:20px;font-weight:600}
+    table{width:100%;border-collapse:collapse}
+    th{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#94a3b8;font-weight:600;padding:10px 16px;text-align:left;border-bottom:1px solid #f1f5f9;background:#fafafa}
+    td{padding:12px 16px;font-size:13px;color:#374151;border-bottom:1px solid #f9fafb}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:#f8fafc}
+    .cgpa-pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700}
+    .cgpa-high{background:#dcfce7;color:#166534}
+    .cgpa-mid{background:#fef3c7;color:#92400e}
+    .cgpa-low{background:#fee2e2;color:#dc2626}
+    .export-btn{background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer}
+    .export-btn:hover{background:#e2e8f0}
+    .loading{text-align:center;padding:40px;color:#94a3b8}
+    .empty{text-align:center;padding:40px;color:#94a3b8}
+  </style>
+</head>
+<body>
+<div class="topbar">
+  <a href="p1.html">← Dashboard</a>
+  <span style="color:#475569">|</span>
+  <span class="title">Candidate Filter</span>
+  <span class="badge-std">⭐ Standard</span>
+</div>
+
+<div class="page">
+  <h1>Filter Candidates</h1>
+  <p class="sub">Search across all students in your college by department, CGPA, and backlog count.</p>
+
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label>Department</label>
+      <select id="dept">
+        <option value="">All Departments</option>
+        <option>CSE</option><option>IT</option><option>ECE</option><option>EEE</option><option>MECH</option><option>MBA</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Min CGPA</label>
+      <input id="minCgpa" type="number" placeholder="e.g. 7.5" min="0" max="10" step="0.1" />
+    </div>
+    <div class="filter-group">
+      <label>Max Backlogs</label>
+      <input id="maxBacklogs" type="number" placeholder="e.g. 0" min="0" max="20" />
+    </div>
+    <button class="btn-filter" onclick="doFilter()">🔍 Filter</button>
+    <button class="btn-clear" onclick="clearAll()">✕ Clear</button>
+  </div>
+
+  <div class="table-wrap">
+    <div class="table-head">
+      <h3>Student List</h3>
+      <div style="display:flex;gap:10px;align-items:center">
+        <span class="count-badge" id="count">—</span>
+        <button class="export-btn" onclick="exportCSV()">⬇ Export CSV</button>
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Name</th><th>Roll No</th><th>Department</th><th>CGPA</th><th>Backlogs</th><th>Batch</th><th>Skills</th></tr>
+      </thead>
+      <tbody id="tbody">
+        <tr><td colspan="8" style="text-align:center;color:#94a3b8;padding:40px">Apply filters to see candidates</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script type="module">
+  import { FeaturesAPI } from '../../api.js';
+
+  const role = localStorage.getItem('userRole');
+  const collegeId = localStorage.getItem('collegeId');
+  if (!['placement_officer','college_admin'].includes(role) || !collegeId) window.location.href = 'p1.html';
+
+  let lastData = [];
+
+  window.doFilter = async () => {
+    const dept = document.getElementById('dept').value || undefined;
+    const minCgpa = document.getElementById('minCgpa').value || undefined;
+    const maxBacklogs = document.getElementById('maxBacklogs').value !== '' ? document.getElementById('maxBacklogs').value : undefined;
+    const tbody = document.getElementById('tbody');
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#94a3b8;padding:30px">Loading...</td></tr>';
+    try {
+      const candidates = await FeaturesAPI.officer.filterCandidates(dept, minCgpa, maxBacklogs);
+      lastData = candidates;
+      document.getElementById('count').textContent = candidates.length + ' found';
+      if (!candidates.length) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#94a3b8;padding:40px">No candidates match the filters</td></tr>';
+        return;
+      }
+      tbody.innerHTML = candidates.map((c, i) => `
+        <tr>
+          <td style="color:#94a3b8;font-size:12px">${i+1}</td>
+          <td style="font-weight:600">${c.name}</td>
+          <td style="font-size:12px;color:#94a3b8">${c.rollNo}</td>
+          <td>${c.dept}</td>
+          <td><span class="cgpa-pill ${c.cgpa >= 8 ? 'cgpa-high' : c.cgpa >= 7 ? 'cgpa-mid' : 'cgpa-low'}">${c.cgpa}</span></td>
+          <td>${c.backlogs === 0 ? '<span style="color:#059669;font-weight:600">0</span>' : `<span style="color:#dc2626;font-weight:600">${c.backlogs}</span>`}</td>
+          <td style="font-size:12px;color:#94a3b8">${c.batch}</td>
+          <td style="font-size:11px;color:#475569">${(c.skills||[]).slice(0,3).join(', ')}</td>
+        </tr>`).join('');
+    } catch(err) {
+      const msg = err?.message || '';
+      tbody.innerHTML = msg.includes('STANDARD') || msg.includes('403')
+        ? '<tr><td colspan="8" style="text-align:center;padding:40px;color:#ef4444">🔒 Standard Plan Required</td></tr>'
+        : `<tr><td colspan="8" style="text-align:center;padding:30px;color:#ef4444">Error: ${msg}</td></tr>`;
+    }
+  };
+
+  window.clearAll = () => {
+    document.getElementById('dept').value = '';
+    document.getElementById('minCgpa').value = '';
+    document.getElementById('maxBacklogs').value = '';
+    document.getElementById('count').textContent = '—';
+    document.getElementById('tbody').innerHTML = '<tr><td colspan="8" style="text-align:center;color:#94a3b8;padding:40px">Apply filters to see candidates</td></tr>';
+    lastData = [];
+  };
+
+  window.exportCSV = () => {
+    if (!lastData.length) { alert('No data to export. Apply filters first.'); return; }
+    const header = 'Name,Roll No,Department,CGPA,Backlogs,Batch';
+    const rows = lastData.map(c => `${c.name},${c.rollNo},${c.dept},${c.cgpa},${c.backlogs},${c.batch}`);
+    const csv = [header, ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'candidates.csv'; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  doFilter();
+</script>
+</body>
+</html>

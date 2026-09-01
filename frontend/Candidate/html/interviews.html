@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interview Schedule — CareerNest</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',system-ui,sans-serif;background:#f1f5f9;min-height:100vh}
+    .topbar{background:#1e293b;padding:14px 24px;display:flex;align-items:center;gap:16px}
+    .topbar a{color:#94a3b8;font-size:13px;text-decoration:none}.topbar a:hover{color:#fff}
+    .topbar .title{color:#fff;font-weight:600;font-size:15px}
+    .badge-prm{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;background:#faf5ff;color:#7c3aed;border:1px solid #ddd6fe}
+    .page{max-width:860px;margin:0 auto;padding:28px 20px}
+    h1{font-size:22px;font-weight:700;color:#1e293b;margin-bottom:4px}
+    .sub{font-size:13px;color:#64748b;margin-bottom:24px}
+    .interview-list{display:flex;flex-direction:column;gap:16px}
+    .icard{background:#fff;border-radius:14px;padding:22px 24px;border:1px solid #e2e8f0;box-shadow:0 1px 4px rgba(0,0,0,.05);display:flex;gap:20px;align-items:flex-start}
+    .icard.online{border-left:4px solid #6366f1}
+    .icard.offline{border-left:4px solid #f59e0b}
+    .icard.completed{opacity:.7;border-left:4px solid #94a3b8}
+    .icard.cancelled{opacity:.6;border-left:4px solid #ef4444}
+    .date-block{min-width:72px;text-align:center;background:#f8fafc;border-radius:10px;padding:12px 8px}
+    .date-day{font-size:28px;font-weight:800;color:#1e293b;line-height:1}
+    .date-mon{font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.5px}
+    .info{flex:1}
+    .drive-title{font-weight:700;font-size:15px;color:#1e293b}
+    .company{font-size:13px;color:#6366f1;font-weight:500;margin-bottom:8px}
+    .meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 24px}
+    .meta-item{display:flex;align-items:center;gap:6px;font-size:12px;color:#64748b}
+    .meta-item span{font-weight:500;color:#475569}
+    .badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+    .badge-online{background:#eff6ff;color:#1d4ed8}
+    .badge-offline{background:#fef3c7;color:#92400e}
+    .badge-completed{background:#dcfce7;color:#166534}
+    .badge-cancelled{background:#fee2e2;color:#dc2626}
+    .badge-scheduled{background:#f0fdf4;color:#15803d}
+    .round-chip{background:#f1f5f9;color:#475569;font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500}
+    .action-btn{background:#6366f1;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block;white-space:nowrap}
+    .action-btn:hover{background:#4f46e5}
+    .link-area{margin-top:12px}
+    .meet-link{font-size:12px;color:#6366f1;text-decoration:none;display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid #c7d2fe;border-radius:8px;font-weight:500}
+    .meet-link:hover{background:#eff6ff}
+    .loading{text-align:center;padding:40px;color:#94a3b8}
+    .empty{text-align:center;padding:60px;color:#94a3b8}
+    .empty h3{font-size:18px;color:#64748b;margin-bottom:8px}
+    .legend{display:flex;gap:14px;margin-bottom:20px;flex-wrap:wrap}
+    .leg-item{display:flex;align-items:center;gap:5px;font-size:12px;color:#64748b}
+    .leg-dot{width:12px;height:12px;border-radius:50%}
+  </style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">← Dashboard</a>
+  <span style="color:#475569">|</span>
+  <span class="title">Interview Schedule</span>
+  <span class="badge-prm">👑 Premium</span>
+</div>
+
+<div class="page">
+  <h1>Interview Calendar</h1>
+  <p class="sub">All your scheduled, completed, and upcoming interviews in one place.</p>
+  <div class="legend">
+    <div class="leg-item"><div class="leg-dot" style="background:#6366f1"></div> Online</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#f59e0b"></div> Offline / In-person</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#94a3b8"></div> Completed</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#ef4444"></div> Cancelled</div>
+  </div>
+  <div class="interview-list" id="list"><div class="loading">Loading interviews...</div></div>
+</div>
+
+<script type="module">
+  import { FeaturesAPI } from '../../api.js';
+
+  const role = localStorage.getItem('userRole');
+  const collegeId = localStorage.getItem('collegeId');
+  if (role !== 'candidate' || !collegeId) window.location.href = 'index.html';
+
+  async function load() {
+    const list = document.getElementById('list');
+    try {
+      const interviews = await FeaturesAPI.candidate.getInterviews();
+      if (!interviews || !interviews.length) {
+        list.innerHTML = '<div class="empty"><h3>No interviews scheduled yet</h3><p>Interviews will appear here once you are shortlisted.</p></div>';
+        return;
+      }
+      // Sort: upcoming first
+      interviews.sort((a, b) => new Date(a.date) - new Date(b.date));
+      list.innerHTML = interviews.map(i => renderCard(i)).join('');
+    } catch(err) {
+      const msg = err?.message || '';
+      if (msg.includes('PREMIUM') || msg.includes('403')) {
+        list.innerHTML = '<div class="empty"><h3>👑 Premium Plan Required</h3><p>Interview Calendar is a Premium feature. Contact your college admin to upgrade.</p></div>';
+      } else {
+        list.innerHTML = `<div class="empty"><h3>Error</h3><p>${msg}</p></div>`;
+      }
+    }
+  }
+
+  function renderCard(i) {
+    const d = new Date(i.date);
+    const day = d.getDate();
+    const mon = d.toLocaleString('default', { month: 'short' });
+    const modeClass = i.mode === 'online' ? 'online' : 'offline';
+    const statusClass = i.status !== 'scheduled' ? i.status : modeClass;
+    const modeBadge = i.mode === 'online'
+      ? '<span class="badge badge-online">🖥 Online</span>'
+      : '<span class="badge badge-offline">🏢 In-person</span>';
+    const statusBadge = i.status === 'completed'
+      ? '<span class="badge badge-completed">✓ Completed</span>'
+      : i.status === 'cancelled'
+      ? '<span class="badge badge-cancelled">✕ Cancelled</span>'
+      : '<span class="badge badge-scheduled">● Scheduled</span>';
+    const linkHtml = (i.mode === 'online' && i.meetLink && i.status === 'scheduled')
+      ? `<div class="link-area"><a class="meet-link" href="${i.meetLink}" target="_blank">🎥 Join Meeting</a></div>`
+      : (i.mode === 'offline' && i.location)
+      ? `<div class="link-area"><span style="font-size:12px;color:#64748b">📍 ${i.location}</span></div>`
+      : '';
+    return `
+      <div class="icard ${statusClass}">
+        <div class="date-block">
+          <div class="date-day">${day}</div>
+          <div class="date-mon">${mon}</div>
+        </div>
+        <div class="info">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+            <div class="drive-title">${i.driveTitle}</div>
+            <span class="round-chip">${i.round}</span>
+          </div>
+          <div class="company">${i.company}</div>
+          <div class="meta-grid">
+            <div class="meta-item">🕐 <span>${i.time}</span></div>
+            <div class="meta-item">${modeBadge}</div>
+            <div class="meta-item">📋 Status: <span>${statusBadge}</span></div>
+          </div>
+          ${linkHtml}
+        </div>
+      </div>`;
+  }
+
+  load();
+</script>
+</body>
+</html>

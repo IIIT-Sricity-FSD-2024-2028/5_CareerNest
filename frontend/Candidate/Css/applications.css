@@ -1,0 +1,274 @@
+/* ================== MY APPLICATIONS STYLES ================== */
+.nav-item.active-applications a {
+    background-color: var(--bg-main);
+    color: var(--brand-primary);
+}
+.nav-item.active-applications a i {
+    color: var(--brand-primary);
+}
+
+.applications-header-text {
+    font-size: 16px;
+    color: #64748b;
+    margin-bottom: 24px;
+}
+
+.stats-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    margin-bottom: 40px;
+}
+.stat-card-clean {
+    background: white; 
+    border: 1px solid #f1f5f9; 
+    border-radius: var(--radius-lg); 
+    padding: 24px; 
+    text-align: center;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.stat-card-clean h3 {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+.stat-card-clean p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.filter-pills-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 28px;
+}
+.filter-pill {
+    padding: 8px 16px;
+    border-radius: var(--radius-full);
+    font-size: 13px;
+    font-weight: 600;
+    background-color: #f8fafc;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.filter-pill.active {
+    background-color: #4338ca;
+    color: white;
+    border-color: #4338ca;
+}
+
+.app-row-card {
+    background-color: var(--bg-card);
+    border: 1px solid rgba(0,0,0,0.03);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s;
+    cursor: pointer;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0;
+}
+.app-row-card:hover {
+    border-color: #cbd5e1;
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.app-row-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+.app-icon-box {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-md);
+    background-color: #eff6ff;
+    color: #3b82f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.app-info h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.referral-badge {
+    background-color: #dcfce7;
+    color: #16a34a;
+    padding: 2px 10px;
+    border-radius: var(--radius-full);
+    font-size: 11px;
+    font-weight: 700;
+}
+.app-info p {
+    font-size: 14px;
+    color: #64748b;
+}
+
+.app-row-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+.app-chevron {
+    color: #94a3b8;
+    font-size: 20px;
+}
+
+/* Application Accordion Expansion */
+.app-row-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px;
+    cursor: pointer;
+}
+.app-row-body {
+    display: none;
+    padding: 0 32px 32px 32px;
+    border-top: 1px solid #f8fafc;
+    margin-top: 4px;
+    padding-top: 32px;
+}
+.app-row-card.expanded .app-row-body {
+    display: block;   
+}
+
+.profile-card:hover, .stat-card-clean:hover, .app-row-card:hover, .job-card:hover { 
+    transform: translateY(-2px); 
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1); 
+    border-color: rgba(0,0,0,0.05);
+}
+
+/* Horizontal Tracker */
+.tracker-wrapper {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 50px;
+    padding: 0 20px;
+    position: relative;
+    width: 100%;
+}
+.tracker-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+    background: white;
+}
+.tracker-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+.tracker-circle.completed { background-color: #4f46e5; color: white; border: 2px solid #4f46e5; }
+.tracker-circle.active { background-color: #4f46e5; color: white; border: 2px solid #4f46e5; }
+.tracker-circle.future { background-color: #f1f5f9; color: #94a3b8; border: 2px solid #e2e8f0; }
+
+.tracker-label {
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 500;
+}
+.tracker-line {
+    flex: 1;
+    height: 2px;
+    margin-top: 16px; /* Half of circle height */
+    z-index: 1;
+}
+.tracker-line.completed { background-color: #4f46e5; }
+.tracker-line.future { background-color: #e2e8f0; }
+
+/* Activity Log details */
+.activity-log-container {
+    padding-left: 20px;
+}
+.activity-header {
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-bottom: 20px;
+}
+.activity-item {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 0;
+}
+.activity-timeline {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 16px;
+}
+.activity-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-top: 6px;
+}
+.activity-dot.completed { background-color: #cbd5e1; }
+.activity-dot.active { background-color: #4f46e5; }
+
+.activity-line {
+    width: 2px;
+    background-color: #e2e8f0;
+    flex: 1;
+    min-height: 40px;
+    margin: 4px 0;
+}
+.activity-line.hidden { background-color: transparent; }
+
+.activity-content {
+    flex: 1;
+    padding-bottom: 32px;
+}
+.activity-content h6 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+.activity-date {
+    font-size: 12px;
+    font-weight: 500;
+    color: #94a3b8;
+}
+.activity-content p {
+    font-size: 13px;
+    color: #64748b;
+}
+
+@media (max-width: 1024px) {
+    .stats-grid-4 { grid-template-columns: repeat(2, 1fr); }
+    .tracker-wrapper { padding: 0; }
+    .tracker-label { font-size: 11px; }
+}

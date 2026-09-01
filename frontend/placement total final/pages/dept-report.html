@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Department Report — Placement Officer</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',system-ui,sans-serif;background:#f1f5f9;min-height:100vh}
+    .topbar{background:#1e293b;padding:14px 24px;display:flex;align-items:center;gap:16px}
+    .topbar a{color:#94a3b8;font-size:13px;text-decoration:none}.topbar a:hover{color:#fff}
+    .topbar .title{color:#fff;font-weight:600;font-size:15px}
+    .badge-std{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600}
+    .page{max-width:960px;margin:0 auto;padding:28px 20px}
+    h1{font-size:22px;font-weight:700;color:#1e293b;margin-bottom:4px}
+    .sub{font-size:13px;color:#64748b;margin-bottom:24px}
+    /* Summary cards */
+    .stats-row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:28px}
+    .stat-card{background:#fff;border-radius:12px;padding:18px 22px;border:1px solid #e2e8f0;flex:1;min-width:140px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+    .stat-label{font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+    .stat-val{font-size:28px;font-weight:800;color:#1e293b}
+    .stat-val.green{color:#059669}.stat-val.blue{color:#3b82f6}
+    /* Table */
+    .table-wrap{background:#fff;border-radius:14px;border:1px solid #e2e8f0;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+    .table-title{font-size:15px;font-weight:700;color:#1e293b;padding:18px 22px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:8px}
+    table{width:100%;border-collapse:collapse}
+    th{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#94a3b8;font-weight:600;padding:12px 18px;text-align:left;border-bottom:1px solid #f1f5f9;background:#fafafa}
+    td{padding:14px 18px;font-size:13px;color:#374151;border-bottom:1px solid #f9fafb}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:#f8fafc}
+    /* Progress bar */
+    .progress-wrap{display:flex;align-items:center;gap:10px}
+    .progress-bar{height:8px;border-radius:4px;background:#f1f5f9;flex:1;overflow:hidden}
+    .progress-fill{height:100%;border-radius:4px;transition:width .6s ease}
+    .rate-text{font-size:12px;font-weight:700;min-width:38px;text-align:right}
+    .rate-high{color:#059669}.rate-mid{color:#d97706}.rate-low{color:#ef4444}
+    .pkg-text{font-weight:600;color:#7c3aed}
+    .loading{text-align:center;padding:40px;color:#94a3b8}
+    .empty{text-align:center;padding:60px;color:#94a3b8}
+    .dept-rank{font-size:11px;font-weight:700;color:#94a3b8;background:#f1f5f9;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center}
+  </style>
+</head>
+<body>
+<div class="topbar">
+  <a href="p1.html">← Dashboard</a>
+  <span style="color:#475569">|</span>
+  <span class="title">Department Placement Report</span>
+  <span class="badge-std">⭐ Standard</span>
+</div>
+
+<div class="page">
+  <h1>Department-wise Placement Report</h1>
+  <p class="sub">Placement rates, average packages, and student counts broken down by department.</p>
+
+  <div class="stats-row" id="stats-row"></div>
+
+  <div class="table-wrap" id="table-wrap"><div class="loading">Loading department report...</div></div>
+</div>
+
+<script type="module">
+  import { FeaturesAPI } from '../../api.js';
+
+  const role = localStorage.getItem('userRole');
+  const collegeId = localStorage.getItem('collegeId');
+  if (!['placement_officer','college_admin'].includes(role) || !collegeId) window.location.href = 'p1.html';
+
+  async function load() {
+    const tableWrap = document.getElementById('table-wrap');
+    const statsRow  = document.getElementById('stats-row');
+    try {
+      const report = await FeaturesAPI.officer.getDeptReport();
+      // Summary stats
+      statsRow.innerHTML = `
+        <div class="stat-card"><div class="stat-label">Total Students</div><div class="stat-val blue">${report.totalStudents}</div></div>
+        <div class="stat-card"><div class="stat-label">Total Placed</div><div class="stat-val green">${report.totalPlaced}</div></div>
+        <div class="stat-card"><div class="stat-label">Overall Rate</div><div class="stat-val">${report.overall}%</div></div>
+        <div class="stat-card"><div class="stat-label">Departments</div><div class="stat-val">${report.departments.length}</div></div>
+      `;
+      // Sort by rate desc
+      const depts = [...report.departments].sort((a, b) => b.rate - a.rate);
+      const rows = depts.map((d, i) => {
+        const rateClass = d.rate >= 70 ? 'rate-high' : d.rate >= 50 ? 'rate-mid' : 'rate-low';
+        const barColor  = d.rate >= 70 ? '#059669' : d.rate >= 50 ? '#d97706' : '#ef4444';
+        return `
+          <tr>
+            <td><span class="dept-rank">${i+1}</span></td>
+            <td style="font-weight:700">${d.dept}</td>
+            <td>${d.total}</td>
+            <td style="color:#059669;font-weight:600">${d.placed}</td>
+            <td>
+              <div class="progress-wrap">
+                <div class="progress-bar"><div class="progress-fill" style="width:${d.rate}%;background:${barColor}"></div></div>
+                <span class="rate-text ${rateClass}">${d.rate}%</span>
+              </div>
+            </td>
+            <td class="pkg-text">${d.avgPackage} LPA</td>
+          </tr>`;
+      }).join('');
+      tableWrap.innerHTML = `
+        <div class="table-title">📊 Department Breakdown</div>
+        <table>
+          <thead><tr><th>#</th><th>Department</th><th>Students</th><th>Placed</th><th>Placement Rate</th><th>Avg Package</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    } catch(err) {
+      const msg = err?.message || '';
+      if (msg.includes('STANDARD') || msg.includes('403')) {
+        tableWrap.innerHTML = `<div class="empty"><h3>🔒 Standard Plan Required</h3><p>Department Reports require the Standard plan.</p></div>`;
+      } else {
+        tableWrap.innerHTML = `<div class="empty"><h3>Error</h3><p>${msg}</p></div>`;
+      }
+    }
+  }
+
+  load();
+</script>
+</body>
+</html>

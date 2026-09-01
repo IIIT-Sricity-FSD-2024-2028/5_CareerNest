@@ -1,0 +1,142 @@
+# Domain: College Placement and Internship Management (EdTech)
+# Problem Statement: Centralized Placement & Internship Portal
+# Last Updated: 2026-01-31
+
+Opportunity:
+  definition:
+    An opportunity refers to a job or internship role shared by a company
+    with the college for hiring Candidates. It includes details such as the
+    role description, eligibility conditions, and recruitment  process.
+  examples:
+    - Internship role shared by a software company for pre-final year Candidates
+    - Full-time placement role offered during campus placements
+  aliases:
+    - Job
+    - Internship
+
+EligibilityCriteria:
+  definition:
+    Eligibility criteria are the conditions that decide whether a Candidate
+    is allowed to apply for a particular opportunity. These are usually
+    decided by the company and approved by the Senior placement Officer.
+  examples:
+    - Minimum CGPA requirement of 7.0
+    - Only Candidates from specific branches are allowed
+  aliases:
+    - Eligibility
+    - Requirements
+
+Application:
+  definition:
+    An application is submitted when a Candidate applies for an opportunity
+    through the placement process. It represents the Candidate’s intent to
+    participate in the hiring process.
+  examples:
+    - A Candidate applying for a data analyst internship
+    - Application submitted for a campus placement drive
+  aliases:
+    - Submission
+    - Job Application
+
+ApplicationStatus:
+  definition:
+    Application status shows the current stage of a Candidate’s application
+    as it moves through the recruitment process.
+  examples:
+    - Applied
+    - Shortlisted
+    - Interview Scheduled
+    - Rejected
+  aliases:
+    - Status
+    - Application Stage
+
+Senior Placement Officer:
+  definition:
+    The Senior Placement Officer is responsible for managing and coordinating
+    placement and internship activities. This role serves as an intermediary
+    between Candidates and recruiting organizations, ensuring smooth and
+    compliant recruitment processes.
+  examples:
+    - Reviewing and approving job or internship postings before they are made
+      available to Candidates
+  aliases:
+    - Placement Officer
+
+Recruiter:
+  definition:
+    A recruiter represents a company participating in campus placements
+    and is responsible for evaluating candidates and making hiring decisions.
+  examples:
+    - HR representative from a company visiting campus
+    - Recruiter conducting online interviews
+  aliases:
+    - Company
+    - Employer
+
+Candidate:
+  definition:
+    A Candidate is a currently enrolled member of the college who participates
+    in placements or internships by applying to opportunities.
+  examples:
+    - Final-year Candidate applying for placements
+    - Pre-final year Candidate applying for internships
+  aliases:
+    - Student
+    - Applicant
+
+Alumni:
+  definition:
+    Alumni are former Candidates of the college who may support current
+    Candidates by referring or recommending them for opportunities.
+  examples:
+    - Alumni referring a Candidate to their company
+    - Graduate endorsing a candidate for an internship
+  aliases:
+    - Former Candidate
+    - Graduate
+
+Referral:
+  definition:
+    A referral is a recommendation provided by an alumni to support a
+    Candidate’s application for a specific opportunity.
+  examples:
+    - Alumni approving a referral request for a Candidate
+    - Referral tag shown to the recruiter
+  aliases:
+    - Recommendation
+    - Endorsement
+
+RecruitmentRound:
+  definition:
+    A recruitment round is one step in the hiring process where candidates
+    are evaluated by the company.
+  examples:
+    - Online assessment round
+    - Technical interview round
+  aliases:
+    - Selection Round
+    - Hiring Stage
+
+Notification:
+  definition:
+    A notification is a message sent by the system to inform users about
+    important updates in the placement process.
+  examples:
+    - Interview schedule notification
+    - Application status update
+  aliases:
+    - Alert
+    - Update
+
+PlacementStatistics:
+  definition:
+    Aggregated institutional information showing placement and internship
+    participation, offers and outcomes.
+  examples:
+    - A dashboard showing number of Candidates placed per branch
+  aliases:
+    - PlacementReports
+    - PlacementMetrics
+
+

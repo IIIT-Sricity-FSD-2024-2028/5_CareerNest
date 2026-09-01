@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alumni Directory — Alumni Portal</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',system-ui,sans-serif;background:#f1f5f9;min-height:100vh}
+    .topbar{background:#1e293b;padding:14px 24px;display:flex;align-items:center;gap:16px}
+    .topbar a{color:#94a3b8;font-size:13px;text-decoration:none}.topbar a:hover{color:#fff}
+    .topbar .title{color:#fff;font-weight:600;font-size:15px}
+    .badge-prm{background:#faf5ff;color:#7c3aed;border:1px solid #ddd6fe;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600}
+    .page{max-width:1000px;margin:0 auto;padding:28px 20px}
+    h1{font-size:22px;font-weight:700;color:#1e293b;margin-bottom:4px}
+    .sub{font-size:13px;color:#64748b;margin-bottom:24px}
+    .filter-bar{background:#fff;border-radius:12px;padding:16px 20px;display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:24px;border:1px solid #e2e8f0}
+    .filter-group{display:flex;flex-direction:column;gap:5px}
+    .filter-group label{font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.5px}
+    .filter-group input,.filter-group select{border:1px solid #e2e8f0;border-radius:8px;padding:8px 12px;font-size:13px;color:#1e293b;background:#f8fafc;outline:none;min-width:130px}
+    .filter-group input:focus,.filter-group select:focus{border-color:#6366f1;background:#fff}
+    .btn-search{background:#6366f1;color:#fff;border:none;border-radius:8px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;margin-top:auto}
+    .btn-search:hover{background:#4f46e5}
+    .btn-clear{background:transparent;color:#64748b;border:1px solid #e2e8f0;border-radius:8px;padding:9px 14px;font-size:13px;cursor:pointer;margin-top:auto}
+    .results-meta{font-size:13px;color:#64748b;margin-bottom:14px}
+    .directory-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+    .alumni-card{background:#fff;border-radius:12px;padding:20px;border:1px solid #e2e8f0;box-shadow:0 1px 4px rgba(0,0,0,.05);display:flex;flex-direction:column;gap:10px}
+    .alumni-head{display:flex;align-items:center;gap:12px}
+    .avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:#fff;flex-shrink:0}
+    .alumni-name{font-weight:700;font-size:14px;color:#1e293b}
+    .alumni-role{font-size:12px;color:#6366f1;font-weight:500}
+    .alumni-company{font-size:12px;color:#64748b}
+    .alumni-tags{display:flex;flex-wrap:wrap;gap:5px}
+    .tag{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
+    .tag-batch{background:#f1f5f9;color:#475569}
+    .tag-dept{background:#eff6ff;color:#1d4ed8}
+    .tag-loc{background:#f0fdf4;color:#166534}
+    .connect-btn{background:#f8fafc;color:#6366f1;border:1px solid #c7d2fe;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;text-align:center;text-decoration:none;display:block}
+    .connect-btn:hover{background:#eff6ff}
+    .loading{text-align:center;padding:40px;color:#94a3b8}
+    .empty{text-align:center;padding:60px;color:#94a3b8}
+    .empty h3{font-size:16px;color:#64748b;margin-bottom:8px}
+  </style>
+</head>
+<body>
+<div class="topbar">
+  <a href="A1.html">← Dashboard</a>
+  <span style="color:#475569">|</span>
+  <span class="title">Alumni Directory</span>
+  <span class="badge-prm">👑 Premium</span>
+</div>
+
+<div class="page">
+  <h1>Alumni Directory</h1>
+  <p class="sub">Search and connect with alumni by company, batch, or department.</p>
+
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label>Company</label>
+      <input id="company" type="text" placeholder="e.g. Google, Microsoft" />
+    </div>
+    <div class="filter-group">
+      <label>Batch Year</label>
+      <select id="batch">
+        <option value="">All Batches</option>
+        <option>2018</option><option>2019</option><option>2020</option><option>2021</option><option>2022</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Department</label>
+      <select id="dept">
+        <option value="">All Depts</option>
+        <option>CSE</option><option>IT</option><option>ECE</option><option>EEE</option><option>MECH</option><option>MBA</option>
+      </select>
+    </div>
+    <button class="btn-search" onclick="search()">🔍 Search</button>
+    <button class="btn-clear" onclick="clearSearch()">✕ Clear</button>
+  </div>
+
+  <div class="results-meta" id="meta"></div>
+  <div class="directory-grid" id="grid"><div class="loading">Loading alumni directory...</div></div>
+</div>
+
+<script type="module">
+  import { FeaturesAPI } from '../../api.js';
+
+  const role = localStorage.getItem('userRole');
+  const collegeId = localStorage.getItem('collegeId');
+  if (!['alumni','candidate'].includes(role) || !collegeId) window.location.href = 'A1.html';
+
+  const COLORS = ['#6366f1','#8b5cf6','#06b6d4','#10b981','#f59e0b','#ef4444','#3b82f6','#ec4899'];
+
+  async function search() {
+    const company = document.getElementById('company').value.trim() || undefined;
+    const batch   = document.getElementById('batch').value || undefined;
+    const dept    = document.getElementById('dept').value || undefined;
+    const grid    = document.getElementById('grid');
+    const meta    = document.getElementById('meta');
+    grid.innerHTML = '<div class="loading">Searching...</div>';
+    try {
+      const alumni = await FeaturesAPI.alumni.getDirectory(company, batch, dept);
+      meta.textContent = `${alumni.length} alumni found`;
+      if (!alumni.length) {
+        grid.innerHTML = '<div class="empty"><h3>No alumni match the filters</h3><p>Try different search criteria.</p></div>';
+        return;
+      }
+      grid.innerHTML = alumni.map((a, i) => renderCard(a, i)).join('');
+    } catch(err) {
+      const msg = err?.message || '';
+      if (msg.includes('PREMIUM') || msg.includes('403')) {
+        grid.innerHTML = '<div class="empty"><h3>👑 Premium Plan Required</h3><p>Alumni Directory requires the Premium plan. Contact your college admin to upgrade.</p></div>';
+      } else {
+        grid.innerHTML = `<div class="empty"><h3>Error</h3><p>${msg}</p></div>`;
+      }
+    }
+  }
+
+  function renderCard(a, idx) {
+    const initials = a.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    const color = COLORS[idx % COLORS.length];
+    return `
+      <div class="alumni-card">
+        <div class="alumni-head">
+          <div class="avatar" style="background:${color}">${initials}</div>
+          <div>
+            <div class="alumni-name">${a.name}</div>
+            <div class="alumni-role">${a.role}</div>
+            <div class="alumni-company">@ ${a.company}</div>
+          </div>
+        </div>
+        <div class="alumni-tags">
+          <span class="tag tag-batch">Batch ${a.batch}</span>
+          <span class="tag tag-dept">${a.dept}</span>
+          <span class="tag tag-loc">📍 ${a.location}</span>
+        </div>
+        <a class="connect-btn" href="${a.linkedin}" target="_blank">🔗 View on LinkedIn</a>
+      </div>`;
+  }
+
+  window.search = search;
+  window.clearSearch = () => {
+    document.getElementById('company').value = '';
+    document.getElementById('batch').value = '';
+    document.getElementById('dept').value = '';
+    search();
+  };
+
+  search(); // Load all on init
+</script>
+</body>
+</html>

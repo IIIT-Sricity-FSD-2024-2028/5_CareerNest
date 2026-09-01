@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Opportunities</title>
+
+  <!-- COMMON CSS -->
+  <link rel="stylesheet" href="../Style/style.css">
+  
+  <!-- PAGE CSS -->
+  <style>
+    .opp-banner {
+      background: white;
+      padding: 24px;
+      border-radius: 8px;
+      border: 1px solid #E5E7EB;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 20px;
+      margin-bottom: 24px;
+    }
+    .opp-banner h2 { font-size: 20px; margin-bottom: 4px; }
+    .opp-banner p { color: #6B7280; font-size: 14px; }
+    .btn-new { background: #0F8F63; color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-size: 14px; }
+    .btn-new:hover { background: #0c7a52; }
+
+    .opp-list { display: flex; flex-direction: column; gap: 16px; }
+    .opp-card { background: white; border: 1px solid #E5E7EB; border-radius: 8px; padding: 24px; }
+    .opp-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+    .opp-title { font-size: 18px; font-weight: 600; color: #111827; }
+    
+    .tags { display: flex; gap: 8px; }
+    .tag { padding: 4px 10px; border-radius: 100px; font-size: 12px; font-weight: 500; }
+    .tag-blue { background: #EEF2FF; color: #4F46E5; }
+    .tag-green { background: #ECFDF5; color: #059669; }
+    .tag-gray { background: #F3F4F6; color: #374151; }
+
+    .opp-meta { font-size: 13px; color: #6B7280; display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+    .meta-item { display: flex; align-items: center; gap: 6px; }
+
+    .opp-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+    .grid-col h4 { font-size: 12px; color: #9CA3AF; font-weight: 400; margin-bottom: 4px; }
+    .grid-col div { font-size: 14px; color: #111827; font-weight: 600; }
+    
+    .branch-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+    
+    .btn-view-app { background: #F3F4F6; color: #374151; padding: 8px 16px; border-radius: 6px; border: none; font-size: 13px; font-weight: 500; cursor: pointer; }
+    .btn-view-app:hover { background: #E5E7EB; }
+  </style>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+
+  <!-- SIDEBAR -->
+  <aside>
+    <div>
+      <h1>CareerNest</h1>
+      <p>Recruiter</p>
+
+      <a href="profile.html" style="text-decoration: none; color: inherit;">
+        <div class="profile" style="cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+          <div class="avatar">PK</div>
+          <div>
+            <p>Priya Kapo</p>
+            <p class="email">priya12@gmail.com</p>
+          </div>
+        </div>
+      </a>
+
+      <nav>
+        <ul>
+          <li><a href="index.html" style="display:flex; align-items:center; gap:10px;"><i data-lucide="layout-dashboard"></i> Dashboard</a></li>
+          <li><a href="post.html" style="display:flex; align-items:center; gap:10px;"><i data-lucide="send"></i> Post Opportunity</a></li>
+          <li class="active"><a href="myopportunities.html" style="display:flex; align-items:center; gap:10px;"><i data-lucide="briefcase"></i> My Opportunities</a></li>
+          <li><a href="applications.html" style="display:flex; align-items:center; gap:10px;"><i data-lucide="users"></i> Applications</a></li>
+          <li><a href="assessments.html" style="display:flex; align-items:center; gap:10px;"><i data-lucide="calendar-check"></i> Assessments</a></li>
+        </ul>
+      </nav>
+    </div>
+    
+    <a href="../../login.html" class="logout" style="text-decoration: none; color: white; display: block; padding: 10px; text-align: center; border-radius: 8px; background: rgba(255,255,255,0.1);">Sign Out</a>
+  </aside>
+
+  <!-- MAIN -->
+  <main>
+    <!-- NAVBAR -->
+    <header>
+      <h2>My Opportunities</h2>
+      <div class="nav-right" style="position: relative; display: flex; gap: 15px;">
+        <div style="position: relative;">
+          <a href="#" onclick="document.getElementById('notifMenu').classList.toggle('show')" style="color: #6A7282; display: flex; align-items: center; margin-top:5px;"><i data-lucide="bell"></i></a>
+          <div id="notifMenu" class="dropdown-menu">
+            <h4>Notifications</h4>
+            <hr>
+            <p>No new notifications right now.</p>
+          </div>
+        </div>
+        <div style="position: relative;">
+          <div class="avatar small" style="cursor: pointer;" onclick="document.getElementById('profileMenu').classList.toggle('show')">PK</div>
+          <div id="profileMenu" class="dropdown-menu">
+            <h4>Priya Kapo</h4>
+            <p style="font-size:12px; color:#6B7280;">priya12@gmail.com</p>
+            <hr>
+            <a href="profile.html" style="color: #374151; display: block; margin-bottom: 8px;">My Profile</a>
+            <a href="login.html" style="color:#DC2626; display: block;">Sign Out</a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="opp-banner">
+      <div>
+        <h2>My Opportunities</h2>
+        <p>Manage your posted job and internship listings</p>
+      </div>
+      <a href="post.html" class="btn-new"><i data-lucide="plus" style="width: 16px; height: 16px;"></i> Post New</a>
+    </section>
+
+    <div class="opp-list" id="opp-list">
+      <!-- MOCKDATA WILL INJECT CARDS HERE -->
+    </div>
+
+  </main>
+
+  <!-- DATA FILES -->
+  <script src="../data/mockdata.js"></script>
+  <!-- JS FILES -->
+  <script src="../js/myopportunities.js"></script>
+</body>
+</html>

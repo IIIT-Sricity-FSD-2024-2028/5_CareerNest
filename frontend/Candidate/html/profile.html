@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CareerNest - Profile</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Boxicons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="../Css/style.css">
+    <link rel="stylesheet" href="../Css/profile.css">
+</head>
+<body>
+
+<div class="app-layout">
+    <aside class="sidebar">
+        <!-- Sidebar Code Remains Standard -->
+        <div class="brand">
+            <div class="brand-icon"><i class='bx bxs-graduation'></i></div>
+            <div class="brand-text"><h2>CareerNest</h2><p>College Placement Cell</p></div>
+        </div>
+        <div class="sidebar-user-card active" onclick="window.location.href='profile.html'" style="cursor: pointer;" title="View Profile">
+            <div class="user-avatar" id="sidebar-avatar">SB</div>
+            <div class="user-info">
+                <h4 id="sidebar-name">Loading...</h4>
+                <p id="sidebar-role">Loading...</p>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <ul>
+                <li class="nav-item"><a href="index.html"><i class='bx bx-grid-alt'></i><span>Dashboard</span></a></li>
+                <li class="nav-item"><a href="opportunities.html"><i class='bx bx-briefcase-alt-2'></i><span>Browse Opportunities</span></a></li>
+                <li class="nav-item"><a href="applications.html"><i class='bx bx-file-blank'></i><span>My Applications</span></a></li>
+                <li class="nav-item"><a href="referrals.html"><i class='bx bx-user-plus'></i><span>Referrals</span></a></li>
+                <li class="nav-item"><a href="changepassword.html"><i class='bx bx-lock-alt'></i><span>Change Password</span></a></li>
+            </ul>
+        </nav>
+        <div class="sidebar-footer"><a href="../../login.html" class="sign-out"><i class='bx bx-log-out'></i><span>Sign Out</span></a></div>
+    </aside>
+
+    <main class="main-content page-enter">
+        <header class="top-header">
+            <h1 class="page-title">Profile</h1>
+            <div class="header-actions">
+                <div class="notification-container" style="position: relative;">
+                    <div class="notification-btn" id="notif-btn" style="cursor: pointer;"><i class='bx bx-bell'></i><span class="badge red-badge" id="notif-count" style="display:none;">0</span></div>
+                    <div class="notification-dropdown" id="notif-dropdown">
+                        <div class="notif-header"><h5>Notifications</h5><a href="#" id="mark-read-btn">Mark all read</a></div>
+                        <div class="notif-body" id="notif-list-container"></div>
+                    </div>
+                </div>
+                <div class="top-avatar" id="top-avatar" onclick="window.location.href='profile.html'" style="cursor: pointer;" title="View Profile">SB</div>
+            </div>
+        </header>
+
+        <div class="dashboard-scroll-area">
+            <div class="profile-layout">
+                <!-- LEFT COLUMN -->
+                <div>
+                    <!-- Header Card -->
+                    <div class="profile-card">
+                        <div class="profile-header-banner" id="profile-banner">
+                            <button class="edit-banner-btn" title="Edit Background" onclick="openImageOptions('banner')"><i class='bx bx-camera'></i></button>
+                            
+                            <div class="profile-picture-container" id="profile-picture" onclick="openImageOptions('avatar')" title="Edit Profile Picture">SB</div>
+                            
+                            <!-- Hidden inputs for upload -->
+                            <input type="file" id="upload-generic-storage" accept="image/*" style="display:none;">
+                            <input type="file" id="upload-generic-camera" accept="image/*" capture="user" style="display:none;">
+                        </div>
+                        <div class="profile-header-details">
+                            <div class="profile-header-actions">
+                                <button class="edit-btn" onclick="openModal('intro')"><i class='bx bx-pencil'></i></button>
+                            </div>
+                            <h2 id="profile-name">Name</h2>
+                            <p class="profile-headline" id="profile-headline">Headline</p>
+                            
+                            <div class="profile-contact-list">
+                                <span><i class='bx bx-map'></i> <span id="profile-location">Location</span></span>
+                                <span><i class='bx bx-building'></i> <span id="profile-university">University</span></span>
+                                <span><i class='bx bx-envelope'></i> <a href="#" id="profile-email">Email</a></span>
+                                <span><i class='bx bx-phone'></i> <span id="profile-phone">Phone</span></span>
+                            </div>
+                            <div class="profile-contact-list" id="profile-socials"></div>
+                        </div>
+                    </div>
+
+                    <!-- About Card -->
+                    <div class="profile-card">
+                        <div class="card-body">
+                            <h3 class="section-title">About <button class="edit-btn" onclick="openModal('about')"><i class='bx bx-pencil'></i></button></h3>
+                            <p style="color: var(--text-primary); line-height: 1.6; white-space: pre-line;" id="profile-about">About text here...</p>
+                        </div>
+                    </div>
+
+                    <!-- Experience Card -->
+                    <div class="profile-card">
+                        <div class="card-body">
+                            <h3 class="section-title">Experience <button class="edit-btn" onclick="openModal('experience')"><i class='bx bx-plus'></i></button></h3>
+                            <div id="experience-container"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Coding Profiles Card -->
+                    <div class="profile-card">
+                        <div class="card-body">
+                            <h3 class="section-title">Coding Profiles <button class="edit-btn" onclick="openModal('codingProfiles')"><i class='bx bx-plus'></i></button></h3>
+                            <div id="coding-profiles-container"></div>
+                        </div>
+                    </div>
+
+                    <!-- Projects Card -->
+                    <div class="profile-card">
+                        <div class="card-body">
+                            <h3 class="section-title">Projects <button class="edit-btn" onclick="openModal('projects')"><i class='bx bx-plus'></i></button></h3>
+                            <div id="projects-container"></div>
+                        </div>
+                    </div>
+
+                    <!-- Education Card -->
+                    <div class="profile-card">
+                        <div class="card-body">
+                            <h3 class="section-title">Education <button class="edit-btn" onclick="openModal('education')"><i class='bx bx-plus'></i></button></h3>
+                            <div id="education-container"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN -->
+                <div>
+                    <!-- Resume / Docs Card -->
+                    <div class="profile-card">
+                        <div class="card-body">
+                            <h3 class="section-title">Resumes & Documents</h3>
+                            
+                            <h4 style="font-size: 14px; margin-bottom:12px; color: var(--text-secondary);">Primary Resume</h4>
+                            <div class="file-upload-row">
+                                <div style="display:flex; gap:12px; align-items:center;">
+                                    <div class="file-icon"><i class='bx bxs-file-pdf'></i></div>
+                                    <div class="file-details">
+                                        <h5 id="resume-filename">Resume.pdf</h5>
+                                        <p id="resume-meta">342 KB</p>
+                                    </div>
+                                </div>
+                                <div class="file-actions">
+                                    <i class='bx bx-trash' onclick="alert('Delete functionality coming soon!')"></i>
+                                </div>
+                            </div>
+                            
+                            <h4 style="font-size: 14px; margin-top: 24px; margin-bottom:12px; color: var(--text-secondary);">Additional Documents</h4>
+                            <div id="docs-container"></div>
+
+                            <div class="drag-drop-box" onclick="document.getElementById('file-upload-input').click()">
+                                <i class='bx bx-upload'></i>
+                                <h5>Upload Document (Marksheets, Proofs)</h5>
+                            </div>
+                            <input type="file" id="file-upload-input" style="display:none;" accept=".pdf,.doc,.docx,.jpg,.png">
+                        </div>
+                    </div>
+
+                    <!-- Skills Card -->
+                    <div class="profile-card">
+                        <div class="card-body">
+                            <h3 class="section-title">Skills <button class="edit-btn" onclick="openModal('skills')"><i class='bx bx-pencil'></i></button></h3>
+                            <div class="skills-wrapper" id="skills-container"></div>
+                        </div>
+                    </div>
+
+                    <!-- Languages Card -->
+                    <div class="profile-card">
+                        <div class="card-body">
+                            <h3 class="section-title">Languages <button class="edit-btn" onclick="openModal('languages')"><i class='bx bx-plus'></i></button></h3>
+                            <div class="skills-wrapper" id="languages-container" style="gap: 16px;"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Certifications Card -->
+                    <div class="profile-card">
+                        <div class="card-body">
+                            <h3 class="section-title">Certifications <button class="edit-btn" onclick="openModal('certifications')"><i class='bx bx-plus'></i></button></h3>
+                            <div id="certifications-container"></div>
+                        </div>
+                    </div>
+
+                    <!-- Extracurricular Card -->
+                    <div class="profile-card">
+                        <div class="card-body">
+                            <h3 class="section-title">Extracurricular <button class="edit-btn" onclick="openModal('extracurricular')"><i class='bx bx-plus'></i></button></h3>
+                            <div id="extracurricular-container"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- ================= MODALS ================= -->
+
+<!-- Intro Modal -->
+<dialog id="modal-intro" class="profile-modal">
+    <div class="modal-header">
+        <h3>Edit Intro</h3>
+        <button class="modal-close" onclick="closeModal('intro')"><i class='bx bx-x'></i></button>
+    </div>
+    <form id="form-intro" onsubmit="event.preventDefault(); saveProfileData('intro');">
+        <div class="modal-form-group"><label>Full Name</label><input type="text" id="inp-name" required></div>
+        <div class="modal-form-group"><label>Headline</label><input type="text" id="inp-headline" required></div>
+        <div class="modal-form-group"><label>Location</label><input type="text" id="inp-location" minlength="3"></div>
+        <div class="modal-form-group"><label>Phone</label><input type="tel" id="inp-phone" pattern="[0-9\+\-\s]{10,15}" title="Please enter a valid 10-15 digit phone number"></div>
+        
+        <h4 style="margin: 16px 0 8px; font-size: 15px;">Social Links</h4>
+        <div class="modal-form-group"><label>GitHub URL</label><input type="url" id="inp-github"></div>
+        <div class="modal-form-group"><label>LinkedIn URL</label><input type="url" id="inp-linkedin"></div>
+        <div class="modal-form-group"><label>Portfolio URL</label><input type="url" id="inp-portfolio"></div>
+        
+        <div class="modal-actions">
+            <button type="button" class="btn-secondary" onclick="closeModal('intro')">Cancel</button>
+            <button type="submit" class="btn-primary" style="width: auto; padding: 12px 24px;">Save</button>
+        </div>
+    </form>
+</dialog>
+
+<!-- About Modal -->
+<dialog id="modal-about" class="profile-modal">
+    <div class="modal-header">
+        <h3>Edit About</h3>
+        <button class="modal-close" onclick="closeModal('about')"><i class='bx bx-x'></i></button>
+    </div>
+    <form id="form-about" onsubmit="event.preventDefault(); saveProfileData('about');">
+        <div class="modal-form-group"><label>Summary</label><textarea id="inp-about" rows="6" required></textarea></div>
+        <div class="modal-actions">
+            <button type="button" class="btn-secondary" onclick="closeModal('about')">Cancel</button>
+            <button type="submit" class="btn-primary" style="width: auto; padding: 12px 24px;">Save</button>
+        </div>
+    </form>
+</dialog>
+
+<!-- Skills Modal -->
+<dialog id="modal-skills" class="profile-modal">
+    <div class="modal-header">
+        <h3>Add Skill</h3>
+        <button class="modal-close" onclick="closeModal('skills')"><i class='bx bx-x'></i></button>
+    </div>
+    <form id="form-skills" onsubmit="event.preventDefault(); saveProfileData('skills');">
+        <div class="modal-form-group">
+            <label>Skill Name</label>
+            <input type="text" id="inp-skills-items" placeholder="e.g. React.js, Python, Figma" required>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn-secondary" onclick="closeModal('skills')">Cancel</button>
+            <button type="submit" class="btn-primary" style="width: auto; padding: 12px 24px;">Add Skill</button>
+        </div>
+    </form>
+</dialog>
+
+<!-- Languages Specific Modal -->
+<dialog id="modal-languages" class="profile-modal">
+    <div class="modal-header">
+        <h3>Add Language</h3>
+        <button class="modal-close" onclick="closeModal('languages')"><i class='bx bx-x'></i></button>
+    </div>
+    <form id="form-languages" onsubmit="event.preventDefault(); saveProfileData('languages');">
+        <div class="modal-form-group">
+            <label>Language</label>
+            <input type="text" id="inp-lang-name" placeholder="e.g. French" required>
+        </div>
+        <div class="modal-form-group">
+            <label>Proficiency</label>
+            <select id="inp-lang-level" required style="padding: 12px; border: 1px solid #cbd5e1; border-radius: var(--radius-sm); font-family: var(--font-sans);">
+                <option value="Native">Native</option>
+                <option value="Fluent">Fluent</option>
+                <option value="Professional">Professional</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Beginner">Beginner</option>
+            </select>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn-secondary" onclick="closeModal('languages')">Cancel</button>
+            <button type="submit" class="btn-primary" style="width: auto; padding: 12px 24px;">Save</button>
+        </div>
+    </form>
+</dialog>
+
+<!-- Coding Profiles Specific Modal -->
+<dialog id="modal-codingProfiles" class="profile-modal">
+    <div class="modal-header">
+        <h3>Add Coding Profile</h3>
+        <button class="modal-close" onclick="closeModal('codingProfiles')"><i class='bx bx-x'></i></button>
+    </div>
+    <form id="form-coding" onsubmit="event.preventDefault(); saveProfileData('codingProfiles');">
+        <div class="modal-form-group">
+            <label>Platform (e.g. LeetCode, Codeforces)</label>
+            <input type="text" id="inp-coding-platform" required>
+        </div>
+        <div class="modal-form-group">
+            <label>Profile URL</label>
+            <input type="url" id="inp-coding-url" required>
+        </div>
+        <div class="modal-form-group">
+            <label>Handle / Username (Optional)</label>
+            <input type="text" id="inp-coding-handle">
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn-secondary" onclick="closeModal('codingProfiles')">Cancel</button>
+            <button type="submit" class="btn-primary" style="width: auto; padding: 12px 24px;">Save</button>
+        </div>
+    </form>
+</dialog>
+
+<!-- Generic Add Record Modal (For Exp, Ed, Proj) -->
+<dialog id="modal-record" class="profile-modal">
+    <div class="modal-header">
+        <h3 id="record-modal-title">Add Record</h3>
+        <button class="modal-close" onclick="closeModal('record')"><i class='bx bx-x'></i></button>
+    </div>
+    <form id="form-record" onsubmit="event.preventDefault(); saveProfileRecord();">
+        <input type="hidden" id="inp-rec-type">
+        <div class="modal-form-group"><label id="lbl-rec-title">Title</label><input type="text" id="inp-rec-title" required></div>
+        <div class="modal-form-group"><label id="lbl-rec-subtitle">Subtitle / Company / Institution</label><input type="text" id="inp-rec-subtitle" required></div>
+        
+        <div style="display: flex; gap: 16px; margin-bottom: 16px;" id="grp-rec-duration">
+            <div class="modal-form-group" style="flex:1; margin-bottom:0;"><label>Start Date</label><input type="month" id="inp-rec-start" required></div>
+            <div class="modal-form-group" style="flex:1; margin-bottom:0;"><label>End Date</label><input type="month" id="inp-rec-end"></div>
+        </div>
+
+        <div class="modal-form-group" id="grp-rec-link"><label>External Link (e.g. GitHub)</label><input type="url" id="inp-rec-link" placeholder="https://..."></div>
+        <div class="modal-form-group" id="grp-rec-desc"><label>Description</label><textarea id="inp-rec-desc" rows="4"></textarea></div>
+        
+        <div class="modal-form-group" id="grp-rec-img" style="display:none;">
+            <label>Attach Image Evidence (Optional)</label>
+            <input type="file" id="inp-rec-image-file" accept="image/*">
+            <input type="hidden" id="inp-rec-image-base64">
+        </div>
+
+        <div class="modal-actions">
+            <button type="button" class="btn-secondary" onclick="closeModal('record')">Cancel</button>
+            <button type="submit" class="btn-primary" style="width: auto; padding: 12px 24px;">Save Record</button>
+        </div>
+    </form>
+</dialog>
+
+<!-- Image Options Modal -->
+<dialog id="modal-image-options" class="profile-modal" style="width: 380px;">
+    <div class="modal-header">
+        <h3 id="image-options-title">Update Media</h3>
+        <button class="modal-close" onclick="document.getElementById('modal-image-options').close()"><i class='bx bx-x'></i></button>
+    </div>
+    <div style="padding: 24px; display: flex; flex-direction: column; gap: 12px;">
+        <button class="btn-secondary" style="width: 100%; justify-content: flex-start; padding: 16px; border: 1px solid #e2e8f0; font-size: 15px; color: var(--text-primary); font-weight: 500;" onclick="triggerImageUpload('storage')"><i class='bx bx-upload' style="font-size: 20px; color: var(--brand-primary); margin-right: 12px;"></i> Upload from Storage</button>
+        <button class="btn-secondary" style="width: 100%; justify-content: flex-start; padding: 16px; border: 1px solid #e2e8f0; font-size: 15px; color: var(--text-primary); font-weight: 500;" onclick="triggerImageUpload('camera')"><i class='bx bx-camera' style="font-size: 20px; color: #10b981; margin-right: 12px;"></i> Use Camera</button>
+        <button class="btn-secondary" style="width: 100%; justify-content: flex-start; padding: 16px; border: 1px solid #fee2e2; background: #fef2f2; font-size: 15px; color: #ef4444; font-weight: 500;" onclick="triggerImageDelete()"><i class='bx bx-trash' style="font-size: 20px; margin-right: 12px;"></i> Delete Image</button>
+    </div>
+</dialog>
+
+<!-- Custom Deletion Confirmation Modal -->
+<dialog id="modal-confirm-delete" class="profile-modal" style="width: 400px; text-align: center;">
+    <div style="padding: 32px 24px;">
+        <div style="width: 70px; height: 70px; border-radius: 50%; background: #fee2e2; color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: 36px; margin: 0 auto 20px auto;">
+            <i class='bx bx-trash'></i>
+        </div>
+        <h3 style="font-size: 20px; color: var(--text-primary); margin-bottom: 12px;">Delete Record?</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 32px; font-size: 14px; line-height: 1.5;">Are you sure you want to permanently remove this item from your profile? This action cannot be undone.</p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <button class="btn-secondary" style="flex: 1;" onclick="document.getElementById('modal-confirm-delete').close()">Cancel</button>
+            <button class="btn-primary" style="flex: 1; background: #ef4444; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);" onclick="executeDeleteRecord()">Yes, Delete</button>
+        </div>
+    </div>
+</dialog>
+
+<!-- Scripts -->
+<script type="module" src="../Js/profile.js"></script>
+</body>
+</html>

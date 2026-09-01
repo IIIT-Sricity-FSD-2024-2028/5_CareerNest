@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mentorship — Alumni Portal</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',system-ui,sans-serif;background:#f1f5f9;min-height:100vh}
+    .topbar{background:#1e293b;padding:14px 24px;display:flex;align-items:center;gap:16px}
+    .topbar a{color:#94a3b8;font-size:13px;text-decoration:none}.topbar a:hover{color:#fff}
+    .topbar .title{color:#fff;font-weight:600;font-size:15px}
+    .badge-std{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600}
+    .page{max-width:900px;margin:0 auto;padding:28px 20px}
+    h1{font-size:22px;font-weight:700;color:#1e293b;margin-bottom:4px}
+    .sub{font-size:13px;color:#64748b;margin-bottom:24px}
+    .tabs{display:flex;gap:0;border-bottom:2px solid #e2e8f0;margin-bottom:24px}
+    .tab{padding:10px 22px;font-size:13px;font-weight:600;color:#94a3b8;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
+    .tab.active{color:#6366f1;border-bottom-color:#6366f1}
+    .tab-panel{display:none}.tab-panel.active{display:block}
+    /* Request cards */
+    .req-list{display:flex;flex-direction:column;gap:14px}
+    .req-card{background:#fff;border-radius:12px;padding:20px 22px;border:1px solid #e2e8f0;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+    .req-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
+    .req-name{font-weight:700;font-size:14px;color:#1e293b}
+    .req-topic{font-size:12px;color:#6366f1;font-weight:500;margin-bottom:6px}
+    .req-msg{font-size:13px;color:#475569;line-height:1.6;margin-bottom:12px}
+    .req-date{font-size:11px;color:#94a3b8}
+    .status-pill{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600}
+    .s-pending{background:#fef3c7;color:#92400e}
+    .s-accepted{background:#dcfce7;color:#166534}
+    .s-rejected{background:#fee2e2;color:#dc2626}
+    .req-actions{display:flex;gap:8px}
+    .btn-accept{background:#dcfce7;color:#166534;border:1px solid #bbf7d0;border-radius:8px;padding:7px 18px;font-size:12px;font-weight:700;cursor:pointer}
+    .btn-reject{background:#fee2e2;color:#dc2626;border:1px solid #fecaca;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer}
+    .btn-accept:hover{background:#bbf7d0}.btn-reject:hover{background:#fecaca}
+    /* Send request form */
+    .send-card{background:#fff;border-radius:14px;padding:24px;border:1px solid #e2e8f0;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+    .send-card h2{font-size:15px;font-weight:700;color:#1e293b;margin-bottom:18px}
+    .form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+    .form-group label{font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.5px}
+    .form-group input,.form-group select,.form-group textarea{border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px;font-size:14px;color:#1e293b;background:#f8fafc;outline:none;font-family:inherit}
+    .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:#6366f1;background:#fff}
+    .form-group textarea{resize:vertical;min-height:90px}
+    .submit-btn{background:#6366f1;color:#fff;border:none;border-radius:10px;padding:11px 28px;font-size:14px;font-weight:700;cursor:pointer;width:100%}
+    .submit-btn:hover{background:#4f46e5}
+    .success-msg{display:none;background:#dcfce7;border:1px solid #bbf7d0;border-radius:8px;padding:12px 16px;color:#166534;font-size:13px;font-weight:600;margin-top:12px}
+    .loading{text-align:center;padding:30px;color:#94a3b8}
+    .empty{text-align:center;padding:40px;color:#94a3b8}
+    .empty h3{font-size:16px;color:#64748b;margin-bottom:8px}
+  </style>
+</head>
+<body>
+<div class="topbar">
+  <a href="A1.html">← Dashboard</a>
+  <span style="color:#475569">|</span>
+  <span class="title">Mentorship Hub</span>
+  <span class="badge-std">⭐ Standard</span>
+</div>
+
+<div class="page">
+  <h1>Mentorship Hub</h1>
+  <p class="sub">Manage mentorship requests from students and give back to the community.</p>
+
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('received')">📬 Received Requests</div>
+    <div class="tab" onclick="showTab('send')">✉️ Request Mentorship</div>
+  </div>
+
+  <!-- Received requests (for alumni) -->
+  <div class="tab-panel active" id="tab-received">
+    <div id="received-list"><div class="loading">Loading requests...</div></div>
+  </div>
+
+  <!-- Send request (also alumni can request other alumni as mentors) -->
+  <div class="tab-panel" id="tab-send">
+    <div class="send-card">
+      <h2>✉️ Request Mentorship</h2>
+      <div class="form-group">
+        <label>Alumni ID to Request</label>
+        <input id="req-alumni-id" type="number" placeholder="Enter alumni user ID (e.g. 226)" />
+      </div>
+      <div class="form-group">
+        <label>Topic / Area of Guidance</label>
+        <input id="req-topic" type="text" placeholder="e.g. FAANG Interview Preparation, Product Management" />
+      </div>
+      <div class="form-group">
+        <label>Your Message</label>
+        <textarea id="req-message" placeholder="Introduce yourself and explain what kind of guidance you need..."></textarea>
+      </div>
+      <button class="submit-btn" onclick="sendRequest()">Send Request</button>
+      <div class="success-msg" id="send-success"></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { FeaturesAPI } from '../../api.js';
+
+  const role = localStorage.getItem('userRole');
+  const collegeId = localStorage.getItem('collegeId');
+  const userId = localStorage.getItem('userId');
+  if (role !== 'alumni' || !collegeId) window.location.href = 'A1.html';
+
+  window.showTab = (id) => {
+    document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', ['received','send'][i] === id));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('tab-' + id).classList.add('active');
+    if (id === 'received') loadReceived();
+  };
+
+  async function loadReceived() {
+    const list = document.getElementById('received-list');
+    try {
+      const requests = await FeaturesAPI.alumni.getMentorshipReceived();
+      if (!requests || !requests.length) {
+        list.innerHTML = '<div class="empty"><h3>No requests yet</h3><p>When students request mentorship from you, they\'ll appear here.</p></div>';
+        return;
+      }
+      list.innerHTML = `<div class="req-list">${requests.map(r => renderReqCard(r)).join('')}</div>`;
+    } catch(err) {
+      const msg = err?.message || '';
+      list.innerHTML = msg.includes('STANDARD') || msg.includes('403')
+        ? '<div class="empty"><h3>🔒 Standard Plan Required</h3><p>Mentorship features require the Standard plan.</p></div>'
+        : `<div class="empty"><h3>Error</h3><p>${msg}</p></div>`;
+    }
+  }
+
+  function renderReqCard(r) {
+    const statusChip = r.status === 'pending'
+      ? '<span class="status-pill s-pending">⏳ Pending</span>'
+      : r.status === 'accepted'
+      ? '<span class="status-pill s-accepted">✓ Accepted</span>'
+      : '<span class="status-pill s-rejected">✕ Rejected</span>';
+    const actions = r.status === 'pending' ? `
+      <div class="req-actions">
+        <button class="btn-accept" onclick="respond(${r.id}, 'accepted')">✓ Accept</button>
+        <button class="btn-reject" onclick="respond(${r.id}, 'rejected')">✕ Decline</button>
+      </div>` : '';
+    return `
+      <div class="req-card" id="req-${r.id}">
+        <div class="req-head">
+          <div>
+            <div class="req-name">👤 ${r.studentName}</div>
+            <div class="req-topic">📚 ${r.topic}</div>
+          </div>
+          ${statusChip}
+        </div>
+        <div class="req-msg">"${r.message}"</div>
+        <div class="req-date">Requested on ${r.createdAt.split('T')[0]}</div>
+        ${actions}
+      </div>`;
+  }
+
+  window.respond = async (id, status) => {
+    try {
+      await FeaturesAPI.alumni.respondMentorship(id, status);
+      loadReceived();
+    } catch(err) { alert('Error: ' + (err?.message || '')); }
+  };
+
+  window.sendRequest = async () => {
+    const alumniId = +document.getElementById('req-alumni-id').value;
+    const topic = document.getElementById('req-topic').value.trim();
+    const message = document.getElementById('req-message').value.trim();
+    if (!alumniId || !topic || !message) { alert('Please fill all fields.'); return; }
+    try {
+      await FeaturesAPI.alumni.requestMentorship({ alumniId, topic, message, studentName: localStorage.getItem('userName') || 'Student' });
+      const s = document.getElementById('send-success');
+      s.textContent = '✓ Mentorship request sent successfully!';
+      s.style.display = 'block';
+      document.getElementById('req-alumni-id').value = '';
+      document.getElementById('req-topic').value = '';
+      document.getElementById('req-message').value = '';
+      setTimeout(() => { s.style.display = 'none'; }, 4000);
+    } catch(err) { alert('Error: ' + (err?.message || '')); }
+  };
+
+  loadReceived();
+</script>
+</body>
+</html>

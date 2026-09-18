@@ -53,13 +53,12 @@
                         <span>Browse Opportunities</span>
                     </a>
                 </li>
-                <li class="nav-item active-applications">
+                <li class="nav-item active">
                     <a href="applications.html">
                         <i class='bx bx-file-blank'></i>
                         <span>My Applications</span>
                     </a>
                 </li>
-
                 <li class="nav-item">
                     <a href="referrals.html">
                         <i class='bx bx-user-plus'></i>
@@ -72,6 +71,7 @@
                         <span>Change Password</span>
                     </a>
                 </li>
+                <!-- Tier-gated items injected by renderSidebarNav() from subscription.js -->
             </ul>
         </nav>
 
@@ -161,5 +161,19 @@
 </div>
 
 <script type="module" src="../Js/applications.js"></script>
+
+<!-- Subscription banner & sidebar nav injection -->
+<script type="module">
+  import { loadSubscription, renderPlanBanner, renderSidebarNav } from '../../subscription.js';
+  const collegeId = localStorage.getItem('collegeId');
+  const email     = localStorage.getItem('userEmail') || localStorage.getItem('userName') || '';
+  if (collegeId && collegeId !== 'null') {
+    const sub = await loadSubscription(collegeId, 'candidate');
+    if (sub) {
+      renderPlanBanner(sub, sub.collegeName, email);
+      renderSidebarNav(sub, 'candidate');
+    }
+  }
+</script>
 </body>
 </html>

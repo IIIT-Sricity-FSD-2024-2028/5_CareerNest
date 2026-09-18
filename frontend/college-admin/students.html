@@ -90,6 +90,7 @@
 
   let allStudents = [];
 
+  let cgpaStud = [];
   async function loadCollegeName() {
     if (!collegeId || collegeId === 'null') return;
     try {
@@ -103,9 +104,12 @@
     const tbody = document.getElementById('tbody');
     try {
       const users = await api.get('/users', 'college_admin');
+      cgpaStud = users.filter(u => u.cgpa > 8);
       allStudents = users.filter(u => u.role === 'candidate');
+
       document.getElementById('count-badge').textContent = `${allStudents.length} students`;
       renderTable(allStudents);
+      
     } catch (e) {
       tbody.innerHTML = `<tr><td colspan="6" style="color:#ef4444;padding:24px">${e.message}</td></tr>`;
     }

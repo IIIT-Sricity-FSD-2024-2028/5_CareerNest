@@ -246,6 +246,9 @@ export function renderSidebarNav(sub, role) {
     if (!navUl) return;
     document.querySelectorAll('.cn-injected-nav').forEach(el => el.remove());
 
+    // Detect current page filename so injected items can be marked active
+    const currentPage = location.pathname.split('/').pop() || 'index.html';
+
     const items = [
       { label: 'Advanced Search',    href: 'advanced-search.html',    icon: 'bx-search-alt',    minTier: 1, badge: '⭐' },
       { label: 'Saved Drives',       href: 'saved-drives.html',        icon: 'bx-bookmark',      minTier: 1, badge: '⭐' },
@@ -255,7 +258,8 @@ export function renderSidebarNav(sub, role) {
 
     items.forEach(item => {
       const li = document.createElement('li');
-      li.className = 'nav-item cn-injected-nav';
+      const isActive = currentPage === item.href;
+      li.className = 'nav-item cn-injected-nav' + (isActive ? ' active' : '');
       const reqLabel = item.minTier === 1 ? 'STANDARD' : 'PREMIUM';
       if (tierIdx >= item.minTier) {
         li.innerHTML = `<a href="${item.href}"><i class='bx ${item.icon}'></i><span>${item.badge} ${item.label}</span></a>`;

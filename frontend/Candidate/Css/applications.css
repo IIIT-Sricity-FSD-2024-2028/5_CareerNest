@@ -1,11 +1,5 @@
 /* ================== MY APPLICATIONS STYLES ================== */
-.nav-item.active-applications a {
-    background-color: var(--bg-main);
-    color: var(--brand-primary);
-}
-.nav-item.active-applications a i {
-    color: var(--brand-primary);
-}
+/* Note: .nav-item.active is handled globally in style.css */
 
 .applications-header-text {
     font-size: 16px;

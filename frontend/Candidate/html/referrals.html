@@ -68,10 +68,11 @@
                 </li>
                 <li class="nav-item">
                     <a href="changepassword.html">
-                        <i class='bx bx-user-plus'></i>
+                        <i class='bx bx-lock-alt'></i>
                         <span>Change Password</span>
                     </a>
                 </li>
+                <!-- Tier-gated items injected by renderSidebarNav() from subscription.js -->
             </ul>
         </nav>
 
@@ -259,5 +260,19 @@
 
 <!-- Scripts -->
 <script src="../Js/referrals.js"></script>
+
+<!-- Subscription banner & sidebar nav injection -->
+<script type="module">
+  import { loadSubscription, renderPlanBanner, renderSidebarNav } from '../../subscription.js';
+  const collegeId = localStorage.getItem('collegeId');
+  const email     = localStorage.getItem('userEmail') || localStorage.getItem('userName') || '';
+  if (collegeId && collegeId !== 'null') {
+    const sub = await loadSubscription(collegeId, 'candidate');
+    if (sub) {
+      renderPlanBanner(sub, sub.collegeName, email);
+      renderSidebarNav(sub, 'candidate');
+    }
+  }
+</script>
 </body>
 </html>

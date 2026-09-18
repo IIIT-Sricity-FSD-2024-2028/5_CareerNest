@@ -1,11 +1,5 @@
 /* ================== OPPORTUNITIES PAGE STYLES ================== */
-.nav-item.active-opportunities a {
-    background-color: var(--bg-main);
-    color: var(--brand-primary);
-}
-.nav-item.active-opportunities a i {
-    color: var(--brand-primary);
-}
+/* Note: .nav-item.active is handled globally in style.css */
 
 /* Toolbar */
 .opportunities-toolbar {

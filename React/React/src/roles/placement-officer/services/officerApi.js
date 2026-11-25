@@ -1,7 +1,12 @@
+import { createSelector } from '@reduxjs/toolkit';
+import { useCallback, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { toOversightUser } from '../../../shared/utils/accountDirectory.js';
-export { toOversightUser } from '../../../shared/utils/accountDirectory.js';
-import { useCallback, useEffect, useState } from 'react';
-import api from '../../../services/api.js';
+import { entityListSelector } from '../../../store/entities.js';
+import { loadOfficerData } from '../../../store/placement-officer/officerCommands.js';
+import { selectOfficerRequest } from '../../../store/placement-officer/placementOfficerSlice.js';
+import { selectResource } from '../../../store/resourcesSlice.js';
+import { selectWorkspaceVersion } from '../../../store/sessionSlice.js';
 
 // Placement officer screens consume a shared live snapshot built from backend APIs.
 
@@ -15,31 +20,9 @@ const BRANCH_COLORS = [
 ];
 const AVATAR_COLORS = ['#7C3AED', '#4f46e5', '#f59e0b', '#ec4899', '#10b981', '#3b82f6'];
 
-const EMPTY = () => ({
-  stats: {
-    totalCandidates: 0, placementRate: 0, highestPkg: 0, companiesVisited: 0, totalApps: 0,
-    avgPkg: 0, studentsPlaced: 0, offersMade: 0, internships: 0, pending: 0, published: 0, totalOpps: 0, totalApplicants: 0,
-  },
-  stakeholders: { candidates: 0, recruiters: 0, activeDrives: 0, alumni: 0 },
-  branches: [],
-  topCompanies: [],
-  monthlyTrend: [],
-  trend: { labels: [], fullTime: [], internships: [] },
-  submissions: [],
-  drives: [],
-  interviews: [],
-  recruiters: [],
-  announcements: [],
-  users: [],
-  applications: [],
-  notifications: [],
-});
-
 const hash = (text = '') => [...text].reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
 
-export const OFFER_STATUSES = ['Offer', 'Offered'];
-
-export function toSubmission(o, applicantCount) {
+function toSubmission(o, applicantCount) {
   return {
     id: o.id,
     jobId: o.jobId,
@@ -73,23 +56,7 @@ export function toSubmission(o, applicantCount) {
   };
 }
 
-// Reverse of the edit form: the screen edits strings, the API wants typed fields.
-export function fromSubmissionEdit(form) {
-  return {
-    title: form.title,
-    company: form.company,
-    type: form.type === 'internship' ? 'Internship' : 'Full-Time',
-    salary: form.pkg,
-    location: form.location,
-    cgpa: form.cgpa !== '' ? Number(form.cgpa) : undefined,
-    branches: form.branches ? form.branches.split(',').map((b) => b.trim()).filter(Boolean) : undefined,
-    backlogs: form.backlogs,
-    deadline: form.deadline,
-    description: form.desc,
-  };
-}
-
-export function toTrackedApplication(a) {
+function toTrackedApplication(a) {
   return {
     id: a.id,
     candidateId: a.candidateId,
@@ -106,29 +73,7 @@ export function toTrackedApplication(a) {
   };
 }
 
-export function fromOversightUser(u) {
-  const base = { name: u.name, email: u.email, status: u.status };
-  if (u.role === 'candidate') {
-    return {
-      ...base,
-      rollNumber: u.roll,
-      department: u.branch,
-      cgpa: Number.isFinite(Number(u.cgpa)) ? Number(u.cgpa) : 0,
-      backlogs: Number.isInteger(Number(u.backlogs)) ? Number(u.backlogs) : 0,
-    };
-  }
-  if (u.role === 'alumni') {
-    return {
-      ...base,
-      company: u.company,
-      batch: u.batch,
-      referrals: Number.isInteger(Number(u.referrals)) ? Number(u.referrals) : 0,
-    };
-  }
-  return { ...base, company: u.recCompany, headline: u.recDesignation, phone: u.recPhone, location: u.recLocation };
-}
-
-function build({ opps, apps, users, recruiters, placement, assessments = [], announcements = [], inbox = [] }) {
+function build({ opps, apps, users, recruiters, placement, assessments, announcements, inbox }) {
   const students = users.filter((u) => u.role === 'candidate');
   const alumni = users.filter((u) => u.role === 'alumni');
   const reviewable = opps.filter((o) => !o.isDemo && ['pending', 'approved', 'rejected', 'published'].includes(normaliseOpportunityStatus(o.status)));
@@ -157,22 +102,22 @@ function build({ opps, apps, users, recruiters, placement, assessments = [], ann
   const oppById = new Map(opps.map((o) => [o.id, o]));
 
   return {
-    topCompanies: placement.topCompanies,
-    monthlyTrend: placement.monthlyTrend,
+    topCompanies: placement.topCompanies ?? [],
+    monthlyTrend: placement.monthlyTrend ?? [],
     stats: {
-      totalCandidates: placement.totalStudents,
-      placementRate: placement.placementRate,
-      highestPkg: placement.highestPackage,
-      companiesVisited: placement.companiesVisited,
-      totalApps: placement.totalApplications,
-      avgPkg: placement.avgPackage,
-      studentsPlaced: placement.totalPlaced,
-      offersMade: placement.totalOffers,
-      internships: placement.internshipApplications,
+      totalCandidates: placement.totalStudents ?? 0,
+      placementRate: placement.placementRate ?? 0,
+      highestPkg: placement.highestPackage ?? 0,
+      companiesVisited: placement.companiesVisited ?? 0,
+      totalApps: placement.totalApplications ?? 0,
+      avgPkg: placement.avgPackage ?? 0,
+      studentsPlaced: placement.totalPlaced ?? 0,
+      offersMade: placement.totalOffers ?? 0,
+      internships: placement.internshipApplications ?? 0,
       pending: pendingOpps.length,
       published: published.length,
       totalOpps: reviewable.length,
-      totalApplicants: placement.uniqueApplicants,
+      totalApplicants: placement.uniqueApplicants ?? 0,
     },
     stakeholders: {
       candidates: students.length,
@@ -180,8 +125,8 @@ function build({ opps, apps, users, recruiters, placement, assessments = [], ann
       activeDrives: published.length,
       alumni: alumni.length,
     },
-    branches: placement.byDept.map((b, i) => ({ name: b.dept, total: b.total, placed: b.placed, ...BRANCH_COLORS[i % BRANCH_COLORS.length] })),
-    trend: placement.applicationTrend,
+    branches: (placement.byDept ?? []).map((b, i) => ({ name: b.dept, total: b.total, placed: b.placed, ...BRANCH_COLORS[i % BRANCH_COLORS.length] })),
+    trend: placement.applicationTrend ?? { labels: [], fullTime: [], internships: [] },
     submissions: reviewable
       .slice()
       .sort((a, b) => {
@@ -234,85 +179,41 @@ function build({ opps, apps, users, recruiters, placement, assessments = [], ann
   };
 }
 
-let inflight = null;
-// The officer portal is a small single-page application, but several mounted
-// components (the header and the current page) read the same dashboard data.
-// Keep one live snapshot and notify every consumer after a mutation so an
-// approve/publish/reject action never leaves another part of the portal stale.
-let currentData = EMPTY();
-const subscribers = new Set();
-
-function publish(data) {
-  currentData = data;
-  subscribers.forEach((subscriber) => subscriber(data));
-}
-
 function normaliseOpportunityStatus(status) {
-  const value = String(status || '').toLowerCase();
-  return value === 'published' ? 'published' : value;
+  return String(status || '').toLowerCase();
 }
 
-/** Share concurrent reads, then discard the request so page changes fetch fresh data. */
-export function loadOfficerData({ force = false } = {}) {
-  if (!force && inflight) return inflight;
-  inflight = Promise.all([
-    api.get('/opportunities'),
-    api.get('/applications'),
-    api.get('/users/oversight'),
-    api.get('/recruiters'),
-    api.get('/assessments'),
-    api.get('/features/officer/placement-dashboard'),
-    api.get('/announcements').then((r) => r.data).catch(() => []),
-    api.get('/notifications').then((r) => r.data).catch(() => []),
-  ]).then(([opps, apps, users, recruiters, assessments, placement, announcements, inbox]) => {
-    const data = build({
-      opps: opps.data,
-      apps: apps.data,
-      users: users.data,
-      recruiters: recruiters.data,
-      assessments: assessments.data,
-      placement: placement.data,
-      announcements,
-      inbox,
-    });
-    publish(data);
-    return data;
-  });
-  const request = inflight;
-  const clear = () => { if (inflight === request) inflight = null; };
-  request.then(clear, clear);
-  return inflight;
-}
+const selectOfficerData = createSelector(
+  [
+    entityListSelector('opportunities', 'workspace'),
+    entityListSelector('applications', 'workspace'),
+    entityListSelector('users', 'oversight'),
+    entityListSelector('recruiterRegistrations', 'workspace'),
+    (state) => selectResource(state, 'officerPlacement'),
+    entityListSelector('assessments', 'workspace'),
+    entityListSelector('announcements', 'workspace'),
+    entityListSelector('notifications', 'inbox'),
+  ],
+  (opps, apps, users, recruiters, placement, assessments, announcements, inbox) =>
+    build({ opps, apps, users, recruiters, placement: placement ?? {}, assessments, announcements, inbox }),
+);
 
-/** Hook: returns the loaded data (or empty values until it arrives) and a refresh function. */
 export function useOfficerData() {
-  const [state, setState] = useState({ data: currentData, ready: false, error: '' });
-  const refresh = useCallback(async () => {
-    try {
-      const data = await loadOfficerData({ force: true });
-      setState({ data, ready: true, error: '' });
-      return data;
-    } catch (error) {
-      setState((prev) => ({ ...prev, error: 'Could not load data from the server.' }));
-      return null;
-    }
-  }, []);
+  const dispatch = useDispatch();
+  const workspaceVersion = useSelector(selectWorkspaceVersion);
+  const data = useSelector(selectOfficerData);
+  const { ready, error } = useSelector(selectOfficerRequest);
+  const load = useCallback(() => dispatch(loadOfficerData({ workspaceVersion })), [dispatch, workspaceVersion]);
+  const refresh = useCallback(
+    () => dispatch(loadOfficerData({ workspaceVersion, force: true })).unwrap().then(() => true, () => false),
+    [dispatch, workspaceVersion],
+  );
+
   useEffect(() => {
-    let cancelled = false;
-    const receive = (data) => {
-      if (!cancelled) setState({ data, ready: true, error: '' });
-    };
-    subscribers.add(receive);
-    const onFocus = () => { loadOfficerData({ force: true }).catch(() => {}); };
-    window.addEventListener('focus', onFocus);
-    loadOfficerData()
-      .then((data) => { if (!cancelled) setState({ data, ready: true, error: '' }); })
-      .catch(() => { if (!cancelled) setState((prev) => ({ ...prev, error: 'Could not load data from the server.' })); });
-    return () => {
-      cancelled = true;
-      window.removeEventListener('focus', onFocus);
-      subscribers.delete(receive);
-    };
-  }, []);
-  return { ...state, refresh };
+    window.addEventListener('focus', load);
+    load();
+    return () => window.removeEventListener('focus', load);
+  }, [load]);
+
+  return { data, ready, error, refresh };
 }

@@ -1,57 +1,9 @@
-import { Link } from "react-router-dom";
-
-const roles = [
-  {
-    role: "candidate",
-    icon: "🎓",
-    title: "Candidate",
-    description:
-      "Browse opportunities, apply for jobs & internships, track your applications, and request alumni referrals.",
-    gradientClass: "candidate-gradient",
-  },
-  {
-    role: "alumni",
-    icon: "🤝",
-    title: "Alumni",
-    description:
-      "Share internship reports, provide professional endorsements, and help juniors through referral support.",
-    gradientClass: "alumni-gradient",
-  },
-  {
-    role: "officer",
-    icon: "🛡️",
-    title: "Placement Officer",
-    description:
-      "Approve opportunities, enforce placement policies, monitor stats, and manage recruiter relationships.",
-    gradientClass: "officer-gradient",
-  },
-  {
-    role: "recruiter",
-    icon: "💼",
-    title: "Recruiter",
-    description:
-      "Post opportunities, screen candidates, schedule interviews, and manage your entire hiring pipeline.",
-    gradientClass: "recruiter-gradient",
-  },
-  {
-    role: "college_admin",
-    icon: "🏫",
-    title: "College Admin",
-    description:
-      "Manage placement officers, monitor student placement progress, and oversee all college-level activity.",
-    customGradient: "linear-gradient(135deg, #0ea5e9, #0284c7)",
-  },
-  {
-    role: "super_admin",
-    icon: "👑",
-    title: "Super Admin",
-    description:
-      "Onboard colleges, manage subscriptions, monitor platform-wide revenue and placement statistics.",
-    customGradient: "linear-gradient(135deg, #7c3aed, #5b21b6)",
-  },
-];
+import { useSelector } from 'react-redux';
+import { selectLandingContent } from '../../../store/publicSlice.js';
+import ReduxLink from '../../../shared/components/ReduxLink.jsx';
 
 function Roles() {
+  const { roles } = useSelector(selectLandingContent);
   return (
     <section className="roles" id="roles">
       <div className="container">
@@ -84,7 +36,7 @@ function Roles() {
               <h3>{role.title}</h3>
               <p>{role.description}</p>
 
-              <Link
+              <ReduxLink
                 to={`/login?role=${role.role}`}
                 className="role-link"
               >
@@ -102,7 +54,7 @@ function Roles() {
                   <line x1="5" y1="12" x2="19" y2="12" />
                   <polyline points="12 5 19 12 12 19" />
                 </svg>
-              </Link>
+              </ReduxLink>
             </div>
           ))}
         </div>

@@ -1,7 +1,7 @@
-import { useNavigate } from "react-router-dom";
+import { useReduxNavigate } from '../../../store/useBrowserCommands.js';
 
 function CTA() {
-  const navigate = useNavigate();
+  const navigate = useReduxNavigate();
 
   return (
     <section className="cta" id="cta">

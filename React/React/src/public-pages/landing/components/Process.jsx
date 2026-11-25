@@ -1,35 +1,7 @@
-const processSteps = [
-  {
-    number: "01",
-    icon: "✈️",
-    title: "Opportunity Submission",
-    description:
-      "Recruiters submit job and internship opportunities with defined eligibility criteria. Placement officers review and approve them for publication.",
-  },
-  {
-    number: "02",
-    icon: "🖱️",
-    title: "Apply & Validate",
-    description:
-      "Students discover matching opportunities and apply with one click. The system automatically validates eligibility requirements in real-time.",
-  },
-  {
-    number: "03",
-    icon: "🤝",
-    title: "Alumni Referrals",
-    description:
-      "Students request referrals from alumni. Alumni review candidate profiles, provide endorsements, and boost their chances of getting hired.",
-  },
-  {
-    number: "04",
-    icon: "🏆",
-    title: "Track to Success",
-    description:
-      "All stakeholders track progress in real-time. Recruiters update stages, students monitor status, and officers oversee the entire pipeline.",
-  },
-];
-
+import { useSelector } from 'react-redux';
+import { selectLandingContent } from '../../../store/publicSlice.js';
 function Process() {
+  const { processSteps } = useSelector(selectLandingContent);
   return (
     <section className="process" id="process">
       <div className="container">

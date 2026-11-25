@@ -1,31 +1,7 @@
-const problems = [
-  {
-    icon: "🚫",
-    title: "Lack of Transparency",
-    description:
-      "Candidates have no visibility into their application status or where they stand in the process.",
-  },
-  {
-    icon: "⚠️",
-    title: "Manual Errors",
-    description:
-      "Eligibility checking and application tracking through spreadsheets leads to frequent mistakes.",
-  },
-  {
-    icon: "⏰",
-    title: "Communication Delays",
-    description:
-      "Important updates get lost in email threads and messaging apps, causing missed opportunities.",
-  },
-  {
-    icon: "📋",
-    title: "Coordination Overhead",
-    description:
-      "Placement officers spend excessive time on administrative tasks instead of strategic initiatives.",
-  },
-];
-
+import { useSelector } from 'react-redux';
+import { selectLandingContent } from '../../../store/publicSlice.js';
 function Problem() {
+  const { problems } = useSelector(selectLandingContent);
   return (
     <section className="problem" id="problem">
       <div className="container">

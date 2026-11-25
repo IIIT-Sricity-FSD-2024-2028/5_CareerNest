@@ -1,13 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
-
-const heroImages = [
-  "https://img.collegepravesh.com/2023/03/IIIT-Sri-City.jpg",
-  "https://images.unsplash.com/photo-1562774053-701939374585?w=1920&q=80",
-  "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=1920&q=80",
-];
+import { useSelector } from 'react-redux';
+import { selectLandingContent } from '../../../store/publicSlice.js';
+import { useBrowserCommands } from '../../../store/useBrowserCommands.js';
+import { useViewState } from '../../../store/useViewState.js';
+import { useEffect, useMemo } from "react";
 
 function Hero() {
-  const [currentImage, setCurrentImage] = useState(0);
+  const { heroImages, stats } = useSelector(selectLandingContent);
+  const collegeCount = stats.find((stat) => stat.label === 'Colleges');
+  const [{ currentImage }, { setCurrentImage }] = useViewState('publicPages', 'Hero', () => ({
+    currentImage: 0,
+  }));
 
   useEffect(() => {
     heroImages.forEach((src) => {
@@ -34,12 +36,7 @@ function Hero() {
     }));
   }, []);
 
-  const scrollTo = (id) => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth" });
-    }
-  };
+  const { scrollTo } = useBrowserCommands();
 
   return (
     <section className="hero" id="hero">
@@ -74,7 +71,7 @@ function Hero() {
       <div className="hero-content">
         <div className="hero-badge">
           <span>🎓</span>
-          <span>Trusted by 500+ Colleges Nationwide</span>
+          <span>Trusted by {collegeCount.target}{collegeCount.suffix} Colleges Nationwide</span>
         </div>
 
         <h1>

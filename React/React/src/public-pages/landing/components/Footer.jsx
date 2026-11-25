@@ -1,9 +1,13 @@
+import { useBrowserCommands } from '../../../store/useBrowserCommands.js';
+import { ReduxAnchor } from '../../../shared/components/ReduxLink.jsx';
+import { useViewState } from '../../../store/useViewState.js';
 import { infoDialog } from '../../../shared/components/AppDialog.jsx';
-import { useState } from "react";
 
 function Footer() {
-  const [email, setEmail] = useState("");
-  const [subscribed, setSubscribed] = useState(false);
+  const [{ email, subscribed }, { setEmail, setSubscribed }] = useViewState('publicPages', 'Footer', () => ({
+    email: "",
+    subscribed: false,
+  }));
 
   const handleSubscribe = (e) => {
     e.preventDefault();
@@ -16,12 +20,7 @@ function Footer() {
     }
   };
 
-  const scrollTo = (id) => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth" });
-    }
-  };
+  const { scrollTo } = useBrowserCommands();
 
   return (
     <footer className="footer" id="footer">
@@ -29,7 +28,7 @@ function Footer() {
         <div className="footer-container">
           {/* Brand */}
           <div className="footer-brand">
-            <a
+            <ReduxAnchor
               href="#hero"
               className="logo"
               onClick={(e) => {
@@ -54,7 +53,7 @@ function Footer() {
                 </svg>
               </span>
               <span className="logo-text">CareerNest</span>
-            </a>
+            </ReduxAnchor>
 
             <p>
               Transforming campus placements with intelligent automation and transparency.
@@ -78,7 +77,7 @@ function Footer() {
           <div className="footer-links-group">
             <div className="footer-col">
               <h4>Product</h4>
-              <a
+              <ReduxAnchor
                 href="#features"
                 onClick={(e) => {
                   e.preventDefault();
@@ -86,8 +85,8 @@ function Footer() {
                 }}
               >
                 Features
-              </a>
-              <a
+              </ReduxAnchor>
+              <ReduxAnchor
                 href="#process"
                 onClick={(e) => {
                   e.preventDefault();
@@ -95,8 +94,8 @@ function Footer() {
                 }}
               >
                 How It Works
-              </a>
-              <a
+              </ReduxAnchor>
+              <ReduxAnchor
                 href="#roles"
                 onClick={(e) => {
                   e.preventDefault();
@@ -104,8 +103,8 @@ function Footer() {
                 }}
               >
                 Stakeholder Roles
-              </a>
-              <a
+              </ReduxAnchor>
+              <ReduxAnchor
                 href="#faq"
                 onClick={(e) => {
                   e.preventDefault();
@@ -113,23 +112,23 @@ function Footer() {
                 }}
               >
                 FAQ
-              </a>
+              </ReduxAnchor>
             </div>
 
             <div className="footer-col">
               <h4>Company</h4>
-              <a href="#hero">About Us</a>
-              <a href="#hero">Careers</a>
-              <a href="#hero">Blog</a>
-              <a href="#hero">Press</a>
+              <ReduxAnchor href="#hero">About Us</ReduxAnchor>
+              <ReduxAnchor href="#hero">Careers</ReduxAnchor>
+              <ReduxAnchor href="#hero">Blog</ReduxAnchor>
+              <ReduxAnchor href="#hero">Press</ReduxAnchor>
             </div>
 
             <div className="footer-col">
               <h4>Support</h4>
-              <a href="#faq">Help Center</a>
-              <a href="#faq">Documentation</a>
-              <a href="#footer">Privacy Policy</a>
-              <a href="#footer">Terms of Service</a>
+              <ReduxAnchor href="#faq">Help Center</ReduxAnchor>
+              <ReduxAnchor href="#faq">Documentation</ReduxAnchor>
+              <ReduxAnchor href="#footer">Privacy Policy</ReduxAnchor>
+              <ReduxAnchor href="#footer">Terms of Service</ReduxAnchor>
             </div>
           </div>
 
@@ -161,15 +160,15 @@ function Footer() {
         <div className="footer-bottom">
           <p>© 2026 CareerNest. All rights reserved.</p>
           <div className="socials">
-            <a href="#" aria-label="LinkedIn">
+            <ReduxAnchor href="#" aria-label="LinkedIn">
               in
-            </a>
-            <a href="#" aria-label="Twitter">
+            </ReduxAnchor>
+            <ReduxAnchor href="#" aria-label="Twitter">
               𝕏
-            </a>
-            <a href="#" aria-label="Facebook">
+            </ReduxAnchor>
+            <ReduxAnchor href="#" aria-label="Facebook">
               f
-            </a>
+            </ReduxAnchor>
           </div>
         </div>
       </div>

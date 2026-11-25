@@ -1,11 +1,16 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useBrowserCommands } from '../../../store/useBrowserCommands.js';
+import { ReduxAnchor } from '../../../shared/components/ReduxLink.jsx';
+import { useReduxNavigate } from '../../../store/useBrowserCommands.js';
+import { useViewState } from '../../../store/useViewState.js';
+import { useEffect } from "react";
 import { useTheme } from "../context/ThemeContext";
 
 function Navbar() {
   const { theme, toggleTheme } = useTheme();
-  const [scrolled, setScrolled] = useState(false);
-  const navigate = useNavigate();
+  const [{ scrolled }, { setScrolled }] = useViewState('publicPages', 'Navbar', () => ({
+    scrolled: false,
+  }));
+  const navigate = useReduxNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -18,19 +23,12 @@ function Navbar() {
     };
   }, []);
 
-  const scrollToSection = (id) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({
-        behavior: "smooth",
-      });
-    }
-  };
+  const { scrollTo: scrollToSection } = useBrowserCommands();
 
   return (
     <nav className={`navbar ${scrolled ? "scrolled" : ""}`} id="navbar">
       <div className="nav-inner">
-        <a
+        <ReduxAnchor
           href="#hero"
           className="logo"
           onClick={(e) => {
@@ -55,11 +53,11 @@ function Navbar() {
             </svg>
           </span>
           <span className="logo-text">CareerNest</span>
-        </a>
+        </ReduxAnchor>
 
         <ul className="nav-links" id="nav-links">
           <li>
-            <a
+            <ReduxAnchor
               href="#hero"
               onClick={(e) => {
                 e.preventDefault();
@@ -67,10 +65,10 @@ function Navbar() {
               }}
             >
               Home
-            </a>
+            </ReduxAnchor>
           </li>
           <li>
-            <a
+            <ReduxAnchor
               href="#roles"
               onClick={(e) => {
                 e.preventDefault();
@@ -78,10 +76,10 @@ function Navbar() {
               }}
             >
               Roles
-            </a>
+            </ReduxAnchor>
           </li>
           <li>
-            <a
+            <ReduxAnchor
               href="#features"
               onClick={(e) => {
                 e.preventDefault();
@@ -89,10 +87,10 @@ function Navbar() {
               }}
             >
               Features
-            </a>
+            </ReduxAnchor>
           </li>
           <li>
-            <a
+            <ReduxAnchor
               href="#process"
               onClick={(e) => {
                 e.preventDefault();
@@ -100,10 +98,10 @@ function Navbar() {
               }}
             >
               How It Works
-            </a>
+            </ReduxAnchor>
           </li>
           <li>
-            <a
+            <ReduxAnchor
               href="#faq"
               onClick={(e) => {
                 e.preventDefault();
@@ -111,10 +109,10 @@ function Navbar() {
               }}
             >
               FAQ
-            </a>
+            </ReduxAnchor>
           </li>
           <li>
-            <a
+            <ReduxAnchor
               href="#contact"
               onClick={(e) => {
                 e.preventDefault();
@@ -122,7 +120,7 @@ function Navbar() {
               }}
             >
               Contact
-            </a>
+            </ReduxAnchor>
           </li>
         </ul>
 

@@ -1,36 +1,15 @@
-import { useEffect, useRef, useState } from "react";
-
-const stats = [
-  {
-    icon: "🏛️",
-    target: 500,
-    suffix: "+",
-    label: "Colleges",
-  },
-  {
-    icon: "🎓",
-    target: 10000,
-    suffix: "+",
-    label: "Students Placed",
-  },
-  {
-    icon: "🏢",
-    target: 200,
-    suffix: "+",
-    label: "Recruiters",
-  },
-  {
-    icon: "📈",
-    target: 98,
-    suffix: "%",
-    label: "Placement Rate",
-  },
-];
+import { useSelector } from 'react-redux';
+import { selectLandingContent } from '../../../store/publicSlice.js';
+import { useViewState } from '../../../store/useViewState.js';
+import { useEffect, useRef } from "react";
 
 function Stats() {
+  const { stats } = useSelector(selectLandingContent);
   const sectionRef = useRef(null);
-  const [started, setStarted] = useState(false);
-  const [values, setValues] = useState(stats.map(() => 0));
+  const [{ started, values }, { setStarted, setValues }] = useViewState('publicPages', 'Stats', () => ({
+    started: false,
+    values: stats.map(() => 0),
+  }));
 
   useEffect(() => {
     const observer = new IntersectionObserver(

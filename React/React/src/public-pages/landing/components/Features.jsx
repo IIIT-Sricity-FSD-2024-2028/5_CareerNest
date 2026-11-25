@@ -1,32 +1,12 @@
-import { useState } from "react";
-import { featureData } from "../data/featureData";
-
-const roles = [
-  {
-    id: "candidate",
-    icon: "🎓",
-    label: "Candidates",
-  },
-  {
-    id: "recruiter",
-    icon: "💼",
-    label: "Recruiters",
-  },
-  {
-    id: "alumni",
-    icon: "🤝",
-    label: "Alumni",
-  },
-  {
-    id: "officer",
-    icon: "🛡️",
-    label: "Placement Officer",
-  },
-];
+import { useSelector } from 'react-redux';
+import { selectLandingContent } from '../../../store/publicSlice.js';
+import { useViewState } from '../../../store/useViewState.js';
 
 function Features() {
-  const [activeRole, setActiveRole] =
-    useState("candidate");
+  const { featureData, featureRoles: roles } = useSelector(selectLandingContent);
+  const [{ activeRole }, { setActiveRole }] = useViewState('publicPages', 'Features', () => ({
+    activeRole: "candidate",
+  }));
 
   const selected = featureData[activeRole];
 

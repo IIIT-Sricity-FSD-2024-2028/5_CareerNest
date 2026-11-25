@@ -1,6 +1,11 @@
+import { useEntityList } from '../../../store/useEntities.js';
+import { useViewState } from '../../../store/useViewState.js';
 import { phoneError, phoneInputProps } from '../../../shared/utils/phone.js';
-import { useEffect, useState } from "react";
-import api, { errorMessage } from "../../../services/api.js";
+import { useEffect } from "react";
+import { useSelector } from 'react-redux';
+import { selectWorkspaceVersion } from '../../../store/sessionSlice.js';
+import { errorMessage } from '../../../services/api.js';
+import { useOperations } from '../../../store/useOperations.js';
 
 const EMPTY = { name: "", company: "", role: "", email: "", phone: "", collegeId: "", message: "" };
 
@@ -18,14 +23,21 @@ function validate(f) {
 }
 
 function ContactSection() {
-  const [form, setForm] = useState(EMPTY);
-  const [colleges, setColleges] = useState([]);
-  const [touched, setTouched] = useState({});
-  const [status, setStatus] = useState({ state: "idle", text: "" });
+  const commands = useOperations();
+  const workspaceVersion = useSelector(selectWorkspaceVersion);
+  const colleges = useEntityList('colleges', 'public');
+  const [
+    { form, touched, status },
+    { setForm, setTouched, setStatus },
+  ] = useViewState('publicPages', 'ContactSection', () => ({
+    form: EMPTY,
+    touched: {},
+    status: { state: "idle", text: "" },
+  }));
 
   useEffect(() => {
-    api.get("/contact/colleges").then(({ data }) => setColleges(data)).catch(() => {});
-  }, []);
+    commands.listPublicColleges().catch(() => {});
+  }, [commands, workspaceVersion]);
 
   const errors = validate(form);
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -44,7 +56,7 @@ function ContactSection() {
         ...(form.phone.trim() ? { phone: form.phone.trim() } : {}),
         ...(form.message.trim() ? { message: form.message.trim() } : {}),
       };
-      const { data } = await api.post("/contact/recruiter", payload);
+      const { data } = await commands.submitRecruiterContact(payload);
       setStatus({ state: "done", text: data.message });
       setForm(EMPTY);
       setTouched({});

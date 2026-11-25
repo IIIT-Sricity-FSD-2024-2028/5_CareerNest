@@ -1,58 +1,12 @@
-import { useState } from "react";
-
-const faqs = [
-  {
-    question: "Who can use CareerNest?",
-    answer: (
-      <>
-        CareerNest is designed for four key stakeholders
-        in the campus placement ecosystem:
-        <strong> Candidates</strong> (students seeking
-        jobs/internships), <strong>Recruiters</strong>
-        (companies hiring through campus),
-        <strong> Alumni</strong> (graduates who can
-        provide referrals), and
-        <strong> Senior Placement Officers</strong>
-        (who manage and oversee the process).
-      </>
-    ),
-  },
-
-  {
-    question: "How does the eligibility system work?",
-    answer:
-      "When recruiters post opportunities, they define eligibility criteria such as minimum CGPA, branch, graduation year, and other requirements. The system automatically validates each candidate's profile against these criteria and only allows eligible students to apply, eliminating manual eligibility checking errors.",
-  },
-
-  {
-    question: "How do alumni referrals work?",
-    answer:
-      "Students can request referrals from alumni who are currently working in companies they've applied to. Alumni receive the request, review the candidate's profile and resume, and can choose to approve or decline. Approved referrals appear as indicators on the candidate's application.",
-  },
-
-  {
-    question: "Can recruiters see referral information?",
-    answer:
-      "Yes. When reviewing candidate applications, recruiters can see referral indicators showing whether a candidate has been endorsed by an alumnus.",
-  },
-
-  {
-    question:
-      "What role does the Senior Placement Officer play?",
-    answer:
-      "The Senior Placement Officer acts as the gatekeeper of the placement process. They review and approve job opportunities before they're published to students, enforce institutional placement rules and policies, monitor overall recruitment activity, manage recruiter relationships, and access comprehensive placement statistics and reports.",
-  },
-
-  {
-    question: "Is CareerNest free for students?",
-    answer:
-      "Yes! CareerNest is completely free for students. The platform is typically adopted by institutions who manage the system through their placement cell. Students simply sign up, complete their profile, and start exploring approved opportunities — all at no cost.",
-  },
-];
+import { useSelector } from 'react-redux';
+import { selectLandingContent } from '../../../store/publicSlice.js';
+import { useViewState } from '../../../store/useViewState.js';
 
 function FAQ() {
-  const [activeIndex, setActiveIndex] =
-    useState(null);
+  const { faqs } = useSelector(selectLandingContent);
+  const [{ activeIndex }, { setActiveIndex }] = useViewState('publicPages', 'FAQ', () => ({
+    activeIndex: null,
+  }));
 
   const toggleFAQ = (index) => {
     setActiveIndex(
@@ -123,7 +77,9 @@ function FAQ() {
 
                 <div className="faq-answer">
                   <p>
-                    {faq.answer}
+                    {Array.isArray(faq.answer)
+                      ? faq.answer.map(({ text, bold }) => bold ? <strong key={text}>{text}</strong> : text)
+                      : faq.answer}
                   </p>
                 </div>
 

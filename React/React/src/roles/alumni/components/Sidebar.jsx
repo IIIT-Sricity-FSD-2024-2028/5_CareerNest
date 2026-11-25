@@ -1,4 +1,4 @@
-import React from 'react';
+import { ReduxAnchor } from '../../../shared/components/ReduxLink.jsx';
 
 export default function Sidebar({ activePage, onNavigate, onOpenSignOut, alumni }) {
   const currentAlumni = alumni || {};
@@ -17,7 +17,7 @@ export default function Sidebar({ activePage, onNavigate, onOpenSignOut, alumni 
         <div className="brand-sub">Alumni</div>
       </div>
 
-      <a
+      <ReduxAnchor
         href="#profile"
         className="sidebar-profile"
         title="My Profile"
@@ -29,7 +29,7 @@ export default function Sidebar({ activePage, onNavigate, onOpenSignOut, alumni 
           <div className="profile-email">{currentAlumni.email}</div>
           <div className="profile-company">{currentAlumni.company}</div>
         </div>
-      </a>
+      </ReduxAnchor>
 
       <nav className="sidebar-nav">
         <span className="nav-section-title">MAIN</span>

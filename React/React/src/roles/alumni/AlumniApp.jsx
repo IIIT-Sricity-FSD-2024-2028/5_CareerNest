@@ -2,7 +2,8 @@ import { useViewState } from '../../store/useViewState.js';
 import { infoDialog } from '../../shared/components/AppDialog.jsx';
 import { useEffect } from 'react';
 import { shallowEqual, useSelector } from 'react-redux';
-import api, { errorMessage } from '../../services/api.js';
+import { errorMessage } from '../../services/api.js';
+import { useOperations } from '../../store/useOperations.js';
 import Sidebar from './components/Sidebar';
 import AlumniNotifications from './components/AlumniNotifications';
 import SignOutModal from './components/SignOutModal';
@@ -12,7 +13,7 @@ import AlumniProfile from './pages/AlumniProfile';
 import ReferralRequests from './pages/ReferralRequests';
 import { savePage } from '../../shared/utils/navigationState.js';
 import { useLogout, useUpdateSession } from '../../shared/context/AuthContext.jsx';
-import { ALUMNI_PAGE_KEY, alumniActions, initialsOf, selectAlumni } from '../../store/alumni/alumniSlice.js';
+import { ALUMNI_PAGE_KEY, alumniActions, selectAlumni } from '../../store/alumni/alumniSlice.js';
 import { selectSession } from '../../store/sessionSlice.js';
 import useWorkspaceDispatch from '../../store/useWorkspaceDispatch.js';
 import './styles/Alumni.css';
@@ -24,31 +25,10 @@ const PAGES = {
   referrals: ReferralRequests,
 };
 
-const toReferral = (r) => {
-  const raw = String(r.status || 'pending').toLowerCase();
-  const status = raw === 'rejected' ? 'declined' : raw;
-  return {
-    id: r.id,
-    initials: r.candidateInitials || r.initials || initialsOf(r.candidateName || r.name),
-    name: r.candidateName || r.name,
-    status,
-    department: r.department || '',
-    cgpa: r.cgpa ?? '',
-    batch: r.batch || '',
-    role: r.appliedRole || r.role,
-    company: r.appliedCompany || r.company,
-    salary: r.salary || '',
-    location: r.location || '',
-    skills: r.skills || [],
-    message: r.userMessage || r.message,
-    alumniNote: r.alumniResponse || r.alumniNote,
-    updatedAt: r.requestedDate ? new Date(r.requestedDate).getTime() : Date.now(),
-  };
-};
-
 export default function AlumniApp() {
   const session = useSelector(selectSession);
   const dispatch = useWorkspaceDispatch();
+  const commands = useOperations();
   const confirmSignOut = useLogout();
   const updateSession = useUpdateSession();
   const workspace = useSelector(selectAlumni, shallowEqual);
@@ -58,40 +38,10 @@ export default function AlumniApp() {
     isSignOutOpen: false,
   }));
 
-  // Referral requests come straight from the server (the candidate's request, our reply) — no local copies.
-  const loadReferrals = async () => {
-    const { data } = await api.get('/referrals');
-    const final = data.map(toReferral);
-    dispatch(alumniActions.referralsLoaded(final));
-    return final;
-  };
+  const loadReferrals = commands.listReferrals;
 
   useEffect(() => {
-    Promise.all([api.get(`/users/${session.id}`), loadReferrals()])
-      .then(([{ data: user }, refs]) => {
-        const alumniData = {
-          initials: user?.avatar || initialsOf(user?.name),
-          name: user?.name || '',
-          email: user?.email || '',
-          company: user?.company || '',
-          batch: user?.batch || '',
-          role: 'Alumni',
-          totalReferrals: refs.length,
-          approved: refs.filter((r) => String(r.status).toLowerCase() === 'approved').length,
-        };
-        const personalInfo = {
-          name: user?.name || '',
-          email: user?.email || '',
-          company: user?.company || '',
-          batch: String(user?.batch || ''),
-          role: user?.headline || '',
-          location: user?.location || '',
-          linkedin: user?.socialLinks?.linkedin || '',
-          github: user?.socialLinks?.github || '',
-          portfolio: user?.socialLinks?.portfolio || '',
-        };
-        dispatch(alumniActions.profileLoaded({ alumniData, personalInfo, skillsList: user?.skills || [] }));
-      })
+    Promise.all([commands.getUser(session.id), loadReferrals()])
       .then(() => dispatch(alumniActions.loadErrorChanged('')))
       .catch((error) => dispatch(alumniActions.loadErrorChanged(errorMessage(error, 'Could not load your alumni workspace from the server.'))));
     // Pick up new requests while the alumnus has the portal open.
@@ -104,7 +54,7 @@ export default function AlumniApp() {
 
   const handleSavePersonalInfo = async (info) => {
     try {
-      await api.put(`/users/${session.id}`, {
+      await commands.updateUser(session.id, {
         name: info.name || undefined,
         company: info.company || undefined,
         batch: info.batch || undefined,
@@ -112,7 +62,6 @@ export default function AlumniApp() {
         location: info.location || undefined,
         socialLinks: { linkedin: info.linkedin, github: info.github, portfolio: info.portfolio },
       });
-      if (!dispatch(alumniActions.personalInfoSaved(info))) return;
       // Keep the session copy in sync so other open tabs immediately reflect
       // profile changes as well.
       const nextSession = {
@@ -128,9 +77,8 @@ export default function AlumniApp() {
 
   const handleSetSkills = async (nextSkills) => {
     const value = typeof nextSkills === 'function' ? nextSkills(skillsList) : nextSkills;
-    dispatch(alumniActions.skillsChanged(value));
     try {
-      await api.put(`/users/${session.id}`, { skills: value });
+      await commands.updateUser(session.id, { skills: value });
     } catch (error) {
       infoDialog(errorMessage(error, 'Could not save your skills.'));
     }
@@ -139,14 +87,13 @@ export default function AlumniApp() {
   // Approve or decline a referral request. The candidate sees the decision and the note straight away.
   const handleUpdateReferralStatus = async (id, status, note) => {
     try {
-      await api.patch(`/referrals/${id}`, {
+      await commands.respondToReferral(id, {
         status: status === 'declined' ? 'Rejected' : 'Approved',
         alumniResponse: note || undefined,
       });
-      const fresh = await loadReferrals();
-      dispatch(alumniActions.referralTotalsChanged({
-        total: fresh.length, approved: fresh.filter((r) => r.status === 'approved').length,
-      }));
+      await loadReferrals().catch(() => {
+        dispatch(alumniActions.loadErrorChanged('Response saved. Could not refresh referral requests.'));
+      });
     } catch (error) {
       infoDialog(errorMessage(error, 'Could not save your response. Please try again.'));
     }

@@ -1,24 +1,19 @@
+import { useEntityList } from '../../../store/useEntities.js';
 import { useViewState } from '../../../store/useViewState.js';
 import { useEffect } from 'react';
-import api from '../../../services/api.js';
+import { useOperations } from '../../../store/useOperations.js';
 
 export default function AlumniNotifications() {
+  const commands = useOperations();
+  const notifications = useEntityList('notifications', 'inbox');
   const [
-    { notifications, isOpen },
-    { setNotifications, setIsOpen },
+    { isOpen },
+    { setIsOpen },
   ] = useViewState('alumni', 'AlumniNotifications', () => ({
-    notifications: [],
     isOpen: false,
   }));
 
-  const loadNotifications = async () => {
-    try {
-      const { data } = await api.get('/notifications');
-      setNotifications(data || []);
-    } catch {
-      setNotifications([]);
-    }
-  };
+  const loadNotifications = () => commands.listNotifications().catch(() => {});
 
   useEffect(() => {
     loadNotifications();
@@ -32,14 +27,7 @@ export default function AlumniNotifications() {
     if (nextOpen) await loadNotifications();
   };
 
-  const markAllRead = async () => {
-    try {
-      await api.patch('/notifications/read-all');
-      setNotifications((current) => current.map((notification) => ({ ...notification, isRead: true })));
-    } catch {
-      // Leave the notifications visible if their read state cannot be updated.
-    }
-  };
+  const markAllRead = () => commands.markAllNotificationsRead().catch(() => {});
 
   const unreadCount = notifications.filter((notification) => !notification.isRead).length;
 

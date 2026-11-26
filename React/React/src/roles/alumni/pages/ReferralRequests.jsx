@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useViewState } from '../../../store/useViewState.js';
 import Sidebar from '../components/Sidebar';
 import ResumeModal from '../components/ResumeModal';
 import DeclineModal from '../components/DeclineModal';
@@ -13,15 +13,22 @@ export default function ReferralRequests({
   onUpdateReferralStatus,
   onNavigate,
 }) {
-  const [currentFilter, setCurrentFilter] = useState(initialFilter);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [openCards, setOpenCards] = useState(() => (openCardId ? { [openCardId]: true } : {}));
-  const [replyMessages, setReplyMessages] = useState({});
-  const [resumeModalData, setResumeModalData] = useState({ isOpen: false, candidateName: '', candidateId: '' });
-  const [declineModalData, setDeclineModalData] = useState({ isOpen: false, candidateId: null, candidateName: '' });
-  const [isSignOutOpen, setIsSignOutOpen] = useState(false);
+  const [
+    { currentFilter, searchQuery, openCards, replyMessages, resumeReferralId, declineReferralId, isSignOutOpen },
+    { setCurrentFilter, setSearchQuery, setOpenCards, setReplyMessages, setResumeReferralId, setDeclineReferralId, setIsSignOutOpen },
+  ] = useViewState('alumni', 'ReferralRequests', () => ({
+    currentFilter: initialFilter,
+    searchQuery: '',
+    openCards: openCardId ? { [openCardId]: true } : {},
+    replyMessages: {},
+    resumeReferralId: null,
+    declineReferralId: null,
+    isSignOutOpen: false,
+  }));
 
   const alumni = alumniData || {};
+  const resumeReferral = referrals.find((referral) => referral.id === resumeReferralId);
+  const declineReferral = referrals.find((referral) => referral.id === declineReferralId);
 
   const counts = {
     all: referrals.length,
@@ -54,18 +61,14 @@ export default function ReferralRequests({
 
   const handleOpenDeclineModal = (candidate, e) => {
     e.stopPropagation();
-    setDeclineModalData({
-      isOpen: true,
-      candidateId: candidate.id,
-      candidateName: candidate.name,
-    });
+    setDeclineReferralId(candidate.id);
   };
 
   const handleConfirmDecline = (reason) => {
-    if (onUpdateReferralStatus && declineModalData.candidateId) {
-      onUpdateReferralStatus(declineModalData.candidateId, 'declined', reason);
+    if (onUpdateReferralStatus && declineReferral) {
+      onUpdateReferralStatus(declineReferral.id, 'declined', reason);
     }
-    setDeclineModalData({ isOpen: false, candidateId: null, candidateName: '' });
+    setDeclineReferralId(null);
   };
 
   // Filter and search
@@ -273,14 +276,7 @@ export default function ReferralRequests({
                       <button
                         type="button"
                         className="resume-btn"
-                        onClick={() =>
-                          setResumeModalData({
-                            isOpen: true,
-                            candidateName: r.name,
-                            candidateId: r.id,
-                            candidate: r,
-                          })
-                        }
+                        onClick={() => setResumeReferralId(r.id)}
                       >
                         View Applied Resume
                       </button>
@@ -346,16 +342,16 @@ export default function ReferralRequests({
       </main>
 
       <ResumeModal
-        isOpen={resumeModalData.isOpen}
-        candidateName={resumeModalData.candidateName}
-        candidate={resumeModalData.candidate}
-        onClose={() => setResumeModalData({ isOpen: false, candidateName: '', candidateId: '', candidate: null })}
+        isOpen={Boolean(resumeReferral)}
+        candidateName={resumeReferral?.name}
+        candidate={resumeReferral}
+        onClose={() => setResumeReferralId(null)}
       />
 
       <DeclineModal
-        isOpen={declineModalData.isOpen}
-        candidateName={declineModalData.candidateName}
-        onClose={() => setDeclineModalData({ isOpen: false, candidateId: null, candidateName: '' })}
+        isOpen={Boolean(declineReferral)}
+        candidateName={declineReferral?.name}
+        onClose={() => setDeclineReferralId(null)}
         onConfirm={handleConfirmDecline}
       />
 

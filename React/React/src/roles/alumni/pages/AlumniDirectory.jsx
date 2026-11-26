@@ -1,7 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { ReduxAnchor } from '../../../shared/components/ReduxLink.jsx';
+import { useViewState } from '../../../store/useViewState.js';
+import { useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import SignOutModal from '../components/SignOutModal';
-import featuresApi from '../data/featuresApi';
+import { useOperations } from '../../../store/useOperations.js';
+import { useEntityList } from '../../../store/useEntities.js';
 import '../styles/Alumni.css';
 
 const AVATAR_COLORS = [
@@ -21,55 +24,42 @@ const DEPT_CODES = {
 };
 
 export default function AlumniDirectory({ alumniData, onNavigate }) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [batch, setBatch] = useState('');
-  const [dept, setDept] = useState('');
-  const [alumniList, setAlumniList] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [isSignOutOpen, setIsSignOutOpen] = useState(false);
+  const commands = useOperations();
+  const users = useEntityList('users', 'alumniDirectory');
+  const [
+    { searchQuery, batch, dept, loading, errorMessage, isSignOutOpen },
+    { setSearchQuery, setBatch, setDept, setLoading, setErrorMessage, setIsSignOutOpen },
+  ] = useViewState('alumni', 'AlumniDirectory', () => ({
+    searchQuery: '',
+    batch: '',
+    dept: '',
+    loading: false,
+    errorMessage: '',
+    isSignOutOpen: false,
+  }));
 
-  const applyFilters = useCallback((query, batchParam, deptParam) => {
+  useEffect(() => {
     setLoading(true);
     setErrorMessage('');
-    try {
-      featuresApi.getDirectory().then((data) => {
-        // The API stores full department names; the filter uses short codes.
-        let filtered = (data || []).map((a) => ({ ...a, dept: DEPT_CODES[(a.dept || '').toLowerCase()] || a.dept }));
-        if (batchParam) filtered = filtered.filter((a) => String(a.batch) === String(batchParam));
-        if (deptParam) filtered = filtered.filter((a) => (a.dept || '').toLowerCase() === deptParam.toLowerCase());
-        if (query) {
-          const q = query.toLowerCase();
-          filtered = filtered.filter(
-            (a) =>
-              a.name.toLowerCase().includes(q) ||
-              a.company.toLowerCase().includes(q) ||
-              (a.location && a.location.toLowerCase().includes(q))
-          );
-        }
-        setAlumniList(filtered);
-        setLoading(false);
-      }).catch((err) => {
-        const msg = err?.message || 'Failed to fetch directory';
-        if (msg.includes('PREMIUM') || msg.includes('403')) {
-          setErrorMessage('PREMIUM_REQUIRED');
-        } else {
-          setErrorMessage(msg);
-        }
-        setLoading(false);
-      });
-    
-    } catch (err) {
-      const msg = err?.message || 'Failed to fetch directory';
-      setErrorMessage(msg);
-      setLoading(false);
-    }
-  }, []);
+    commands.listAlumniDirectory()
+      .catch((error) => {
+        const message = error.response?.data?.message || error.message || 'Failed to fetch directory';
+        setErrorMessage(error.response?.status === 403 || String(message).includes('PREMIUM') ? 'PREMIUM_REQUIRED' : String(message));
+      })
+      .finally(() => setLoading(false));
+  }, [commands, setErrorMessage, setLoading]);
 
-  // Trigger on any filter change
-  useEffect(() => {
-    applyFilters(searchQuery, batch, dept);
-  }, [searchQuery, batch, dept, applyFilters]);
+  const query = searchQuery.toLowerCase();
+  const alumniList = users.map((user) => ({
+    ...user,
+    role: user.headline || 'Alumni',
+    linkedin: user.socialLinks?.linkedin ?? user.directoryLinkedIn,
+    dept: DEPT_CODES[(user.department || '').toLowerCase()] || user.department,
+  })).filter((user) =>
+    (!batch || String(user.batch) === batch) &&
+    (!dept || (user.dept || '').toLowerCase() === dept.toLowerCase()) &&
+    (!query || [user.name, user.company, user.location].some((value) => value?.toLowerCase().includes(query)))
+  );
 
   const handleClear = () => {
     setSearchQuery('');
@@ -264,14 +254,14 @@ export default function AlumniDirectory({ alumniData, onNavigate }) {
                     </div>
 
                     {a.linkedin && (
-                      <a
+                      <ReduxAnchor
                         className="connect-btn"
                         href={a.linkedin}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
                         🔗 View on LinkedIn
-                      </a>
+                      </ReduxAnchor>
                     )}
                   </div>
                 );

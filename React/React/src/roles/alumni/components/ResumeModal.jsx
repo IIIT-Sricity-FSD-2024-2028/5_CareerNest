@@ -1,21 +1,33 @@
-import { useEffect, useState } from 'react';
-import api, { errorMessage } from '../../../services/api.js';
+import { ReduxAnchor } from '../../../shared/components/ReduxLink.jsx';
+import { useViewState } from '../../../store/useViewState.js';
+import { useEffect } from 'react';
+import { errorMessage } from '../../../services/api.js';
+import { useOperations } from '../../../store/useOperations.js';
 
 export default function ResumeModal({ isOpen, onClose, candidateName = 'Candidate', candidate = null }) {
-  const [documentUrl, setDocumentUrl] = useState('');
-  const [fileType, setFileType] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const commands = useOperations();
+  const [
+    { documentUrl, fileType, error, loading },
+    { setDocumentUrl, setFileType, setError, setLoading },
+  ] = useViewState('alumni', 'ResumeModal', () => ({
+    documentUrl: '',
+    fileType: '',
+    error: '',
+    loading: false,
+  }));
 
   useEffect(() => {
-    if (!isOpen || !candidate?.id) return;
-    let active = true;
-    let url = '';
     setDocumentUrl('');
     setFileType('');
     setError('');
+    if (!isOpen || !candidate?.id) {
+      setLoading(false);
+      return;
+    }
+    let active = true;
+    let url = '';
     setLoading(true);
-    api.get(`/applications/referrals/${candidate.id}/resume`, { responseType: 'blob' })
+    commands.getReferralResume(candidate.id)
       .then(({ data }) => {
         if (!active) return;
         url = URL.createObjectURL(data);
@@ -51,7 +63,7 @@ export default function ResumeModal({ isOpen, onClose, candidateName = 'Candidat
         <div className="resume-modal-header">
           <div className="resume-modal-title" id="alumni-resume-title">{candidateName}'s applied resume</div>
           <div className="resume-modal-actions-top">
-            {documentUrl && <a className="resume-download-btn" href={documentUrl} download={downloadName}>Download resume</a>}
+            {documentUrl && <ReduxAnchor className="resume-download-btn" href={documentUrl} download={downloadName}>Download resume</ReduxAnchor>}
             <button type="button" className="resume-modal-close" onClick={onClose} aria-label="Close resume">×</button>
           </div>
         </div>

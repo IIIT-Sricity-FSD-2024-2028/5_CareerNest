@@ -1,4 +1,3 @@
-
 import { useViewState } from '../../../store/useViewState.js';
 import OpportunityEditor from "./OpportunityEditor.jsx";
 import { confirmDialog } from "../../../shared/components/AppDialog.jsx";

@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import api from '../../../services/api.js';
+import { ReduxAnchor } from '../../../shared/components/ReduxLink.jsx';
+import { useViewState } from '../../../store/useViewState.js';
+import { useEffect } from 'react';
+import { useOperations } from '../../../store/useOperations.js';
 import { confirmDialog } from '../../../shared/components/AppDialog.jsx';
 import { X, FileText, Mail, Phone, Calendar, Eye } from 'lucide-react';
 
@@ -12,19 +14,29 @@ export default function CandidateModal({
   onUpdateStatus,
   initialShowResumePreview = false,
 }) {
-  const [showResumePreview, setShowResumePreview] = useState(initialShowResumePreview);
-
-  const [resumeBlob, setResumeBlob] = useState('');
-  const [resumeError, setResumeError] = useState('');
+  const commands = useOperations();
+  const [
+    { showResumePreview, resumeBlob, resumeError },
+    { setShowResumePreview, setResumeBlob, setResumeError },
+  ] = useViewState('recruiter', 'CandidateModal', () => ({
+    showResumePreview: initialShowResumePreview,
+    resumeBlob: '',
+    resumeError: '',
+  }));
   useEffect(() => {
     if (!showResumePreview || !candidate?.resumeUrl) return;
     let active = true; let url;
-    api.get(`/applications/${candidate.id}/resume`, { responseType: 'blob' }).then(({data}) => { if (active) { url = URL.createObjectURL(data); setResumeBlob(url); } }).catch(() => { if (active) setResumeError('Could not load the resume document.'); });
+    commands.getApplicationResume(candidate.id).then(({data}) => { if (active) { url = URL.createObjectURL(data); setResumeBlob(url); } }).catch(() => { if (active) setResumeError('Could not load the resume document.'); });
     return () => { active = false; if (url) URL.revokeObjectURL(url); setResumeBlob(''); setResumeError(''); };
   }, [showResumePreview, candidate?.id, candidate?.resumeUrl]);
-  const [saving, setSaving] = useState(false);
-  const [feedback, setFeedback] = useState(candidate?.recruiterFeedback || '');
-  const [rating, setRating] = useState(candidate?.recruiterRating || 5);
+  const [
+    { saving, feedback, rating },
+    { setSaving, setFeedback, setRating },
+  ] = useViewState('recruiter', 'CandidateModal/saving', () => ({
+    saving: false,
+    feedback: candidate?.recruiterFeedback || '',
+    rating: candidate?.recruiterRating || 5,
+  }));
   if (!candidate) return null;
 
   // Derived current status (read-only chip shown to recruiter)
@@ -181,7 +193,7 @@ export default function CandidateModal({
         </div>
 
         {/* ── RESUME PREVIEW ── */}
-        {showResumePreview && <section style={{marginBottom:20}}><h4>Resume · {candidate.name}</h4>{candidate.resumeUrl ? resumeError ? <p>{resumeError}</p> : !resumeBlob ? <p>Loading resume…</p> : <>{candidate.resumeUrl.toLowerCase().endsWith('.pdf') ? <iframe title={`${candidate.name} application resume`} src={resumeBlob} style={{width:'100%',height:480,border:'1px solid #e5e7eb'}} /> : <p>This application includes a Word document. Open or download the exact file submitted with this application.</p>}<a href={resumeBlob} target="_blank" rel="noreferrer" download={candidate.resumeUrl.toLowerCase().endsWith('.pdf') ? undefined : candidate.resumeFile || true}>Open / download application resume</a></> : <p>No resume was attached to this application. Ask the candidate to apply again with the selected resume.</p>}</section>}
+        {showResumePreview && <section style={{marginBottom:20}}><h4>Resume · {candidate.name}</h4>{candidate.resumeUrl ? resumeError ? <p>{resumeError}</p> : !resumeBlob ? <p>Loading resume…</p> : <>{candidate.resumeUrl.toLowerCase().endsWith('.pdf') ? <iframe title={`${candidate.name} application resume`} src={resumeBlob} style={{width:'100%',height:480,border:'1px solid #e5e7eb'}} /> : <p>This application includes a Word document. Open or download the exact file submitted with this application.</p>}<ReduxAnchor href={resumeBlob} target="_blank" rel="noreferrer" download={candidate.resumeUrl.toLowerCase().endsWith('.pdf') ? undefined : candidate.resumeFile || true}>Open / download application resume</ReduxAnchor></> : <p>No resume was attached to this application. Ask the candidate to apply again with the selected resume.</p>}</section>}
 
         {/* ── AUTO-DERIVED PIPELINE STATUS (read-only) ── */}
         <div style={{ marginBottom: '20px' }}>

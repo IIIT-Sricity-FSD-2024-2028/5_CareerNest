@@ -1,10 +1,13 @@
+import { ReduxAnchor } from '../../../shared/components/ReduxLink.jsx';
+import { useViewState } from '../../../store/useViewState.js';
 import { confirmDialog } from '../../../shared/components/AppDialog.jsx';
-import React, { useState } from 'react';
 import { Calendar, Video, Users, ExternalLink, Plus, Trash2, Mail } from 'lucide-react';
 import ScheduleModal from './ScheduleModal';
 
 export default function Assessments({ assessments, opportunities = [], applications = [], onAddAssessment, onDeleteAssessment, preselectApplicationId, onModalClosed }) {
-  const [showScheduleModal, setShowScheduleModal] = useState(Boolean(preselectApplicationId));
+  const [{ showScheduleModal }, { setShowScheduleModal }] = useViewState('recruiter', 'Assessments', () => ({
+    showScheduleModal: Boolean(preselectApplicationId),
+  }));
 
   return (
     <div>
@@ -89,7 +92,7 @@ export default function Assessments({ assessments, opportunities = [], applicati
               </div>
 
               <div style={{ marginTop: 'auto', paddingTop: '10px', borderTop: '1px solid #F3F4F6' }}>
-                <a 
+                <ReduxAnchor
                   href={item.link} 
                   target="_blank" 
                   rel="noreferrer"
@@ -109,7 +112,7 @@ export default function Assessments({ assessments, opportunities = [], applicati
                 >
                   <span>Open Session Link</span>
                   <ExternalLink size={14} />
-                </a>
+                </ReduxAnchor>
               </div>
             </div>
           ))}

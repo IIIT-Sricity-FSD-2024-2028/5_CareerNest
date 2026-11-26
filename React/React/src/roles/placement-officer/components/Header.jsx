@@ -1,8 +1,9 @@
 import { useViewState } from '../../../store/useViewState.js';
 import { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import api from '../../../services/api.js';
+import { useOperations } from '../../../store/useOperations.js';
 import { useLogout } from '../../../shared/context/AuthContext.jsx';
+import { selectCurrentUser } from '../../../store/operations.js';
 import { selectSession } from '../../../store/sessionSlice.js';
 import { useOfficerData } from '../services/officerApi';
 import { officerInitials } from '../utils/officerIdentity.js';
@@ -21,19 +22,13 @@ const PAGES = [
 ];
 
 export default function Header({ title = 'Dashboard', onNavigate, profile }) {
+  const commands = useOperations();
   const confirmSignOut = useLogout();
   const session = useSelector(selectSession) || {};
-  const [{ officer }, { setOfficer }] = useViewState('placementOfficer', 'Header', () => ({
-    officer: session,
-  }));
+  const officer = useSelector(selectCurrentUser) || {};
   useEffect(() => {
-    if (!session.id) return;
-    let active = true;
-    api.get(`/users/${session.id}`).then(({ data: user }) => {
-      if (active) setOfficer(user);
-    }).catch(() => {});
-    return () => { active = false; };
-  }, [session.id]);
+    if (session.id) commands.getUser(session.id).catch(() => {});
+  }, [commands, session.id]);
   const officerName = profile?.name || officer.name || session.name || 'Placement Officer';
   const officerEmail = profile?.email || officer.email || session.email || '';
   const officerRole = profile?.role || officer.headline || 'Placement Officer';
@@ -99,7 +94,7 @@ export default function Header({ title = 'Dashboard', onNavigate, profile }) {
   const markAllRead = (e) => {
     e.stopPropagation();
     setReadIds(notifications.map(n => n.id));
-    api.patch('/notifications/read-all').catch(() => {});
+    commands.markAllNotificationsRead().catch(() => {});
   };
 
   const handleNotifClick = (notif) => {

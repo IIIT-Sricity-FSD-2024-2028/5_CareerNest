@@ -1,3 +1,4 @@
+import { useBrowserCommands } from '../../../store/useBrowserCommands.js';
 import { useViewState } from '../../../store/useViewState.js';
 import { useLogout } from '../../../shared/context/AuthContext.jsx';
 import { BarChart3, Bell, BriefcaseBusiness, ClipboardList, LayoutDashboard, LogOut, UserCog, UsersRound } from 'lucide-react';
@@ -15,6 +16,7 @@ const navItems = [
 
 export default function Sidebar({ activePage = 'p1', onNavigate }) {
   const confirmSignOut = useLogout();
+  const { visit } = useBrowserCommands();
   const [{ isSignOutOpen }, { setIsSignOutOpen }] = useViewState('placementOfficer', 'Sidebar', () => ({
     isSignOutOpen: false,
   }));
@@ -22,7 +24,7 @@ export default function Sidebar({ activePage = 'p1', onNavigate }) {
     if (onNavigate) {
       onNavigate(item.page);
     } else {
-      window.location.href = item.href;
+      visit(item.href);
     }
   };
 

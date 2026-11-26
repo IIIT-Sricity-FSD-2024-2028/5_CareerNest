@@ -1,3 +1,4 @@
+import { useBrowserCommands } from '../../../store/useBrowserCommands.js';
 import { useEffect } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
@@ -8,6 +9,7 @@ import { BadgeCheck, BriefcaseBusiness, Building2, CalendarClock, Clock3, Gradua
 
 export default function Dashboard({ onNavigate, activePage = 'p1' }) {
   const { data, refresh, ready, error } = useOfficerData();
+  const { visit } = useBrowserCommands();
   const { stats, stakeholders, drives, interviews, announcements = [] } = data;
   const submissions = (data.submissions || []).slice(0, 6);
   const alertVisible = stats.pending > 0;
@@ -47,7 +49,7 @@ export default function Dashboard({ onNavigate, activePage = 'p1' }) {
 
   const handleNav = (target) => {
     if (onNavigate) onNavigate(target);
-    else window.location.href = `${target}.html`;
+    else visit(`${target}.html`);
   };
 
   return (

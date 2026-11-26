@@ -1,28 +1,35 @@
+import { useViewState } from '../../../store/useViewState.js';
 import { infoDialog } from '../../../shared/components/AppDialog.jsx';
-import React, { useState } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import './styles/p2.css';
-import api, { errorMessage } from '../../../services/api.js';
+import { errorMessage } from '../../../services/api.js';
+import { useOperations } from '../../../store/useOperations.js';
 import { useOfficerData } from '../services/officerApi';
 
 const REVIEW_STATUSES = ['all', 'pending', 'approved', 'published', 'rejected'];
 
 export default function ReviewOpportunities({ onNavigate, activePage = 'p2' }) {
+  const commands = useOperations();
   const { data, refresh, ready, error: loadError } = useOfficerData();
   const submissions = data.submissions || [];
-  const [activeStatus, setActiveStatus] = useState('all');
-  const [typeFilter, setTypeFilter] = useState('all');
-  const [openCards, setOpenCards] = useState({});
-  const [rejectModalOpen, setRejectModalOpen] = useState(false);
-  const [rejectTarget, setRejectTarget] = useState(null);
-  const [rejectRemarks, setRejectRemarks] = useState('');
-  const [rejectError, setRejectError] = useState(false);
+  const [
+    { activeStatus, typeFilter, openCards, rejectModalOpen, rejectTarget, rejectRemarks, rejectError },
+    { setActiveStatus, setTypeFilter, setOpenCards, setRejectModalOpen, setRejectTarget, setRejectRemarks, setRejectError },
+  ] = useViewState('placementOfficer', 'ReviewOpportunities', () => ({
+    activeStatus: 'all',
+    typeFilter: 'all',
+    openCards: {},
+    rejectModalOpen: false,
+    rejectTarget: null,
+    rejectRemarks: '',
+    rejectError: false,
+  }));
 
   const act = async (request) => {
     try {
       await request();
-      await refresh();
+      if (!await refresh()) infoDialog('Changes were saved, but some data could not be refreshed.');
       return true;
     } catch (error) {
       infoDialog(errorMessage(error, 'That action could not be completed.'));
@@ -43,9 +50,9 @@ export default function ReviewOpportunities({ onNavigate, activePage = 'p2' }) {
   });
 
   const toggleCard = (id) => setOpenCards((previous) => ({ ...previous, [id]: !previous[id] }));
-  const approveCard = (id) => act(() => api.patch(`/opportunities/${id}/approve`));
-  const undoApproval = (id) => act(() => api.patch(`/opportunities/${id}/undo-approval`));
-  const publishCard = (id) => act(() => api.patch(`/opportunities/${id}/publish`));
+  const approveCard = (id) => act(() => commands.approveOpportunity(id));
+  const undoApproval = (id) => act(() => commands.undoOpportunityApproval(id));
+  const publishCard = (id) => act(() => commands.publishOpportunity(id));
 
   const openRejectModal = (id) => {
     setRejectTarget(id);
@@ -67,7 +74,7 @@ export default function ReviewOpportunities({ onNavigate, activePage = 'p2' }) {
       return;
     }
     setRejectError(false);
-    const rejected = await act(() => api.patch(`/opportunities/${rejectTarget}/reject`, { remark: rejectRemarks.trim() }));
+    const rejected = await act(() => commands.rejectOpportunity(rejectTarget, rejectRemarks.trim()));
     if (rejected) closeRejectModal();
   };
 

@@ -1,6 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import { useEntityList } from '../../../store/useEntities.js';
+import { useViewState } from '../../../store/useViewState.js';
+import { useEffect } from 'react';
 import { Mail, Megaphone, Inbox } from 'lucide-react';
-import api, { errorMessage } from '../../../services/api.js';
+import { errorMessage } from '../../../services/api.js';
+import { useOperations } from '../../../store/useOperations.js';
 
 const fmt = (iso) => {
   const d = new Date(iso);
@@ -9,13 +12,18 @@ const fmt = (iso) => {
 
 /** Messages sent to this college by the platform's super admin. */
 export default function Messages({ onSeen }) {
-  const [messages, setMessages] = useState(null);
-  const [error, setError] = useState('');
+  const commands = useOperations();
+  const messages = useEntityList('messages', 'inbox');
+  const [{ error, loaded }, { setError, setLoaded }] = useViewState('collegeAdmin', 'Messages', () => ({
+    error: '',
+    loaded: false,
+  }));
 
   useEffect(() => {
-    api.get('/super-admin/inbox')
-      .then(({ data }) => { setMessages(data); onSeen?.(data); })
-      .catch((e) => { setError(errorMessage(e, 'Could not load messages.')); setMessages([]); });
+    commands.listInboxMessages()
+      .then(() => { onSeen?.(); })
+      .catch((e) => { setError(errorMessage(e, 'Could not load messages.')); })
+      .finally(() => setLoaded(true));
   }, []);   // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
@@ -25,7 +33,7 @@ export default function Messages({ onSeen }) {
         <span className="badge badge-blue">{messages?.length ?? 0} message{messages?.length === 1 ? '' : 's'}</span>
       </div>
       {error && <div className="badge badge-red" style={{ marginBottom: 12 }}>{error}</div>}
-      {messages && messages.length === 0 && !error && (
+      {loaded && messages.length === 0 && !error && (
         <div className="empty-state"><Inbox /><p>No messages yet. Anything the platform team sends your college shows up here.</p></div>
       )}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

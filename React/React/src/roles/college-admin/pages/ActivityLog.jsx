@@ -1,22 +1,30 @@
-import { useCallback, useEffect, useState } from "react";
-import api, { errorMessage } from "../../../services/api.js";
+import { useEntityList } from '../../../store/useEntities.js';
+import { useViewState } from '../../../store/useViewState.js';
+import { useCallback, useEffect } from "react";
+import { errorMessage } from '../../../services/api.js';
+import { useOperations } from '../../../store/useOperations.js';
 
 export default function ActivityLog() {
-  const [entries, setEntries] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [query, setQuery] = useState("");
+  const commands = useOperations();
+  const entries = useEntityList('activityEntries', 'officers');
+  const [
+    { loading, error, query },
+    { setLoading, setError, setQuery },
+  ] = useViewState('collegeAdmin', 'ActivityLog', () => ({
+    loading: true,
+    error: "",
+    query: "",
+  }));
   const load = useCallback(async () => {
     try {
-      const { data } = await api.get("/activity/placement-officers");
-      setEntries(data);
+      await commands.listOfficerActivity();
       setError("");
     } catch (failure) {
       setError(errorMessage(failure, "Could not load officer activity."));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [commands, setError, setLoading]);
   useEffect(() => {
     load();
     const timer = setInterval(load, 20000);

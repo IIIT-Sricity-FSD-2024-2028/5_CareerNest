@@ -1,7 +1,13 @@
+import { ReduxAnchor } from '../../../shared/components/ReduxLink.jsx';
+import { useEntity } from '../../../store/useEntities.js';
+import { useViewState } from '../../../store/useViewState.js';
 import { phoneError, phoneInputProps } from '../../../shared/utils/phone.js';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Building2, ExternalLink, Mail, Shield, User } from 'lucide-react';
-import api, { errorMessage, readSession } from '../../../services/api.js';
+import { useSelector } from 'react-redux';
+import { errorMessage } from '../../../services/api.js';
+import { useOperations } from '../../../store/useOperations.js';
+import { selectSession } from '../../../store/sessionSlice.js';
 import ChangePasswordModal from '../../../shared/components/ChangePasswordModal.jsx';
 
 const EMPTY_EDIT_FIELDS = {
@@ -9,14 +15,20 @@ const EMPTY_EDIT_FIELDS = {
 };
 
 export default function Profile({ collegeName, showToast, onProfileUpdated }) {
-  const session = readSession() || {};
-  const [profile, setProfile] = useState(null);
-  const [collegeInfo, setCollegeInfo] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editFields, setEditFields] = useState(EMPTY_EDIT_FIELDS);
-  const [saving, setSaving] = useState(false);
-  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+  const commands = useOperations();
+  const session = useSelector(selectSession) || {};
+  const profile = useEntity('users', session.id);
+  const collegeInfo = useEntity('colleges', session.collegeId);
+  const [
+    { loading, isEditing, editFields, saving, isChangePasswordOpen },
+    { setLoading, setIsEditing, setEditFields, setSaving, setIsChangePasswordOpen },
+  ] = useViewState('collegeAdmin', 'Profile', () => ({
+    loading: true,
+    isEditing: false,
+    editFields: EMPTY_EDIT_FIELDS,
+    saving: false,
+    isChangePasswordOpen: false,
+  }));
 
   useEffect(() => {
     let active = true;
@@ -27,13 +39,10 @@ export default function Profile({ collegeName, showToast, onProfileUpdated }) {
         return;
       }
       try {
-        const [userResponse, collegeResponse] = await Promise.all([
-          api.get(`/users/${session.id}`),
-          session.collegeId ? api.get(`/colleges/${session.collegeId}`) : Promise.resolve(null),
+        await Promise.all([
+          commands.getUser(session.id),
+          session.collegeId ? commands.getCollege(session.collegeId) : Promise.resolve(null),
         ]);
-        if (!active) return;
-        setProfile(userResponse.data);
-        setCollegeInfo(collegeResponse?.data || null);
       } catch (error) {
         if (active) showToast?.(errorMessage(error, 'Failed to load profile.'), 'error');
       } finally {
@@ -69,7 +78,7 @@ export default function Profile({ collegeName, showToast, onProfileUpdated }) {
     if (phoneError(editFields.phone)) { showToast?.(phoneError(editFields.phone), 'error'); return; }
     setSaving(true);
     try {
-      const { data: updated } = await api.put(`/users/${session.id}`, {
+      const { data: updated } = await commands.updateUser(session.id, {
         name: editFields.name.trim(),
         phone: editFields.phone.trim(),
         department: editFields.department.trim(),
@@ -80,10 +89,8 @@ export default function Profile({ collegeName, showToast, onProfileUpdated }) {
           portfolio: editFields.portfolio.trim(),
         },
       });
-      setProfile(updated);
       const nextSession = { ...session, name: updated.name, email: updated.email };
-      localStorage.setItem('loggedInUser', JSON.stringify(nextSession));
-      onProfileUpdated?.(nextSession);
+      if (onProfileUpdated?.(nextSession) === false) return;
       setIsEditing(false);
       showToast?.('Profile updated successfully!');
     } catch (error) {
@@ -203,7 +210,7 @@ function LinkRow({ label, value }) {
   return (
     <div className="ca-profile-info-row">
       <span className="ca-profile-info-label">{label}</span>
-      {value ? <a href={value} target="_blank" rel="noopener noreferrer" className="ca-profile-info-link">{value} <ExternalLink size={12} /></a> : <span className="ca-profile-info-value">—</span>}
+      {value ? <ReduxAnchor href={value} target="_blank" rel="noopener noreferrer" className="ca-profile-info-link">{value} <ExternalLink size={12} /></ReduxAnchor> : <span className="ca-profile-info-value">—</span>}
     </div>
   );
 }

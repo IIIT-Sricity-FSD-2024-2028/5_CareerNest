@@ -1,9 +1,13 @@
+import { useBrowserCommands } from '../../../store/useBrowserCommands.js';
+import { useEntityList } from '../../../store/useEntities.js';
+import { useViewState } from '../../../store/useViewState.js';
 import { infoDialog } from '../../../shared/components/AppDialog.jsx';
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import './styles/p1.css';
-import api, { errorMessage } from '../../../services/api.js';
+import { errorMessage } from '../../../services/api.js';
+import { useOperations } from '../../../store/useOperations.js';
 
 // The API stores full department names; this screen filters on short codes.
 const DEPT_CODES = {
@@ -13,20 +17,37 @@ const DEPT_CODES = {
 const deptCode = (name = '') => DEPT_CODES[name.trim().toLowerCase()] || name;
 
 export default function CandidatesFilter({ onNavigate, activePage = 'candidates-filter' }) {
-  const [candidates, setCandidates] = useState([]);
-  const [loadError, setLoadError] = useState('');
+  const commands = useOperations();
+  const { download } = useBrowserCommands();
+  const candidates = useEntityList('users', 'candidateFilter');
+  const [
+    { loadError },
+    { setLoadError },
+  ] = useViewState('placementOfficer', 'CandidatesFilter', () => ({
+    loadError: '',
+  }));
 
   useEffect(() => {
-    api.get('/features/officer/candidates/filter')
-      .then(({ data }) => setCandidates(data.map((c) => ({ ...c, dept: deptCode(c.dept) }))))
+    commands.listOfficerCandidates()
       .catch((error) => setLoadError(errorMessage(error, 'Could not load candidates.')));
   }, []);
-  const [dept, setDept] = useState('');
-  const [minCgpa, setMinCgpa] = useState('');
-  const [maxBacklogs, setMaxBacklogs] = useState('');
+  const [
+    { dept, minCgpa, maxBacklogs },
+    { setDept, setMinCgpa, setMaxBacklogs },
+  ] = useViewState('placementOfficer', 'CandidatesFilter/dept', () => ({
+    dept: '',
+    minCgpa: '',
+    maxBacklogs: '',
+  }));
 
   const filteredCandidates = useMemo(() => {
-    return candidates.filter((c) => {
+    return candidates.map((candidate) => ({
+      ...candidate,
+      dept: deptCode(candidate.department),
+      rollNo: candidate.rollNumber,
+      batch: candidate.batchLabel,
+      skills: candidate.resumeData?.profileResumeData?.skills ?? candidate.skills,
+    })).filter((c) => {
       if (dept && c.dept.toLowerCase() !== dept.toLowerCase()) return false;
       if (minCgpa !== '' && c.cgpa < parseFloat(minCgpa)) return false;
       if (maxBacklogs !== '' && c.backlogs > parseInt(maxBacklogs, 10)) return false;
@@ -50,22 +71,14 @@ export default function CandidatesFilter({ onNavigate, activePage = 'candidates-
       c => `"${c.name}","${c.rollNo}","${c.dept}",${c.cgpa},${c.backlogs},"${c.batch}","${c.skills.join('; ')}"`
     );
     const csvContent = [header, ...rows].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', 'filtered_candidates.csv');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    download('filtered_candidates.csv', csvContent, 'text/csv;charset=utf-8;');
   };
 
   return (
     <div className="frame">
       <Sidebar activePage={activePage} onNavigate={onNavigate} />
 
-      <Header title="Candidate Filter ⭐" onNavigate={onNavigate} />
+      <Header title="Candidate Filter " onNavigate={onNavigate} />
 
       <main className="main-content" id="mainContent" style={{ maxWidth: '1100px', margin: '0 auto', padding: '24px 20px' }}>
         {loadError && (

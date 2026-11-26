@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useEntityList } from '../../../store/useEntities.js';
+import { useViewState } from '../../../store/useViewState.js';
+import { useEffect } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import './styles/p1.css';
-import api, { errorMessage } from '../../../services/api.js';
+import { errorMessage } from '../../../services/api.js';
+import { useOperations } from '../../../store/useOperations.js';
 
 const TARGETS = [
   { id: 'students', label: '👩‍🎓 Students' },
@@ -12,19 +15,24 @@ const TARGETS = [
 ];
 
 export default function BulkNotify({ onNavigate, activePage = 'bulk-notify' }) {
-  const [title, setTitle] = useState('');
-  const [message, setMessage] = useState('');
-  const [targetGroup, setTargetGroup] = useState('students');
-  const [sending, setSending] = useState(false);
-  const [successInfo, setSuccessInfo] = useState('');
-  const [sendError, setSendError] = useState('');
-  const [formErrors, setFormErrors] = useState({ title: '', message: '' });
-
-  const [history, setHistory] = useState([]);
+  const commands = useOperations();
+  const history = [...useEntityList('notificationDeliveries', 'sent')]
+    .sort((a, b) => String(b.sentAt).localeCompare(String(a.sentAt)));
+  const [
+    { title, message, targetGroup, sending, successInfo, sendError, formErrors },
+    { setTitle, setMessage, setTargetGroup, setSending, setSuccessInfo, setSendError, setFormErrors },
+  ] = useViewState('placementOfficer', 'BulkNotify', () => ({
+    title: '',
+    message: '',
+    targetGroup: 'students',
+    sending: false,
+    successInfo: '',
+    sendError: '',
+    formErrors: { title: '', message: '' },
+  }));
 
   const loadHistory = () =>
-    api.get('/features/officer/notifications')
-      .then(({ data }) => setHistory([...data].sort((x, y) => String(y.sentAt).localeCompare(String(x.sentAt)))))
+    commands.listSentNotifications()
       .catch((error) => setSendError(errorMessage(error, 'Could not load sent notifications.')));
 
   useEffect(() => { loadHistory(); }, []);
@@ -57,7 +65,7 @@ export default function BulkNotify({ onNavigate, activePage = 'bulk-notify' }) {
     setSending(true);
     setSendError('');
     try {
-      const { data: sent } = await api.post('/features/officer/notifications/bulk', {
+      const { data: sent } = await commands.sendBulkNotification({
         title: title.trim(),
         message: message.trim(),
         targetGroup,

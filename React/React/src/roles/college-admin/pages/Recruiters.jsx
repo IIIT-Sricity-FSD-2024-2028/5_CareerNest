@@ -1,25 +1,34 @@
-import { useCallback, useEffect, useState } from "react";
-import api, { errorMessage } from "../../../services/api.js";
+import { useEntityList } from '../../../store/useEntities.js';
+import { useViewState } from '../../../store/useViewState.js';
+import { useCallback, useEffect } from "react";
+import { errorMessage } from '../../../services/api.js';
+import { useOperations } from '../../../store/useOperations.js';
 import RecruiterOpportunitiesModal from "../../../shared/components/RecruiterOpportunitiesModal.jsx";
 import { confirmDialog, infoDialog } from "../../../shared/components/AppDialog.jsx";
 
 export default function Recruiters() {
-  const [recruiters, setRecruiters] = useState([]);
-  const [selected, setSelected] = useState(null);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [removingId, setRemovingId] = useState(null);
+  const commands = useOperations();
+  const recruiters = useEntityList('recruiterRegistrations', 'workspace');
+  const [
+    { selectedId, error, loading, removingId },
+    { setSelectedId, setError, setLoading, setRemovingId },
+  ] = useViewState('collegeAdmin', 'Recruiters', () => ({
+    selectedId: null,
+    error: "",
+    loading: true,
+    removingId: null,
+  }));
+  const selected = recruiters.find((recruiter) => recruiter.id === selectedId);
   const loadRecruiters = useCallback(async () => {
     try {
-      const { data } = await api.get('/recruiters');
-      setRecruiters(data);
+      await commands.listRecruiterRegistrations();
       setError('');
     } catch (failure) {
       setError(errorMessage(failure, 'Could not load recruiters.'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [commands, setError, setLoading]);
   useEffect(() => {
     loadRecruiters();
   }, [loadRecruiters]);
@@ -27,7 +36,7 @@ export default function Recruiters() {
     if (!await confirmDialog(`Remove recruiter ${recruiter.name} (${recruiter.email})? Their login access will be removed. This cannot be undone.`)) return;
     setRemovingId(recruiter.id);
     try {
-      await api.delete(`/recruiters/${recruiter.id}`);
+      await commands.deleteRecruiter(recruiter.id);
       await loadRecruiters();
       infoDialog(`${recruiter.name} was removed.`);
     } catch (failure) {
@@ -63,7 +72,7 @@ export default function Recruiters() {
                   <td>
                     <button
                       className="btn btn-ghost"
-                      onClick={() => setSelected(recruiter)}
+                      onClick={() => setSelectedId(recruiter.id)}
                     >
                       {recruiter.name}
                     </button>
@@ -73,7 +82,7 @@ export default function Recruiters() {
                   <td>
                     <button
                       className="btn btn-outline"
-                      onClick={() => setSelected(recruiter)}
+                      onClick={() => setSelectedId(recruiter.id)}
                     >
                       View Opportunities ({recruiter.opps})
                     </button>
@@ -94,7 +103,7 @@ export default function Recruiters() {
         <RecruiterOpportunitiesModal
           key={selected.id}
           recruiter={selected}
-          onClose={() => setSelected(null)}
+          onClose={() => setSelectedId(null)}
         />
       )}
     </section>

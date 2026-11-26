@@ -1,5 +1,3 @@
-import api from '../../../services/api.js';
-
 // Translate between the shapes the recruiter screens use and the backend's.
 
 const initialsOf = (name = '') => name.split(' ').filter(Boolean).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
@@ -73,20 +71,3 @@ export const toApplication = (a) => ({
   referralNote: a.referralNote || '',
   timeline: a.timeline || [],
 });
-
-export const toAssessment = (a) => ({ ...a });
-
-export const fetchRecruiterData = async () => {
-  const [opps, apps, assessments, notifications] = await Promise.all([
-    api.get('/opportunities'),
-    api.get('/applications'),
-    api.get('/assessments'),
-    api.get('/notifications').then((r) => r.data).catch(() => []),
-  ]);
-  return {
-    opportunities: opps.data.map(toOpportunity),
-    applications: apps.data.map(toApplication),
-    assessments: assessments.data.map(toAssessment),
-    notifications,
-  };
-};

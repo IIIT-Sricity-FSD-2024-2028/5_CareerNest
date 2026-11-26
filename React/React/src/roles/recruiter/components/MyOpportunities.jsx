@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import { useViewState } from '../../../store/useViewState.js';
 import OpportunityEditor from "./OpportunityEditor.jsx";
 import { confirmDialog } from "../../../shared/components/AppDialog.jsx";
 
@@ -9,7 +10,10 @@ export default function MyOpportunities({
   setActiveTab,
   setSelectedRoleFilter,
 }) {
-  const [editing, setEditing] = useState(null);
+  const [{ editingId }, { setEditingId }] = useViewState('recruiter', 'MyOpportunities', () => ({
+    editingId: null,
+  }));
+  const editing = opportunities.find((opportunity) => opportunity.id === editingId);
   const published = (o) =>
     ["published", "closed"].includes(o.status.toLowerCase());
   return (
@@ -58,7 +62,7 @@ export default function MyOpportunities({
               <button
                 className="btn-secondary-action"
                 onClick={() => {
-                  setEditing({ ...o });
+                  setEditingId(o.id);
                 }}
               >
                 {published(o) ? "Lower CGPA" : "Edit"}
@@ -82,12 +86,10 @@ export default function MyOpportunities({
       {editing && (
         <OpportunityEditor
           key={editing.id}
-          opportunity={
-            opportunities.find((o) => o.id === editing.id) || editing
-          }
+          opportunity={editing}
           opportunities={opportunities}
           onSave={onUpdateOpportunity}
-          onClose={() => setEditing(null)}
+          onClose={() => setEditingId(null)}
         />
       )}
     </div>

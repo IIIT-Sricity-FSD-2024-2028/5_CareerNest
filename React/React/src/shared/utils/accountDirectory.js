@@ -1,3 +1,5 @@
+// Helper/Data Module (shared/utils/accountDirectory.js):
+// Supports Redux slices/components with data mapping, validation, or static configuration.
 export function toOversightUser(u) {
   return {
     id: u.id,

@@ -1,6 +1,14 @@
+// Data Flow (shared/components/RecruiterOpportunitiesModal.jsx):
+// Backend API -> Redux Thunks/Slices (opportunitiesSlice) -> useSelector(selectOpportunitiesRead, selectRecruiterOpportunities, selectJobs) -> UI render
+// User Actions -> dispatch(fetchRecruiterOpportunities) -> Slice reducers/thunks -> Redux state update
+import { useEffect, useMemo, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchRecruiterOpportunities,
+  selectOpportunitiesRead,
+  selectRecruiterOpportunities,
+} from "../../store/slices/opportunitiesSlice.js";
 import "./AppDialog.css";
-import { useEffect, useRef, useState } from "react";
-import api, { errorMessage } from "../../services/api.js";
 
 const statusStyle = {
   pending: { label: "Pending review", color: "#92400e", background: "#fef3c7" },
@@ -11,35 +19,22 @@ const statusStyle = {
 };
 
 export default function RecruiterOpportunitiesModal({ recruiter, onClose }) {
+  const dispatch = useDispatch();
+  const query = `recruiter:${recruiter.id}`;
+  const selectJobs = useMemo(() => selectRecruiterOpportunities(recruiter.id), [recruiter.id]);
+  const jobs = useSelector(selectJobs);
+  const request = useSelector((state) => selectOpportunitiesRead(state, query));
+  const loading = !request || request.status === 'loading';
+  const error = request?.error;
   const dialog = useRef(null);
-  const [jobs, setJobs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   useEffect(() => {
     dialog.current.showModal();
     const node = dialog.current;
     return () => node.close();
   }, []);
   useEffect(() => {
-    let active = true;
-    api
-      .get(`/recruiters/${recruiter.id}/opportunities`)
-      .then(({ data }) => {
-        if (active) setJobs(data);
-      })
-      .catch((failure) => {
-        if (active)
-          setError(
-            errorMessage(failure, "Could not load recruiter opportunities."),
-          );
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [recruiter.id]);
+    dispatch(fetchRecruiterOpportunities(recruiter.id));
+  }, [dispatch, recruiter.id]);
   return (
     <dialog
       ref={dialog}

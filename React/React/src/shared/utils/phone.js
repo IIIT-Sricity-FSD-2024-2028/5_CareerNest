@@ -1,4 +1,6 @@
-export const PHONE_MESSAGE =
+// Helper/Data Module (shared/utils/phone.js):
+// Supports Redux slices/components with data mapping, validation, or static configuration.
+const PHONE_MESSAGE =
   "Phone number must contain exactly 10 digits, with no spaces or special characters.";
 export const phoneError = (value, required = false) =>
   !value && !required

@@ -1,7 +1,37 @@
-import React, { useCallback, useEffect, useState } from "react";
+// Data Flow (shared/components/AccountDirectory.jsx):
+// Backend API -> Redux Thunks/Slices (resourcesSlice, usersSlice) -> useSelector(selectResource, selectDirectoryUi, selectOversightUsers, selectUsersDirectory) -> UI render
+// User Actions -> dispatch(fetchOversightPolicy, createUser, deleteUser, fetchOversightUsers, fetchUsers, loadError, saveUser) -> Slice reducers/thunks -> Redux state update
+import { useCallback, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import StudentCsvImport from "./AccountCsvImport.jsx";
 import { confirmDialog, infoDialog } from "./AppDialog.jsx";
-import api, { errorMessage } from "../../services/api.js";
+import { errorMessage } from '../../services/api.js';
+import { fetchOversightPolicy, selectResource } from '../../store/slices/resourcesSlice.js';
+import {
+  closeAddUserModal,
+  closeCsvImportModal,
+  createUser,
+  deleteUser,
+  fetchOversightUsers,
+  fetchUsers,
+  initDirectoryTab,
+  openAddUserModal,
+  openCsvImportModal,
+  selectDirectoryUi,
+  selectOversightUsers,
+  selectUsersDirectory,
+  setDirectoryBranch,
+  setDirectoryFieldErrors,
+  setDirectoryFormError,
+  setDirectoryFormField,
+  setDirectoryLoadError,
+  setDirectoryLoading,
+  setDirectoryRemovingId,
+  setDirectorySaving,
+  setDirectorySearch,
+  setDirectorySubmitted,
+  setDirectoryTab,
+} from '../../store/slices/usersSlice.js';
 import {
   toOversightUser,
   filterOversightUsers,
@@ -50,42 +80,51 @@ export default function AccountDirectory({
   showTabs = true,
   onChanged,
 }) {
-  const [users, setUsers] = useState([]);
-  const [policy, setPolicy] = useState(null);
-  const [loadError, setLoadError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
+  // Redux data source: usersSlice (students/alumni list + directory modal/filter UI) and resourcesSlice (oversight policy).
+  // Loaded via fetchUsers / fetchOversightUsers + fetchOversightPolicy thunks in refresh().
+  const records = useSelector(canCreate ? selectUsersDirectory : selectOversightUsers);
+  const users = records.map(toOversightUser);
+  const policy = useSelector((state) => selectResource(state, 'oversightPolicy'));
+  const {
+    loadError,
+    loading,
+    activeTab,
+    search,
+    branch,
+    addOpen,
+    csvOpen,
+    form,
+    saving,
+    removingId,
+    formError,
+    fieldErrors,
+    submitted,
+  } = useSelector(selectDirectoryUi);
+
+  useEffect(() => {
+    dispatch(initDirectoryTab(initialTab));
+  }, [dispatch, initialTab]);
+
   const refresh = useCallback(async () => {
-    setLoading(true);
+    dispatch(setDirectoryLoading(true));
     try {
-      const [response, rules] = await Promise.all([
-        api.get(canCreate ? "/users" : "/users/oversight"),
-        api.get("/users/oversight-policy"),
+      await Promise.all([
+        dispatch(canCreate ? fetchUsers() : fetchOversightUsers()).unwrap(),
+        dispatch(fetchOversightPolicy()).unwrap(),
       ]);
-      setUsers(response.data.map(toOversightUser));
-      setPolicy(rules.data);
-      setLoadError("");
+      dispatch(setDirectoryLoadError(""));
     } catch (error) {
-      setLoadError(errorMessage(error, "Could not load User Oversight."));
+      dispatch(setDirectoryLoadError(errorMessage(error, "Could not load User Oversight.")));
     } finally {
-      setLoading(false);
+      dispatch(setDirectoryLoading(false));
     }
-  }, [canCreate]);
+  }, [canCreate, dispatch]);
   useEffect(() => {
     refresh();
     window.addEventListener("focus", refresh);
     return () => window.removeEventListener("focus", refresh);
   }, [refresh]);
-  const [activeTab, setActiveTab] = useState(initialTab);
-  const [search, setSearch] = useState("");
-  const [branch, setBranch] = useState("");
-  const [addOpen, setAddOpen] = useState(false);
-  const [csvOpen, setCsvOpen] = useState(false);
-  const [form, setForm] = useState(emptyForm);
-  const [saving, setSaving] = useState(false);
-  const [removingId, setRemovingId] = useState(null);
-  const [formError, setFormError] = useState("");
-  const [fieldErrors, setFieldErrors] = useState({});
-  const [submitted, setSubmitted] = useState(false);
   const setNotice = (message) => infoDialog(message);
   const role = activeTab === "candidates" ? "candidate" : "alumni";
   const matching = filterOversightUsers(users, role, search, branch);
@@ -108,16 +147,16 @@ export default function AccountDirectory({
   const removeUser = async (user) => {
     const label = role === "candidate" ? "student" : "alumni";
     if (!await confirmDialog(`Remove ${label} ${user.name} (${user.email})? This will remove their account and cannot be undone.`)) return;
-    setRemovingId(user.id);
+    dispatch(setDirectoryRemovingId(user.id));
     try {
-      await api.delete(`/users/${user.id}`);
+      await dispatch(deleteUser(user.id)).unwrap();
       await refresh();
       await onChanged?.();
       setNotice(`${user.name} was removed.`);
     } catch (error) {
       setNotice(errorMessage(error, `Could not remove this ${label} account.`));
     } finally {
-      setRemovingId(null);
+      dispatch(setDirectoryRemovingId(null));
     }
   };
 
@@ -125,26 +164,26 @@ export default function AccountDirectory({
     event.preventDefault();
     if (saving || !canCreate) return;
     if (!policy) {
-      setFormError(
+      dispatch(setDirectoryFormError(
         "College validation rules could not be loaded. Refresh and try again.",
-      );
+      ));
       return;
     }
-    setSubmitted(true);
-    setFormError("");
+    dispatch(setDirectorySubmitted(true));
+    dispatch(setDirectoryFormError(""));
     const email = form.email.trim().toLowerCase();
     const roll = form.rollNumber.trim().toUpperCase();
     const errors = validateUserForm(form, role, users, policy);
-    setFieldErrors(errors);
+    dispatch(setDirectoryFieldErrors(errors));
     if (Object.keys(errors).length) {
       event.currentTarget
         .querySelector(`[name="${Object.keys(errors)[0]}"]`)
         ?.focus();
       return;
     }
-    setSaving(true);
+    dispatch(setDirectorySaving(true));
     try {
-      await api.post("/users", {
+      await dispatch(createUser({
         name: form.name.trim(),
         email,
         role,
@@ -164,15 +203,15 @@ export default function AccountDirectory({
               headline: form.headline.trim(),
               location: form.location.trim(),
             }),
-      });
+      })).unwrap();
       await refresh();
       await onChanged?.();
-      setAddOpen(false);
+      dispatch(closeAddUserModal());
       setNotice(`Account created for ${email}. Initial password: 12345678`);
     } catch (error) {
-      setFormError(errorMessage(error, "Could not add the user."));
+      dispatch(setDirectoryFormError(errorMessage(error, "Could not add the user.")));
     } finally {
-      setSaving(false);
+      dispatch(setDirectorySaving(false));
     }
   };
 
@@ -190,18 +229,18 @@ export default function AccountDirectory({
         value={form[key]}
         onBlur={() => {
           const errors = validateUserForm(form, role, users, policy);
-          setFieldErrors((previous) => ({
-            ...previous,
+          dispatch(setDirectoryFieldErrors({
+            ...fieldErrors,
             [key]: errors[key] || "",
           }));
         }}
         onChange={(e) => {
           const next = { ...form, [key]: e.target.value };
-          setForm(next);
+          dispatch(setDirectoryFormField({ field: key, value: e.target.value }));
           if (submitted || fieldErrors[key]) {
             const errors = validateUserForm(next, role, users, policy);
-            setFieldErrors((previous) => ({
-              ...previous,
+            dispatch(setDirectoryFieldErrors({
+              ...fieldErrors,
               [key]: errors[key] || "",
             }));
           }
@@ -264,11 +303,7 @@ export default function AccountDirectory({
                 type="button"
                 key={tab}
                 className={`tab${activeTab === tab ? " active" : ""}`}
-                onClick={() => {
-                  setActiveTab(tab);
-                  setSearch("");
-                  setBranch("");
-                }}
+                onClick={() => dispatch(setDirectoryTab(tab))}
               >
                 {label} <span>{counts[tab]}</span>
               </button>
@@ -299,14 +334,14 @@ export default function AccountDirectory({
                     : "Search name, email, roll or branch…"
                 }
                 value={search}
-                onChange={(event) => setSearch(event.target.value)}
+                onChange={(event) => dispatch(setDirectorySearch(event.target.value))}
                 style={{ ...inputStyle, width: 270 }}
               />
               {role === "candidate" && (
                 <select
                   aria-label="Filter by branch"
                   value={branch}
-                  onChange={(e) => setBranch(e.target.value)}
+                  onChange={(e) => dispatch(setDirectoryBranch(e.target.value))}
                   style={{ ...inputStyle, width: 200 }}
                 >
                   <option value="">All branches</option>
@@ -327,7 +362,7 @@ export default function AccountDirectory({
                       background: "#fff",
                       color: "#7c3aed",
                     }}
-                    onClick={() => setCsvOpen(true)}
+                    onClick={() => dispatch(openCsvImportModal())}
                   >
                     Import {role === "candidate" ? "Students" : "Alumni"} CSV
                   </button>
@@ -335,13 +370,7 @@ export default function AccountDirectory({
                     type="button"
                     disabled={!policy}
                     style={buttonStyle}
-                    onClick={() => {
-                      setForm(emptyForm);
-                      setFormError("");
-                      setFieldErrors({});
-                      setSubmitted(false);
-                      setAddOpen(true);
-                    }}
+                    onClick={() => dispatch(openAddUserModal())}
                   >
                     + Add {role === "candidate" ? "Student" : "Alumni"}
                   </button>
@@ -473,17 +502,17 @@ export default function AccountDirectory({
                     }}
                     onChange={(e) => {
                       const next = { ...form, department: e.target.value };
-                      setForm(next);
+                      dispatch(setDirectoryFormField({ field: "department", value: e.target.value }));
                       const errors = validateUserForm(
                         next,
                         role,
                         users,
                         policy,
                       );
-                      setFieldErrors((previous) => ({
-                        ...previous,
+                      dispatch(setDirectoryFieldErrors({
+                        ...fieldErrors,
                         department: errors.department || "",
-                        ...(submitted || previous.rollNumber
+                        ...(submitted || fieldErrors.rollNumber
                           ? { rollNumber: errors.rollNumber || "" }
                           : {}),
                       }));
@@ -567,7 +596,7 @@ export default function AccountDirectory({
                 type="button"
                 disabled={saving}
                 style={{ ...buttonStyle, background: "#fff", color: "#7c3aed" }}
-                onClick={() => setAddOpen(false)}
+                onClick={() => dispatch(closeAddUserModal())}
               >
                 Cancel
               </button>
@@ -582,7 +611,7 @@ export default function AccountDirectory({
         <StudentCsvImport
           role={role}
           policy={policy}
-          onClose={() => setCsvOpen(false)}
+          onClose={() => dispatch(closeCsvImportModal())}
           onImported={async (count) => {
             await refresh();
             await onChanged?.();

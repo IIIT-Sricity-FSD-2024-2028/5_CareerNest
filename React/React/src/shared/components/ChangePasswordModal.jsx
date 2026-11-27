@@ -1,5 +1,19 @@
-import { useEffect, useRef, useState } from 'react';
-import api, { errorMessage } from '../../services/api.js';
+// Data Flow (shared/components/ChangePasswordModal.jsx):
+// Backend API -> Redux Thunks/Slices (authSlice, usersSlice) -> useSelector(selectChangePasswordUi) -> UI render
+// User Actions -> dispatch(slice actions) -> Slice reducers/thunks -> Redux state update
+import { useEffect, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { errorMessage } from '../../services/api.js';
+import {
+  resetChangePasswordForm,
+  selectChangePasswordUi,
+  setChangePasswordError,
+  setChangePasswordField,
+  setChangePasswordSaving,
+  setChangePasswordSuccess,
+  setShowChangePasswords,
+} from '../../store/slices/authSlice.js';
+import { changePassword } from '../../store/slices/usersSlice.js';
 
 // Shared "Change Password" dialog used by the alumni and placement-officer profile pages.
 // It talks to the same endpoint the candidate dashboard uses:
@@ -9,43 +23,35 @@ import api, { errorMessage } from '../../services/api.js';
 
 const MIN_LENGTH = 8; // mirrors the backend password policy
 
-const EMPTY = { currentPassword: '', newPassword: '', confirmPassword: '' };
+export default function ChangePasswordModal({ isOpen, ...props }) {
+  return isOpen ? <ChangePasswordForm {...props} /> : null;
+}
 
-export default function ChangePasswordModal({ isOpen, onClose, userId, accentColor = '#7c3aed' }) {
-  const [form, setForm] = useState(EMPTY);
-  const [showPasswords, setShowPasswords] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
-  const [saving, setSaving] = useState(false);
+function ChangePasswordForm({ onClose, userId, accentColor = '#7c3aed' }) {
+  const dispatch = useDispatch();
+  const { form, showPasswords, error, success, saving } = useSelector(selectChangePasswordUi);
   const firstFieldRef = useRef(null);
   const closeTimer = useRef(null);
 
-  // Start from a clean form every time the dialog opens.
   useEffect(() => {
-    if (!isOpen) return undefined;
-    setForm(EMPTY);
-    setShowPasswords(false);
-    setError('');
-    setSuccess(false);
-    setSaving(false);
+    dispatch(resetChangePasswordForm());
     const focusTimer = window.setTimeout(() => firstFieldRef.current?.focus(), 50);
-    return () => window.clearTimeout(focusTimer);
-  }, [isOpen]);
+    return () => {
+      window.clearTimeout(focusTimer);
+      dispatch(resetChangePasswordForm());
+    };
+  }, [dispatch]);
 
   useEffect(() => () => window.clearTimeout(closeTimer.current), []);
 
   useEffect(() => {
-    if (!isOpen) return undefined;
     const onKeyDown = (event) => { if (event.key === 'Escape' && !saving) onClose(); };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isOpen, saving, onClose]);
-
-  if (!isOpen) return null;
+  }, [saving, onClose]);
 
   const setField = (field) => (event) => {
-    setForm((prev) => ({ ...prev, [field]: event.target.value }));
-    if (error) setError('');
+    dispatch(setChangePasswordField({ field, value: event.target.value }));
   };
 
   const validate = () => {
@@ -61,25 +67,27 @@ export default function ChangePasswordModal({ isOpen, onClose, userId, accentCol
     event.preventDefault();
     if (saving || success) return;
     const problem = validate();
-    if (problem) { setError(problem); return; }
-    setSaving(true);
-    setError('');
+    if (problem) { dispatch(setChangePasswordError(problem)); return; }
+    dispatch(setChangePasswordSaving(true));
+    dispatch(setChangePasswordError(''));
     try {
-      await api.post(`/users/${userId}/password`, {
-        currentPassword: form.currentPassword,
-        newPassword: form.newPassword,
-      });
-      setSuccess(true);
-      setForm(EMPTY);
-      closeTimer.current = window.setTimeout(onClose, 1600);
+      await dispatch(changePassword({
+        id: userId,
+        data: {
+          currentPassword: form.currentPassword,
+          newPassword: form.newPassword,
+        },
+      })).unwrap();
+      dispatch(setChangePasswordSuccess());
+      if (firstFieldRef.current) closeTimer.current = window.setTimeout(onClose, 1600);
     } catch (err) {
-      setError(
+      dispatch(setChangePasswordError(
         err?.response?.status === 401
           ? 'Your current password is incorrect.'
           : errorMessage(err, 'Could not change the password. Please try again.')
-      );
+      ));
     } finally {
-      setSaving(false);
+      dispatch(setChangePasswordSaving(false));
     }
   };
 
@@ -162,7 +170,7 @@ export default function ChangePasswordModal({ isOpen, onClose, userId, accentCol
         ))}
 
         <label style={styles.toggle}>
-          <input type="checkbox" checked={showPasswords} onChange={(event) => setShowPasswords(event.target.checked)} />
+          <input type="checkbox" checked={showPasswords} onChange={(event) => dispatch(setShowChangePasswords(event.target.checked))} />
           Show passwords
         </label>
 

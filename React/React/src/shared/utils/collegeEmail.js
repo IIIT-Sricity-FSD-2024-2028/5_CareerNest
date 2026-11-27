@@ -1,3 +1,5 @@
+// Helper/Data Module (shared/utils/collegeEmail.js):
+// Supports Redux slices/components with data mapping, validation, or static configuration.
 const demoDomains = { IIITSRICITY: 'iiits.in', VIT: 'vit.in', SRM: 'srm.in', BITS: 'bits.in' };
 
 export function collegeEmailDomain(college) {

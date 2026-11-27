@@ -1,5 +1,6 @@
+// Backend API Flow: Central fetch wrapper (apiFetch) used by Redux thunks (createAsyncThunk)
+// to call the backend REST API with JWT Bearer auth and normalized error handling.
 import axios from 'axios';
-import { NAVIGATION_STATE_KEYS } from '../shared/utils/navigationState.js';
 
 // Single axios instance shared by every role. The backend identifies the caller
 // through the x-role / x-user-id / x-college-id headers, so they are attached
@@ -14,7 +15,10 @@ const SESSION_KEYS = ['loggedInUser', 'userRole', 'userId', 'userName', 'userEma
 export function readSession() {
   try {
     const raw = localStorage.getItem('loggedInUser');
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) return null;
+    const user = JSON.parse(raw);
+    const fallbackName = user && !user.name ? localStorage.getItem('userName') : null;
+    return fallbackName ? { ...user, name: fallbackName } : user;
   } catch {
     return null;
   }
@@ -23,7 +27,6 @@ export function readSession() {
 export function clearSession() {
   SESSION_KEYS.forEach((key) => localStorage.removeItem(key));
   try {
-    NAVIGATION_STATE_KEYS.forEach((key) => sessionStorage.removeItem(key));
     sessionStorage.removeItem('cn_login_notice');
   } catch {
     // Storage can be blocked; localStorage removal above remains the auth boundary.
@@ -53,6 +56,9 @@ api.interceptors.response.use(
       Array.isArray(message) ? message.join(' ') : String(message || '')
     );
     if (error.response?.status === 401 && !url.includes('/users/login') && !passwordMismatch) {
+      const activeToken = readSession()?.accessToken || localStorage.getItem('accessToken');
+      const requestAuthorization = error.config?.headers?.Authorization;
+      if (activeToken && requestAuthorization !== `Bearer ${activeToken}`) return Promise.reject(error);
       clearSession();
       try { sessionStorage.setItem('cn_login_notice', Array.isArray(message) ? message[0] : (message || 'Your session has ended. Please sign in again.')); } catch { /* ignore */ }
       window.location.replace('/login');
@@ -61,13 +67,28 @@ api.interceptors.response.use(
   }
 );
 
-/** Turn an axios error into a readable message. */
+/** Convert an axios error into a serializable plain object for Redux rejectWithValue. */
+export function serializeApiError(error) {
+  return {
+    message: error?.message || 'Request failed',
+    response: error?.response
+      ? {
+          status: error.response.status,
+          data: error.response.data,
+        }
+      : undefined,
+  };
+}
+
+/** Turn an axios or serialized thunk error into a readable message. */
 export function errorMessage(error, fallback = 'Something went wrong. Please try again.') {
+  if (typeof error === 'string' && error) return error;
   const message = error?.response?.data?.message;
   if (Array.isArray(message)) return message.join(', ');
   if (message) return message;
-  if (!error?.response) return 'Cannot reach the server. Make sure the backend is running.';
-  return fallback;
+  if (error?.response) return fallback;
+  if (error?.message && !/^Request failed/.test(error.message)) return error.message;
+  return 'Cannot reach the server. Make sure the backend is running.';
 }
 
 export default api;

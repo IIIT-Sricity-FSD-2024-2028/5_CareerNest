@@ -1,5 +1,19 @@
-import React, { useState } from "react";
-import api, { errorMessage } from "../../services/api.js";
+// Data Flow (shared/components/AccountCsvImport.jsx):
+// Backend API -> Redux Thunks/Slices (usersSlice) -> useSelector(selectCsvImportUi, selectFile) -> UI render
+// User Actions -> dispatch(createObjectURL, createElement) -> Slice reducers/thunks -> Redux state update
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { errorMessage } from '../../services/api.js';
+import {
+  importUsers,
+  resetCsvImport,
+  selectCsvImportUi,
+  setCsvImportBusy,
+  setCsvImportError,
+  setCsvImportPreview,
+  setCsvImportResult,
+  startCsvImportFile,
+} from '../../store/slices/usersSlice.js';
 
 const button = {
   padding: "9px 16px",
@@ -11,12 +25,39 @@ const button = {
   fontWeight: 600,
 };
 
+function downloadFile(filename, contents, type) {
+  const url = URL.createObjectURL(new Blob([contents], { type }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 export default function StudentCsvImport({
   role = "candidate",
   policy,
   onClose,
   onImported,
 }) {
+  const dispatch = useDispatch();
+  const { csv, result, error, busy, filename } = useSelector(selectCsvImportUi);
+
+  useEffect(() => {
+    dispatch(resetCsvImport());
+    return () => {
+      dispatch(resetCsvImport());
+    };
+  }, [dispatch]);
+
+  const downloadTemplate = () => {
+    const text = isAlumni
+      ? "name,email,company,batch,referrals,department,headline,location,phone\r\nMeera Rao,meera.rao@gmail.com,Microsoft,2022,0,Computer Science,Software Engineer,Hyderabad,9876543210\r\n"
+      : `name,email,rollNumber,department,cgpa,backlogs,phone\r\nAditi Rao,aditi.rao@${policy.studentEmailDomain},${policy.rollExample},Computer Science,8.5,0,9876543210\r\n`;
+    downloadFile(`${isAlumni ? "alumni" : "students"}-template.csv`, text, "text/csv;charset=utf-8");
+  };
   const isAlumni = role === "alumni";
   const label = isAlumni ? "Alumni" : "Students";
   const endpoint = isAlumni ? "/users/import-alumni" : "/users/import-students";
@@ -38,65 +79,40 @@ export default function StudentCsvImport({
         ["cgpa", "CGPA"],
         ["backlogs", "Backlogs"],
       ];
-  const [csv, setCsv] = useState("");
-  const [result, setResult] = useState(null);
-  const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [filename, setFilename] = useState("");
-
-  const downloadTemplate = () => {
-    const text = isAlumni
-      ? "name,email,company,batch,referrals,department,headline,location,phone\r\nMeera Rao,meera.rao@gmail.com,Microsoft,2022,0,Computer Science,Software Engineer,Hyderabad,9876543210\r\n"
-      : `name,email,rollNumber,department,cgpa,backlogs,phone\r\nAditi Rao,aditi.rao@${policy.studentEmailDomain},${policy.rollExample},Computer Science,8.5,0,9876543210\r\n`;
-    const url = URL.createObjectURL(
-      new Blob([text], { type: "text/csv;charset=utf-8" }),
-    );
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `${isAlumni ? "alumni" : "students"}-template.csv`;
-    anchor.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  };
-
   const selectFile = async (event) => {
     const file = event.target.files?.[0];
     event.target.value = "";
-    setCsv("");
-    setResult(null);
-    setError("");
-    setFilename(file?.name || "");
+    dispatch(startCsvImportFile(file?.name || ""));
     if (!file) return;
     if (!/\.csv$/i.test(file.name) || file.size > 1048576) {
-      setError("Choose a CSV file up to 1 MB.");
+      dispatch(setCsvImportError("Choose a CSV file up to 1 MB."));
       return;
     }
-    setBusy(true);
+    dispatch(setCsvImportBusy(true));
     try {
       const content = await file.text();
-      const response = await api.post(endpoint, { csv: content, dryRun: true });
-      setCsv(content);
-      setResult(response.data);
+      const data = await dispatch(importUsers({ endpoint, data: { csv: content, dryRun: true } })).unwrap();
+      dispatch(setCsvImportPreview({ csv: content, result: data }));
     } catch (failure) {
-      setError(errorMessage(failure, "Could not validate this CSV."));
+      dispatch(setCsvImportError(errorMessage(failure, "Could not validate this CSV.")));
     } finally {
-      setBusy(false);
+      dispatch(setCsvImportBusy(false));
     }
   };
 
   const importStudents = async () => {
-    setBusy(true);
-    setError("");
+    dispatch(setCsvImportBusy(true));
+    dispatch(setCsvImportError(""));
     try {
-      const response = await api.post(endpoint, { csv, dryRun: false });
-      setResult(response.data);
-      if (response.data.imported) {
-        setCsv("");
-        await onImported(response.data.imported);
+      const data = await dispatch(importUsers({ endpoint, data: { csv, dryRun: false } })).unwrap();
+      dispatch(setCsvImportResult(data));
+      if (data.imported) {
+        await onImported(data.imported);
       }
     } catch (failure) {
-      setError(errorMessage(failure, "Account import failed."));
+      dispatch(setCsvImportError(errorMessage(failure, "Account import failed.")));
     } finally {
-      setBusy(false);
+      dispatch(setCsvImportBusy(false));
     }
   };
 

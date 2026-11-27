@@ -1,8 +1,19 @@
+// Data Flow (roles/candidate/components/GlobalModals.jsx):
+// Backend API -> Redux Thunks/Slices (candidateSlice) -> useSelector(selectCandidateUI) -> UI render
+// User Actions -> dispatch(submitCandidateQuery) -> Slice reducers/thunks -> Redux state update
 import { useEffect, useRef } from 'react';
-import { useUI } from '../context/UIContext.jsx';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+    closeQueryModal,
+    closeSuccessModal,
+    selectCandidateUI,
+    setQueryMessage,
+    submitCandidateQuery,
+} from '../store/candidateSlice.js';
 
 export default function GlobalModals() {
-    const { successModal, closeSuccess, askQueryOpen, closeAskQuery, queryMessage, setQueryMessage, submitQuery } = useUI();
+    const dispatch = useDispatch();
+    const { successModal, askQueryOpen, queryMessage } = useSelector(selectCandidateUI);
     const successRef = useRef(null);
     const queryRef = useRef(null);
 
@@ -26,7 +37,7 @@ export default function GlobalModals() {
                 ref={successRef}
                 className="profile-modal"
                 style={{ width: 400, textAlign: 'center', padding: 0, border: 'none', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                onClose={closeSuccess}
+                onClose={() => dispatch(closeSuccessModal())}
             >
                 <div style={{ padding: '40px 24px' }}>
                     <div
@@ -47,7 +58,7 @@ export default function GlobalModals() {
                     </div>
                     <h2 style={{ fontSize: 24, color: '#0f172a', marginBottom: 12 }}>{successModal.title}</h2>
                     <p style={{ color: '#64748b', marginBottom: 32, fontSize: 15 }}>{successModal.message}</p>
-                    <button className="btn-primary" style={{ width: '100%', padding: 12 }} onClick={closeSuccess}>
+                    <button className="btn-primary" style={{ width: '100%', padding: 12 }} onClick={() => dispatch(closeSuccessModal())}>
                         Close
                     </button>
                 </div>
@@ -57,21 +68,21 @@ export default function GlobalModals() {
                 ref={queryRef}
                 className="profile-modal"
                 style={{ width: 450, padding: 0, border: 'none', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                onClose={closeAskQuery}
+                onClose={() => dispatch(closeQueryModal())}
             >
                 <div
                     className="modal-header"
                     style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderBottom: '1px solid #e2e8f0' }}
                 >
                     <h3 style={{ margin: 0 }}>Ask a Query</h3>
-                    <button className="modal-close" style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer' }} onClick={closeAskQuery}>
+                    <button className="modal-close" style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer' }} onClick={() => dispatch(closeQueryModal())}>
                         <i className="bx bx-x" />
                     </button>
                 </div>
                 <form
                     onSubmit={(e) => {
                         e.preventDefault();
-                        submitQuery();
+                        dispatch(submitCandidateQuery());
                     }}
                     style={{ padding: 24 }}
                 >
@@ -84,7 +95,7 @@ export default function GlobalModals() {
                             required
                             rows={5}
                             value={queryMessage}
-                            onChange={(e) => setQueryMessage(e.target.value)}
+                            onChange={(e) => dispatch(setQueryMessage(e.target.value))}
                             style={{
                                 width: '100%',
                                 padding: 10,
@@ -97,7 +108,7 @@ export default function GlobalModals() {
                         />
                     </div>
                     <div className="modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
-                        <button type="button" className="btn-secondary" onClick={closeAskQuery}>
+                        <button type="button" className="btn-secondary" onClick={() => dispatch(closeQueryModal())}>
                             Cancel
                         </button>
                         <button type="submit" className="btn-primary" style={{ width: 'auto', padding: '12px 24px' }}>

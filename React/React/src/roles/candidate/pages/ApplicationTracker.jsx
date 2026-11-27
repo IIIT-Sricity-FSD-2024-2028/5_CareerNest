@@ -1,6 +1,9 @@
-import { useViewState } from '../../../store/useViewState.js';
+// Data Flow (roles/candidate/pages/ApplicationTracker.jsx):
+// Backend API -> Redux Thunks/Slices (candidateSlice) -> useSelector(selectCandidateStore, selectTrackerFilter) -> UI render
+// User Actions -> dispatch(slice actions) -> Slice reducers/thunks -> Redux state update
 import { useMemo } from 'react';
-import { useStore } from '../context/StoreContext.jsx';
+import { useDispatch, useSelector } from 'react-redux';
+import { selectCandidateStore, selectTrackerFilter, setTrackerFilter } from '../store/candidateSlice.js';
 import '../styles/features.css';
 
 const STAGES_DEF = ['Applied', 'Shortlisted', 'Interview', 'Offered'];
@@ -14,10 +17,9 @@ function statusChipFor(status) {
 }
 
 export default function ApplicationTracker() {
-    const { store } = useStore();
-    const [{ filter }, { setFilter }] = useViewState('candidate', 'ApplicationTracker', () => ({
-      filter: 'All',
-    }));
+    const dispatch = useDispatch();
+    const store = useSelector(selectCandidateStore);
+    const filter = useSelector(selectTrackerFilter);
 
     const stats = useMemo(() => {
         const apps = store.myApplications;
@@ -61,7 +63,7 @@ export default function ApplicationTracker() {
 
                 <div className="filter-pills-row" style={{ marginBottom: 24 }}>
                     {FILTERS.map((f) => (
-                        <button key={f} className={`filter-pill ${filter === f ? 'active' : ''}`} onClick={() => setFilter(f)}>
+                        <button key={f} className={`filter-pill ${filter === f ? 'active' : ''}`} onClick={() => dispatch(setTrackerFilter(f))}>
                             {f}
                         </button>
                     ))}

@@ -1,4 +1,5 @@
-import { ReduxAnchor } from '../../../shared/components/ReduxLink.jsx';
+// Data Flow (roles/candidate/components/shared.jsx):
+// Presentational component receiving Redux-backed data and dispatch callbacks as props from its parent container.
 // Small presentational pieces shared by the candidate pages so they all look the same.
 
 const STATUS_TONE = {
@@ -65,9 +66,9 @@ export function ScheduleItem({ item }) {
             </div>
             <span className="cx-pill cx-pill--info">Interview</span>
             {item.link && (
-                <ReduxAnchor className="cx-btn cx-btn--primary cx-btn--sm" href={item.link} target="_blank" rel="noreferrer">
+                <a className="cx-btn cx-btn--primary cx-btn--sm" href={item.link} target="_blank" rel="noreferrer">
                     <i className="bx bx-link-external" /> {isInterview ? 'Join interview' : 'Open test'}
-                </ReduxAnchor>
+                </a>
             )}
         </div>
     );

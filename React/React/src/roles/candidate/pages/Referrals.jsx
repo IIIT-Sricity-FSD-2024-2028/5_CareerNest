@@ -1,8 +1,10 @@
-import { ReduxAnchor } from '../../../shared/components/ReduxLink.jsx';
-import { useReduxNavigate } from '../../../store/useBrowserCommands.js';
-import { useViewState } from '../../../store/useViewState.js';
+// Data Flow (roles/candidate/pages/Referrals.jsx):
+// Backend API -> Redux Thunks/Slices (candidateSlice) -> useSelector(selectCandidateStore, selectReferralsTab) -> UI render
+// User Actions -> dispatch(slice actions) -> Slice reducers/thunks -> Redux state update
 import { useMemo } from 'react';
-import { useStore } from '../context/StoreContext.jsx';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { selectCandidateStore, selectReferralsTab, setReferralsTab } from '../store/candidateSlice.js';
 import { Avatar, ReferralPill, normReferralStatus } from '../components/shared.jsx';
 import '../styles/applications.css';
 
@@ -14,11 +16,10 @@ const TABS = [
 ];
 
 export default function Referrals() {
-    const { store } = useStore();
-    const navigate = useReduxNavigate();
-    const [{ tab }, { setTab }] = useViewState('candidate', 'Referrals', () => ({
-      tab: 'all',
-    }));
+    const dispatch = useDispatch();
+    const store = useSelector(selectCandidateStore);
+    const navigate = useNavigate();
+    const tab = useSelector(selectReferralsTab);
 
     const requests = useMemo(
         () => [...store.referralRequests].sort((a, b) => b.id - a.id),
@@ -46,7 +47,7 @@ export default function Referrals() {
 
             <div className="filter-pills-row" style={{ marginBottom: 20 }}>
                 {TABS.map((t) => (
-                    <button key={t.key} className={`filter-pill ${tab === t.key ? 'active' : ''}`} onClick={() => setTab(t.key)}>
+                    <button key={t.key} className={`filter-pill ${tab === t.key ? 'active' : ''}`} onClick={() => dispatch(setReferralsTab(t.key))}>
                         {t.label} ({countOf(t.key)})
                     </button>
                 ))}
@@ -60,7 +61,7 @@ export default function Referrals() {
                         ? 'After you apply to a company, you can ask its alumni from your college for a referral.'
                         : 'Try another filter.'}</p>
                     {requests.length === 0 && (
-                        <ReduxAnchor href="#" onClick={(e) => { e.preventDefault(); navigate('/candidate/applications'); }}>Go to My Applications →</ReduxAnchor>
+                        <a href="#" onClick={(e) => { e.preventDefault(); navigate('/candidate/applications'); }}>Go to My Applications →</a>
                     )}
                 </div>
             ) : (

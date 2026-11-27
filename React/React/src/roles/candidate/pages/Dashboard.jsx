@@ -1,10 +1,15 @@
+// Data Flow (roles/candidate/pages/Dashboard.jsx):
+// Backend API -> Redux Thunks/Slices (candidateSlice) -> useSelector(selectCandidateStore) -> UI render
+// User Actions -> dispatch(slice actions) -> Slice reducers/thunks -> Redux state update
+import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { BriefcaseBusiness, CalendarCheck2, Clock3, FileText, GraduationCap, TrendingUp, UsersRound } from 'lucide-react';
-import { useStore } from '../context/StoreContext.jsx';
+import { selectCandidateStore } from '../store/candidateSlice.js';
 import '../styles/index.css';
 
 export default function Dashboard() {
-    const { store } = useStore();
+    // Redux data source: candidateSlice (selectCandidateStore combines candidate profile, opportunities, applications, and announcements from Redux).
+    const store = useSelector(selectCandidateStore);
     const navigate = useNavigate();
     const { currentUser, dashboardStats, recruiterJobs, myApplications, upcomingEvents, announcementsData } = store;
 

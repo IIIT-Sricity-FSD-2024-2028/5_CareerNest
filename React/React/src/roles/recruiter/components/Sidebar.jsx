@@ -1,3 +1,7 @@
+// Data Flow (roles/recruiter/components/Sidebar.jsx):
+// Backend API -> Redux Thunks/Slices (recruiterSlice) -> useSelector(selectRecruiter) -> UI render
+// User Actions -> dispatch(slice actions) -> Slice reducers/thunks -> Redux state update
+import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { 
   LayoutDashboard, 
   Send, 
@@ -8,8 +12,11 @@ import {
   BarChart2, 
   LogOut 
 } from 'lucide-react';
+import { selectRecruiter, setRecruiterTab } from '../store/recruiterSlice.js';
 
-export default function Sidebar({ activeTab, setActiveTab, recruiter, onSignOut }) {
+export default function Sidebar({ onSignOut }) {
+  const dispatch = useDispatch();
+  const { activeTab, recruiter } = useSelector(selectRecruiter, shallowEqual);
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'post', label: 'Post Opportunity', icon: Send },
@@ -28,7 +35,12 @@ export default function Sidebar({ activeTab, setActiveTab, recruiter, onSignOut 
           <p className="brand-role">Recruiter Portal</p>
         </div>
 
-        <div className="profile-badge" onClick={() => setActiveTab('profile')}>
+        <div
+          className="profile-badge"
+          onClick={() => {
+            dispatch(setRecruiterTab('profile'));
+          }}
+        >
           <div className="avatar">{recruiter.avatar || 'RC'}</div>
           <div className="profile-info">
             <p className="profile-name">{recruiter.name}</p>
@@ -45,7 +57,9 @@ export default function Sidebar({ activeTab, setActiveTab, recruiter, onSignOut 
                 <li key={item.id}>
                   <button 
                     className={`nav-item-btn ${isActive ? 'active' : ''}`}
-                    onClick={() => setActiveTab(item.id)}
+                    onClick={() => {
+                      dispatch(setRecruiterTab(item.id));
+                    }}
                   >
                     <Icon size={18} />
                     <span>{item.label}</span>

@@ -1,20 +1,48 @@
-import { useViewState } from '../../../store/useViewState.js';
-import OpportunityEditor from "./OpportunityEditor.jsx";
-import { confirmDialog } from "../../../shared/components/AppDialog.jsx";
+// Data Flow (roles/recruiter/components/MyOpportunities.jsx):
+// Backend API -> Redux Thunks/Slices (opportunitiesSlice, recruiterSlice) -> useSelector(selectMyOpportunitiesUi, selectOpportunitiesWithCount) -> UI render
+// User Actions -> dispatch(deleteOpportunity, updateOpportunity, loadRecruiterWorkspace) -> Slice reducers/thunks -> Redux state update
 
-export default function MyOpportunities({
-  opportunities,
-  onUpdateOpportunity,
-  onDeleteOpportunity,
-  setActiveTab,
-  setSelectedRoleFilter,
-}) {
-  const [{ editingId }, { setEditingId }] = useViewState('recruiter', 'MyOpportunities', () => ({
-    editingId: null,
-  }));
+import { useDispatch, useSelector } from 'react-redux';
+import { errorMessage } from '../../../services/api.js';
+import { confirmDialog, infoDialog } from "../../../shared/components/AppDialog.jsx";
+import { deleteOpportunity, updateOpportunity } from '../../../store/slices/opportunitiesSlice.js';
+import {
+  
+  loadRecruiterWorkspace,
+  selectMyOpportunitiesUi,
+  selectOpportunitiesWithCount,
+  setMyOpportunitiesEditingId,
+  setRecruiterRoleFilter,
+  setRecruiterTab,
+} from '../store/recruiterSlice.js';
+import { fromOpportunity } from '../data/api.js';
+import OpportunityEditor from "./OpportunityEditor.jsx";
+
+export default function MyOpportunities() {
+  const dispatch = useDispatch();
+  const opportunities = useSelector(selectOpportunitiesWithCount);
+  const { editingId } = useSelector(selectMyOpportunitiesUi);
   const editing = opportunities.find((opportunity) => opportunity.id === editingId);
   const published = (o) =>
     ["published", "closed"].includes(o.status.toLowerCase());
+
+  const onUpdateOpportunity = async (updatedOpp) => {
+    try {
+      await dispatch(updateOpportunity({
+        id: updatedOpp.id,
+        data: ['published', 'closed'].includes(updatedOpp.status.toLowerCase())
+          ? { cgpa: Number(updatedOpp.cgpa) }
+          : fromOpportunity(updatedOpp),
+      })).unwrap();
+      const refreshed = await dispatch(loadRecruiterWorkspace()).unwrap().then(() => true, () => false);
+      infoDialog(refreshed ? `Opportunity "${updatedOpp.title}" updated successfully!` : 'Changes were saved, but some workspace data could not be refreshed.');
+      return true;
+    } catch (error) {
+      infoDialog(errorMessage(error, 'Could not update the opportunity.'));
+      return false;
+    }
+  };
+
   return (
     <div>
       <div className="section-header-wrap">
@@ -25,7 +53,9 @@ export default function MyOpportunities({
         </p>
         <button
           className="btn-primary-action"
-          onClick={() => setActiveTab("post")}
+          onClick={() => {
+            dispatch(setRecruiterTab("post"));
+          }}
         >
           Post New Opportunity
         </button>
@@ -40,11 +70,11 @@ export default function MyOpportunities({
               </span>
             </div>
             <p>
-              <strong>Job ID: {o.jobId}</strong> · {o.type}
+              <strong>Job ID: {o.jobId}</strong> Â· {o.type}
             </p>
             <p>{o.location}</p>
             <p>
-              {o.ctc} · Minimum CGPA: {o.cgpa}
+              {o.ctc} Â· Minimum CGPA: {o.cgpa}
             </p>
             <p>Deadline: {o.deadline}</p>
             <p>{o.branches.join(", ")}</p>
@@ -52,8 +82,8 @@ export default function MyOpportunities({
               <button
                 className="btn-view-apps"
                 onClick={() => {
-                  setSelectedRoleFilter(String(o.id));
-                  setActiveTab("applications");
+                  dispatch(setRecruiterRoleFilter(String(o.id)));
+                  dispatch(setRecruiterTab("applications"));
                 }}
               >
                 View Applications ({o.applications})
@@ -61,7 +91,7 @@ export default function MyOpportunities({
               <button
                 className="btn-secondary-action"
                 onClick={() => {
-                  setEditingId(o.id);
+                  dispatch(setMyOpportunitiesEditingId(o.id));
                 }}
               >
                 {published(o) ? "Lower CGPA" : "Edit"}
@@ -70,8 +100,14 @@ export default function MyOpportunities({
                 <button
                   className="btn-delete-opp"
                   onClick={async () => {
-                    if (await confirmDialog(`Remove "${o.title}"?`))
-                      onDeleteOpportunity(o.id);
+                    if (!await confirmDialog(`Remove "${o.title}"?`)) return;
+                    try {
+                      await dispatch(deleteOpportunity(o.id)).unwrap();
+                      const refreshed = await dispatch(loadRecruiterWorkspace()).unwrap().then(() => true, () => false);
+                      infoDialog(refreshed ? 'Opportunity removed successfully.' : 'Changes were saved, but some workspace data could not be refreshed.');
+                    } catch (error) {
+                      infoDialog(errorMessage(error, 'Could not remove the opportunity.'));
+                    }
                   }}
                 >
                   Delete
@@ -88,7 +124,7 @@ export default function MyOpportunities({
           opportunity={editing}
           opportunities={opportunities}
           onSave={onUpdateOpportunity}
-          onClose={() => setEditingId(null)}
+          onClose={() => dispatch(setMyOpportunitiesEditingId(null))}
         />
       )}
     </div>

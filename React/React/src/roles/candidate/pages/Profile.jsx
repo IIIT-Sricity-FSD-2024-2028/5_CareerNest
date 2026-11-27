@@ -1,9 +1,38 @@
+// Data Flow (roles/candidate/pages/Profile.jsx):
+// Backend API -> Redux Thunks/Slices (candidateSlice) -> useSelector(selectCandidateProfileUi, selectCandidateStore) -> UI render
+// User Actions -> dispatch(saveProfileAbout, saveProfileIntro, uploadProfileImage, saveIntro, saveAbout, saveSkill, saveLanguage, saveCoding) -> Slice reducers/thunks -> Redux state update
 import { phoneError, phoneInputProps } from '../../../shared/utils/phone.js';
 import { infoDialog } from '../../../shared/components/AppDialog.jsx';
-import { useEffect, useRef, useState } from 'react';
-import { Camera, Pencil, Plus, Trash2 } from 'lucide-react';
-import { useStore } from '../context/StoreContext.jsx';
-import { useUI } from '../context/UIContext.jsx';
+import { useEffect, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
+import {
+    addCandidateDocument,
+    addResumeRecord,
+    closeProfileModal,
+    openProfileAboutModal,
+    openProfileCodingModal,
+    openProfileIntroModal,
+    openProfileLanguagesModal,
+    openProfileRecordModal,
+    openProfileSkillsModal,
+    openSuccessModal,
+    removeProfileImage,
+    removeResumeRecord,
+    saveProfileAbout,
+    saveProfileIntro,
+    selectCandidateProfileUi,
+    selectCandidateStore,
+    setProfileAboutText,
+    setProfileCodingField,
+    setProfileConfirmDelete,
+    setProfileImageOptionsTarget,
+    setProfileIntroField,
+    setProfileLangField,
+    setProfileRecordField,
+    setProfileSkillInput,
+    uploadProfileImage,
+} from '../store/candidateSlice.js';
 import '../styles/profile.css';
 
 const RECORD_LABELS = {
@@ -30,24 +59,23 @@ function fileToBase64(file) {
 }
 
 export default function Profile() {
-    const { store, updateStore } = useStore();
-    const { showSuccess } = useUI();
+    const dispatch = useDispatch();
+    const store = useSelector(selectCandidateStore);
     const user = store.currentUser;
     const data = store.profileResumeData;
 
-    // ---- Modal state ----
-    const [modal, setModal] = useState(null); // 'intro' | 'about' | 'skills' | 'languages' | 'codingProfiles' | 'record' | null
-    const [recordType, setRecordType] = useState(null);
-    const [imageOptionsTarget, setImageOptionsTarget] = useState(null); // 'banner' | 'avatar' | null
-    const [confirmDelete, setConfirmDelete] = useState(null); // { type, index } | null
-
-    // ---- Form field state ----
-    const [introForm, setIntroForm] = useState({ name: '', email: '', headline: '', location: '', university: '', batch: '', phone: '', github: '', linkedin: '', portfolio: '' });
-    const [aboutText, setAboutText] = useState('');
-    const [skillInput, setSkillInput] = useState('');
-    const [langForm, setLangForm] = useState({ name: '', level: 'Native' });
-    const [codingForm, setCodingForm] = useState({ platform: '', url: '', handle: '' });
-    const [recordForm, setRecordForm] = useState({ title: '', subtitle: '', start: '', end: '', link: '', desc: '', imageBase64: '' });
+    const {
+        modal,
+        recordType,
+        imageOptionsTarget,
+        confirmDelete,
+        introForm,
+        aboutText,
+        skillInput,
+        langForm,
+        codingForm,
+        recordForm,
+    } = useSelector(selectCandidateProfileUi);
 
     const storageInputRef = useRef(null);
     const cameraInputRef = useRef(null);
@@ -82,11 +110,11 @@ export default function Profile() {
     }, [modal, imageOptionsTarget, confirmDelete]);
 
     function closeModal() {
-        setModal(null);
+        dispatch(closeProfileModal());
     }
 
     function openIntro() {
-        setIntroForm({
+        dispatch(openProfileIntroModal({
             name: user.name || '',
             email: user.email || '',
             headline: user.headline || '',
@@ -97,64 +125,43 @@ export default function Profile() {
             github: user.socialLinks?.github || '',
             linkedin: user.socialLinks?.linkedin || '',
             portfolio: user.socialLinks?.portfolio || '',
-        });
-        setModal('intro');
+        }));
     }
 
     function openAbout() {
-        setAboutText(user.about || '');
-        setModal('about');
+        dispatch(openProfileAboutModal(user.about || ''));
     }
 
     function openSkills() {
-        setSkillInput('');
-        setModal('skills');
+        dispatch(openProfileSkillsModal());
     }
 
     function openLanguages() {
-        setLangForm({ name: '', level: 'Native' });
-        setModal('languages');
+        dispatch(openProfileLanguagesModal());
     }
 
     function openCoding() {
-        setCodingForm({ platform: '', url: '', handle: '' });
-        setModal('codingProfiles');
+        dispatch(openProfileCodingModal());
     }
 
     function openRecord(type) {
-        setRecordType(type);
-        setRecordForm({ title: '', subtitle: '', start: '', end: '', link: '', desc: '', imageBase64: '' });
-        setModal('record');
+        dispatch(openProfileRecordModal(type));
     }
 
     function saveIntro(e) {
         e.preventDefault();
-        if (phoneError(introForm.phone)) { showSuccess('Check phone number', phoneError(introForm.phone)); return; }
-        updateStore((s) => {
-            s.currentUser.name = introForm.name;
-            s.currentUser.email = introForm.email;
-            s.currentUser.headline = introForm.headline;
-            s.currentUser.location = introForm.location;
-            s.currentUser.university = introForm.university;
-            s.currentUser.batch = introForm.batch;
-            s.currentUser.phone = introForm.phone;
-            s.currentUser.socialLinks = {
-                github: introForm.github,
-                linkedin: introForm.linkedin,
-                portfolio: introForm.portfolio,
-            };
-            const parts = s.currentUser.name.split(' ');
-            s.currentUser.avatar = parts.length > 1 ? parts[0][0] + parts[1][0] : parts[0][0];
-        });
+        if (phoneError(introForm.phone)) {
+            dispatch(openSuccessModal({ title: 'Check phone number', message: phoneError(introForm.phone) }));
+            return;
+        }
+        dispatch(saveProfileIntro(introForm));
         closeModal();
-        showSuccess('Profile Updated', 'Your intro details have been saved.');
+        dispatch(openSuccessModal({ title: 'Profile Updated', message: 'Your intro details have been saved.' }));
     }
 
     function saveAbout(e) {
         e.preventDefault();
-        updateStore((s) => {
-            s.currentUser.about = aboutText;
-        });
+        dispatch(saveProfileAbout(aboutText));
         closeModal();
     }
 
@@ -162,28 +169,23 @@ export default function Profile() {
         e.preventDefault();
         const newSkill = skillInput.trim();
         if (!newSkill) return;
-        updateStore((s) => {
-            if (!s.profileResumeData.skills) s.profileResumeData.skills = [];
-            s.profileResumeData.skills.push(newSkill);
-        });
+        dispatch(addResumeRecord({ section: 'skills', record: newSkill }));
         closeModal();
     }
 
     function saveLanguage(e) {
         e.preventDefault();
-        updateStore((s) => {
-            if (!s.profileResumeData.languages) s.profileResumeData.languages = [];
-            s.profileResumeData.languages.push({ name: langForm.name, level: langForm.level });
-        });
+        dispatch(addResumeRecord({
+            section: 'languages', record: { name: langForm.name, level: langForm.level },
+        }));
         closeModal();
     }
 
     function saveCoding(e) {
         e.preventDefault();
-        updateStore((s) => {
-            if (!s.profileResumeData.codingProfiles) s.profileResumeData.codingProfiles = [];
-            s.profileResumeData.codingProfiles.push({ platform: codingForm.platform, url: codingForm.url, handle: codingForm.handle });
-        });
+        dispatch(addResumeRecord({
+            section: 'codingProfiles', record: { platform: codingForm.platform, url: codingForm.url, handle: codingForm.handle },
+        }));
         closeModal();
     }
 
@@ -193,88 +195,70 @@ export default function Profile() {
         const endStr = recordForm.end ? formatMonthYear(recordForm.end) : 'Present';
         const durationCombo = startStr ? `${startStr} - ${endStr}` : '';
 
-        updateStore((s) => {
-            if (!s.profileResumeData[recordType]) s.profileResumeData[recordType] = [];
-            let newRecord = {};
-            if (recordType === 'projects') {
-                newRecord = { title: recordForm.title, tags: recordForm.subtitle, github: recordForm.link, description: recordForm.desc };
-            } else if (recordType === 'education') {
-                newRecord = { degree: recordForm.title, institution: recordForm.subtitle, duration: durationCombo, desc: recordForm.desc };
-            } else if (recordType === 'certifications') {
-                newRecord = { title: recordForm.title, issuer: recordForm.subtitle, date: startStr, image: recordForm.imageBase64 };
-            } else {
-                newRecord = { title: recordForm.title, company: recordForm.subtitle, duration: durationCombo, desc: recordForm.desc, image: recordForm.imageBase64 };
-            }
-            s.profileResumeData[recordType].push(newRecord);
-        });
+        let newRecord = {};
+        if (recordType === 'projects') {
+            newRecord = { title: recordForm.title, tags: recordForm.subtitle, github: recordForm.link, description: recordForm.desc };
+        } else if (recordType === 'education') {
+            newRecord = { degree: recordForm.title, institution: recordForm.subtitle, duration: durationCombo, desc: recordForm.desc };
+        } else if (recordType === 'certifications') {
+            newRecord = { title: recordForm.title, issuer: recordForm.subtitle, date: startStr, image: recordForm.imageBase64 };
+        } else {
+            newRecord = { title: recordForm.title, company: recordForm.subtitle, duration: durationCombo, desc: recordForm.desc, image: recordForm.imageBase64 };
+        }
+        dispatch(addResumeRecord({ section: recordType, record: newRecord }));
         closeModal();
-        showSuccess('Record Added', 'The new entry has been added to your profile.');
+        dispatch(openSuccessModal({ title: 'Record Added', message: 'The new entry has been added to your profile.' }));
     }
 
     async function handleRecordImageChange(e) {
         const file = e.target.files[0];
         if (!file) return;
         const base64 = await fileToBase64(file);
-        setRecordForm((prev) => ({ ...prev, imageBase64: base64 }));
+        dispatch(setProfileRecordField({ field: 'imageBase64', value: base64 }));
     }
 
     function requestDelete(type, index) {
-        setConfirmDelete({ type, index });
+        dispatch(setProfileConfirmDelete({ type, index }));
     }
 
     function executeDelete() {
         if (!confirmDelete) return;
-        updateStore((s) => {
-            if (s.profileResumeData[confirmDelete.type]) {
-                s.profileResumeData[confirmDelete.type].splice(confirmDelete.index, 1);
-            }
-            s.notificationsData.unshift({ title: 'Record Deleted', message: 'Item removed successfully from your profile.', isRead: false });
-        });
-        setConfirmDelete(null);
+        dispatch(removeResumeRecord(confirmDelete));
+        dispatch(setProfileConfirmDelete(null));
     }
 
     function openImageOptions(target) {
-        setImageOptionsTarget(target);
+        dispatch(setProfileImageOptionsTarget(target));
     }
 
     function triggerImageUpload(method) {
-        setImageOptionsTarget(null);
+        dispatch(setProfileImageOptionsTarget(null));
         const inputRef = method === 'camera' ? cameraInputRef : storageInputRef;
-        if (inputRef.current) inputRef.current.click();
+        inputRef.current?.click();
     }
 
     function triggerImageDelete() {
         const target = imageOptionsTarget;
-        setImageOptionsTarget(null);
-        updateStore((s) => {
-            s.currentUser[target] = '';
-            s.notificationsData.unshift({ title: 'Image Deleted', message: 'Media successfully removed from your profile.', isRead: false });
-        });
+        dispatch(setProfileImageOptionsTarget(null));
+        dispatch(removeProfileImage(target));
     }
 
     async function handleImageUpload(e, targetType) {
         const file = e.target.files[0];
         if (!file) return;
         const base64 = await fileToBase64(file);
-        updateStore((s) => {
-            if (targetType === 'banner') s.currentUser.bannerImage = base64;
-            if (targetType === 'avatar') s.currentUser.avatarImage = base64;
-        });
+        dispatch(uploadProfileImage({ target: targetType, image: base64 }));
         e.target.value = '';
     }
 
     function handleDocUpload(e) {
         const file = e.target.files[0];
         if (!file) return;
-        updateStore((s) => {
-            if (!s.profileResumeData.additionalDocs) s.profileResumeData.additionalDocs = [];
-            s.profileResumeData.additionalDocs.push({
-                name: file.name,
-                type: 'Document',
-                size: (file.size / 1024).toFixed(0) + ' KB',
-            });
-            s.notificationsData.unshift({ title: 'Document Uploaded', message: `Successfully uploaded ${file.name}.`, isRead: false });
-        });
+        dispatch(addCandidateDocument({
+            name: file.name,
+            type: 'Document',
+            size: (file.size / 1024).toFixed(0) + ' KB',
+        }));
         e.target.value = '';
     }
 
@@ -497,7 +481,7 @@ export default function Profile() {
                                         ))}
                                 </div>
 
-                                <div className="drag-drop-box" onClick={() => docUploadRef.current && docUploadRef.current.click()}>
+                                <div className="drag-drop-box" onClick={() => docUploadRef.current?.click()}>
                                     <i className="bx bx-upload" />
                                     <h5>Upload Document (Marksheets, Proofs)</h5>
                                 </div>
@@ -608,27 +592,27 @@ export default function Profile() {
                 <form onSubmit={saveIntro}>
                     <div className="modal-form-group">
                         <label>Full Name</label>
-                        <input type="text" required value={introForm.name} onChange={(e) => setIntroForm((f) => ({ ...f, name: e.target.value }))} />
+                        <input type="text" required value={introForm.name} onChange={(e) => dispatch(setProfileIntroField({ field: 'name', value: e.target.value }))} />
                     </div>
                     <div className="modal-form-group">
                         <label>Email</label>
-                        <input type="email" required value={introForm.email} onChange={(e) => setIntroForm((f) => ({ ...f, email: e.target.value }))} />
+                        <input type="email" required value={introForm.email} onChange={(e) => dispatch(setProfileIntroField({ field: 'email', value: e.target.value }))} />
                     </div>
                     <div className="modal-form-group">
                         <label>Headline</label>
-                        <input type="text" required value={introForm.headline} onChange={(e) => setIntroForm((f) => ({ ...f, headline: e.target.value }))} />
+                        <input type="text" required value={introForm.headline} onChange={(e) => dispatch(setProfileIntroField({ field: 'headline', value: e.target.value }))} />
                     </div>
                     <div className="modal-form-group">
                         <label>University</label>
-                        <input type="text" value={introForm.university} onChange={(e) => setIntroForm((f) => ({ ...f, university: e.target.value }))} />
+                        <input type="text" value={introForm.university} onChange={(e) => dispatch(setProfileIntroField({ field: 'university', value: e.target.value }))} />
                     </div>
                     <div className="modal-form-group">
                         <label>Placement Batch</label>
-                        <input type="text" value={introForm.batch} onChange={(e) => setIntroForm((f) => ({ ...f, batch: e.target.value }))} />
+                        <input type="text" value={introForm.batch} onChange={(e) => dispatch(setProfileIntroField({ field: 'batch', value: e.target.value }))} />
                     </div>
                     <div className="modal-form-group">
                         <label>Location</label>
-                        <input type="text" minLength={3} value={introForm.location} onChange={(e) => setIntroForm((f) => ({ ...f, location: e.target.value }))} />
+                        <input type="text" minLength={3} value={introForm.location} onChange={(e) => dispatch(setProfileIntroField({ field: 'location', value: e.target.value }))} />
                     </div>
                     <div className="modal-form-group">
                         <label>Phone</label>
@@ -636,22 +620,22 @@ export default function Profile() {
                             type="tel"
                             {...phoneInputProps}
                             value={introForm.phone}
-                            onChange={(e) => setIntroForm((f) => ({ ...f, phone: e.target.value }))}
+                            onChange={(e) => dispatch(setProfileIntroField({ field: 'phone', value: e.target.value }))}
                         />
                     </div>
 
                     <h4 style={{ margin: '16px 0 8px', fontSize: 15 }}>Social Links</h4>
                     <div className="modal-form-group">
                         <label>GitHub URL</label>
-                        <input type="url" value={introForm.github} onChange={(e) => setIntroForm((f) => ({ ...f, github: e.target.value }))} />
+                        <input type="url" value={introForm.github} onChange={(e) => dispatch(setProfileIntroField({ field: 'github', value: e.target.value }))} />
                     </div>
                     <div className="modal-form-group">
                         <label>LinkedIn URL</label>
-                        <input type="url" value={introForm.linkedin} onChange={(e) => setIntroForm((f) => ({ ...f, linkedin: e.target.value }))} />
+                        <input type="url" value={introForm.linkedin} onChange={(e) => dispatch(setProfileIntroField({ field: 'linkedin', value: e.target.value }))} />
                     </div>
                     <div className="modal-form-group">
                         <label>Portfolio URL</label>
-                        <input type="url" value={introForm.portfolio} onChange={(e) => setIntroForm((f) => ({ ...f, portfolio: e.target.value }))} />
+                        <input type="url" value={introForm.portfolio} onChange={(e) => dispatch(setProfileIntroField({ field: 'portfolio', value: e.target.value }))} />
                     </div>
 
                     <div className="modal-actions">
@@ -676,7 +660,7 @@ export default function Profile() {
                 <form onSubmit={saveAbout}>
                     <div className="modal-form-group">
                         <label>Summary</label>
-                        <textarea rows={6} required value={aboutText} onChange={(e) => setAboutText(e.target.value)} />
+                        <textarea rows={6} required value={aboutText} onChange={(e) => dispatch(setProfileAboutText(e.target.value))} />
                     </div>
                     <div className="modal-actions">
                         <button type="button" className="btn-secondary" onClick={closeModal}>
@@ -700,7 +684,7 @@ export default function Profile() {
                 <form onSubmit={saveSkill}>
                     <div className="modal-form-group">
                         <label>Skill Name</label>
-                        <input type="text" placeholder="e.g. React.js, Python, Figma" required value={skillInput} onChange={(e) => setSkillInput(e.target.value)} />
+                        <input type="text" placeholder="e.g. React.js, Python, Figma" required value={skillInput} onChange={(e) => dispatch(setProfileSkillInput(e.target.value))} />
                     </div>
                     <div className="modal-actions">
                         <button type="button" className="btn-secondary" onClick={closeModal}>
@@ -724,14 +708,14 @@ export default function Profile() {
                 <form onSubmit={saveLanguage}>
                     <div className="modal-form-group">
                         <label>Language</label>
-                        <input type="text" placeholder="e.g. French" required value={langForm.name} onChange={(e) => setLangForm((f) => ({ ...f, name: e.target.value }))} />
+                        <input type="text" placeholder="e.g. French" required value={langForm.name} onChange={(e) => dispatch(setProfileLangField({ field: 'name', value: e.target.value }))} />
                     </div>
                     <div className="modal-form-group">
                         <label>Proficiency</label>
                         <select
                             required
                             value={langForm.level}
-                            onChange={(e) => setLangForm((f) => ({ ...f, level: e.target.value }))}
+                            onChange={(e) => dispatch(setProfileLangField({ field: 'level', value: e.target.value }))}
                             style={{ padding: 12, border: '1px solid #cbd5e1', borderRadius: 'var(--radius-sm)', fontFamily: 'var(--font-sans)' }}
                         >
                             <option value="Native">Native</option>
@@ -763,15 +747,15 @@ export default function Profile() {
                 <form onSubmit={saveCoding}>
                     <div className="modal-form-group">
                         <label>Platform (e.g. LeetCode, Codeforces)</label>
-                        <input type="text" required value={codingForm.platform} onChange={(e) => setCodingForm((f) => ({ ...f, platform: e.target.value }))} />
+                        <input type="text" required value={codingForm.platform} onChange={(e) => dispatch(setProfileCodingField({ field: 'platform', value: e.target.value }))} />
                     </div>
                     <div className="modal-form-group">
                         <label>Profile URL</label>
-                        <input type="url" required value={codingForm.url} onChange={(e) => setCodingForm((f) => ({ ...f, url: e.target.value }))} />
+                        <input type="url" required value={codingForm.url} onChange={(e) => dispatch(setProfileCodingField({ field: 'url', value: e.target.value }))} />
                     </div>
                     <div className="modal-form-group">
                         <label>Handle / Username (Optional)</label>
-                        <input type="text" value={codingForm.handle} onChange={(e) => setCodingForm((f) => ({ ...f, handle: e.target.value }))} />
+                        <input type="text" value={codingForm.handle} onChange={(e) => dispatch(setProfileCodingField({ field: 'handle', value: e.target.value }))} />
                     </div>
                     <div className="modal-actions">
                         <button type="button" className="btn-secondary" onClick={closeModal}>
@@ -796,22 +780,22 @@ export default function Profile() {
                     <form onSubmit={saveRecord}>
                         <div className="modal-form-group">
                             <label>{recLabel.title}</label>
-                            <input type="text" required value={recordForm.title} onChange={(e) => setRecordForm((f) => ({ ...f, title: e.target.value }))} />
+                            <input type="text" required value={recordForm.title} onChange={(e) => dispatch(setProfileRecordField({ field: 'title', value: e.target.value }))} />
                         </div>
                         <div className="modal-form-group">
                             <label>{recLabel.subtitle}</label>
-                            <input type="text" required value={recordForm.subtitle} onChange={(e) => setRecordForm((f) => ({ ...f, subtitle: e.target.value }))} />
+                            <input type="text" required value={recordForm.subtitle} onChange={(e) => dispatch(setProfileRecordField({ field: 'subtitle', value: e.target.value }))} />
                         </div>
 
                         {recLabel.showDuration && (
                             <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
                                 <div className="modal-form-group" style={{ flex: 1, marginBottom: 0 }}>
                                     <label>Start Date</label>
-                                    <input type="month" required value={recordForm.start} onChange={(e) => setRecordForm((f) => ({ ...f, start: e.target.value }))} />
+                                    <input type="month" required value={recordForm.start} onChange={(e) => dispatch(setProfileRecordField({ field: 'start', value: e.target.value }))} />
                                 </div>
                                 <div className="modal-form-group" style={{ flex: 1, marginBottom: 0 }}>
                                     <label>End Date</label>
-                                    <input type="month" value={recordForm.end} onChange={(e) => setRecordForm((f) => ({ ...f, end: e.target.value }))} />
+                                    <input type="month" value={recordForm.end} onChange={(e) => dispatch(setProfileRecordField({ field: 'end', value: e.target.value }))} />
                                 </div>
                             </div>
                         )}
@@ -819,14 +803,14 @@ export default function Profile() {
                         {recLabel.showLink && (
                             <div className="modal-form-group">
                                 <label>External Link (e.g. GitHub)</label>
-                                <input type="url" placeholder="https://..." value={recordForm.link} onChange={(e) => setRecordForm((f) => ({ ...f, link: e.target.value }))} />
+                                <input type="url" placeholder="https://..." value={recordForm.link} onChange={(e) => dispatch(setProfileRecordField({ field: 'link', value: e.target.value }))} />
                             </div>
                         )}
 
                         {recLabel.showDesc && (
                             <div className="modal-form-group">
                                 <label>Description</label>
-                                <textarea rows={4} value={recordForm.desc} onChange={(e) => setRecordForm((f) => ({ ...f, desc: e.target.value }))} />
+                                <textarea rows={4} value={recordForm.desc} onChange={(e) => dispatch(setProfileRecordField({ field: 'desc', value: e.target.value }))} />
                             </div>
                         )}
 
@@ -850,10 +834,10 @@ export default function Profile() {
             </dialog>
 
             {/* Image Options Modal */}
-            <dialog ref={dialogRefs.imageOptions} className="profile-modal" style={{ width: 380 }} onClose={() => setImageOptionsTarget(null)}>
+            <dialog ref={dialogRefs.imageOptions} className="profile-modal" style={{ width: 380 }} onClose={() => dispatch(setProfileImageOptionsTarget(null))}>
                 <div className="modal-header">
                     <h3>{imageOptionsTarget === 'bannerImage' ? 'Update Background' : 'Update Profile Picture'}</h3>
-                    <button className="modal-close" onClick={() => setImageOptionsTarget(null)}>
+                    <button className="modal-close" onClick={() => dispatch(setProfileImageOptionsTarget(null))}>
                         <i className="bx bx-x" />
                     </button>
                 </div>
@@ -883,7 +867,7 @@ export default function Profile() {
             </dialog>
 
             {/* Confirm Delete Modal */}
-            <dialog ref={dialogRefs.confirmDelete} className="profile-modal" style={{ width: 400, textAlign: 'center' }} onClose={() => setConfirmDelete(null)}>
+            <dialog ref={dialogRefs.confirmDelete} className="profile-modal" style={{ width: 400, textAlign: 'center' }} onClose={() => dispatch(setProfileConfirmDelete(null))}>
                 <div style={{ padding: '32px 24px' }}>
                     <div
                         style={{
@@ -907,7 +891,7 @@ export default function Profile() {
                         Are you sure you want to permanently remove this item from your profile? This action cannot be undone.
                     </p>
                     <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-                        <button className="btn-secondary" style={{ flex: 1 }} onClick={() => setConfirmDelete(null)}>
+                        <button className="btn-secondary" style={{ flex: 1 }} onClick={() => dispatch(setProfileConfirmDelete(null))}>
                             Cancel
                         </button>
                         <button className="btn-primary" style={{ flex: 1, background: '#ef4444', boxShadow: '0 4px 12px rgba(239, 68, 68, 0.2)' }} onClick={executeDelete}>

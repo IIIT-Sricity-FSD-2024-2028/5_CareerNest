@@ -1,25 +1,30 @@
-import { useViewState } from '../../../store/useViewState.js';
+// Data Flow (roles/recruiter/components/CandidatesFilter.jsx):
+// Backend API -> Redux Thunks/Slices (applicationsSlice, recruiterSlice) -> useSelector(selectCandidatesFilterUi, selectRecruiter) -> UI render
+// User Actions -> dispatch(loadRecruiterWorkspace) -> Slice reducers/thunks -> Redux state update
 import { useMemo } from 'react';
+import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { Search, UserCheck, Sparkles, Eye } from 'lucide-react';
+import { errorMessage } from '../../../services/api.js';
+import { infoDialog } from '../../../shared/components/AppDialog.jsx';
+import { bulkUpdateApplications } from '../../../store/slices/applicationsSlice.js';
+import {
+  loadRecruiterWorkspace,
+  selectCandidatesFilterUi,
+  selectRecruiter,
+  setCandidatesFilterField,
+  toggleCandidatesFilterDept,
+  toggleCandidatesFilterSelectedId,
+} from '../store/recruiterSlice.js';
 import CandidateModal from './CandidateModal';
 
 /**
  * Screening queue: only candidates who actually applied to this recruiter's
  * opportunities and are still in the "Applied" stage. Pick several and shortlist them in one go.
  */
-export default function CandidatesFilter({ applications = [], onBulkShortlist, onUpdateStatus }) {
-  const [
-    { role, dept, minCgpa, referredOnly, searchTerm, selectedIds, viewingCandidateId },
-    { setRole, setDept, setMinCgpa, setReferredOnly, setSearchTerm, setSelectedIds, setViewingCandidateId },
-  ] = useViewState('recruiter', 'CandidatesFilter', () => ({
-    role: 'All Roles',
-    dept: [],
-    minCgpa: '0',
-    referredOnly: false,
-    searchTerm: '',
-    selectedIds: [],
-    viewingCandidateId: null,
-  }));
+export default function CandidatesFilter() {
+  const dispatch = useDispatch();
+  const { applications = [] } = useSelector(selectRecruiter, shallowEqual);
+  const { role, dept, minCgpa, referredOnly, searchTerm, selectedIds, viewingCandidateId } = useSelector(selectCandidatesFilterUi);
 
   const queue = useMemo(() => applications.filter((a) => a.status === 'Applied'), [applications]);
   const roles = [...new Map(queue.map(a => [String(a.opportunityId), { id: String(a.opportunityId), label: `${a.role} (${a.jobId})` }])).values()];
@@ -41,13 +46,19 @@ export default function CandidatesFilter({ applications = [], onBulkShortlist, o
   const allChosen = filtered.length > 0 && chosen.length === filtered.length;
   const viewingCandidate = applications.find((application) => application.id === viewingCandidateId);
 
-  const toggle = (id) => setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-  const toggleAll = () => setSelectedIds(allChosen ? [] : visibleIds);
+  const toggle = (id) => dispatch(toggleCandidatesFilterSelectedId(id));
+  const toggleAll = () => dispatch(setCandidatesFilterField({ field: 'selectedIds', value: allChosen ? [] : visibleIds }));
 
-  const act = async (fn) => {
+  const act = async () => {
     if (chosen.length === 0) return;
-    const ok = await fn(chosen);
-    if (ok) setSelectedIds([]);
+    try {
+      await dispatch(bulkUpdateApplications({ applicationIds: chosen, status: 'Shortlisted' })).unwrap();
+      const refreshed = await dispatch(loadRecruiterWorkspace()).unwrap().then(() => true, () => false);
+      infoDialog(refreshed ? `${chosen.length} application(s) shortlisted.` : 'Changes were saved, but some workspace data could not be refreshed.');
+      dispatch(setCandidatesFilterField({ field: 'selectedIds', value: [] }));
+    } catch (error) {
+      infoDialog(errorMessage(error, 'Could not update the selected applications.'));
+    }
   };
 
   return (
@@ -62,31 +73,31 @@ export default function CandidatesFilter({ applications = [], onBulkShortlist, o
       <div className="filter-toolbar" style={{ flexWrap: 'wrap' }}>
         <div className="search-box-wrap" style={{ flex: '1 1 240px' }}>
           <Search size={16} color="#9CA3AF" />
-          <input type="text" placeholder="Search by name, email or role..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+          <input type="text" placeholder="Search by name, email or role..." value={searchTerm} onChange={(e) => dispatch(setCandidatesFilterField({ field: 'searchTerm', value: e.target.value }))} />
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <label style={{ fontSize: '12px', fontWeight: 600, color: '#6B7280' }}>Role:</label>
-          <select className="form-select" value={role} onChange={(e) => setRole(e.target.value)}>
+          <select className="form-select" value={role} onChange={(e) => dispatch(setCandidatesFilterField({ field: 'role', value: e.target.value }))}>
             <option value="All Roles">All Roles</option>{roles.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}
           </select>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <label style={{ fontSize: '12px', fontWeight: 600, color: '#6B7280' }}>Dept:</label>
-          <details><summary className="form-select">{dept.length ? `${dept.length} departments` : 'All departments'}</summary><div style={{padding: 12, background: 'white'}}>{depts.map(d => <label key={d} style={{display:'block'}}><input type="checkbox" checked={dept.includes(d)} onChange={() => setDept(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev,d])} /> {d}</label>)}<button type="button" onClick={() => setDept([])}>Clear</button></div></details>
+          <details><summary className="form-select">{dept.length ? `${dept.length} departments` : 'All departments'}</summary><div style={{padding: 12, background: 'white'}}>{depts.map(d => <label key={d} style={{display:'block'}}><input type="checkbox" checked={dept.includes(d)} onChange={() => dispatch(toggleCandidatesFilterDept(d))} /> {d}</label>)}<button type="button" onClick={() => dispatch(setCandidatesFilterField({ field: 'dept', value: [] }))}>Clear</button></div></details>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <label style={{ fontSize: '12px', fontWeight: 600, color: '#6B7280' }}>Min CGPA:</label>
-          <select className="form-select" value={minCgpa} onChange={(e) => setMinCgpa(e.target.value)}>
+          <select className="form-select" value={minCgpa} onChange={(e) => dispatch(setCandidatesFilterField({ field: 'minCgpa', value: e.target.value }))}>
             <option value="0">Any</option>
             {['7.0', '7.5', '8.0', '8.5', '9.0'].map((v) => <option key={v} value={v}>{v} +</option>)}
           </select>
         </div>
 
         <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#374151', cursor: 'pointer' }}>
-          <input type="checkbox" checked={referredOnly} onChange={(e) => setReferredOnly(e.target.checked)} />
+          <input type="checkbox" checked={referredOnly} onChange={(e) => dispatch(setCandidatesFilterField({ field: 'referredOnly', value: e.target.checked }))} />
           <span>Referred only</span>
         </label>
 
@@ -95,7 +106,7 @@ export default function CandidatesFilter({ applications = [], onBulkShortlist, o
             className="btn-primary-action"
             style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 18px', whiteSpace: 'nowrap' }}
             disabled={chosen.length === 0}
-            onClick={() => act((ids) => onBulkShortlist(ids))}
+            onClick={act}
           >
             <UserCheck size={16} />
             <span>Move to Shortlisted ({chosen.length})</span>
@@ -144,7 +155,7 @@ export default function CandidatesFilter({ applications = [], onBulkShortlist, o
                     ) : <span style={{ color: '#9CA3AF' }}>—</span>}
                   </td>
                   <td onClick={(e) => e.stopPropagation()}>
-                    <button type="button" className="btn-secondary-action" onClick={() => setViewingCandidateId(a.id)} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 10px', whiteSpace: 'nowrap' }}>
+                    <button type="button" className="btn-secondary-action" onClick={() => dispatch(setCandidatesFilterField({ field: 'viewingCandidateId', value: a.id }))} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 10px', whiteSpace: 'nowrap' }}>
                       <Eye size={14} /> View resume
                     </button>
                   </td>
@@ -163,7 +174,7 @@ export default function CandidatesFilter({ applications = [], onBulkShortlist, o
           </tbody>
         </table>
       </div>
-      {viewingCandidate && <CandidateModal candidate={viewingCandidate} onClose={() => setViewingCandidateId(null)} onUpdateStatus={onUpdateStatus} initialShowResumePreview />}
+      {viewingCandidate && <CandidateModal candidate={viewingCandidate} onClose={() => dispatch(setCandidatesFilterField({ field: 'viewingCandidateId', value: null }))} initialShowResumePreview />}
     </div>
   );
 }

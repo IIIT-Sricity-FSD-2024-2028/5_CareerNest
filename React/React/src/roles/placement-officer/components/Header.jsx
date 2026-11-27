@@ -1,11 +1,21 @@
-import { useViewState } from '../../../store/useViewState.js';
+// Data Flow (roles/placement-officer/components/Header.jsx):
+// Backend API -> Redux Thunks/Slices (authSlice, notificationsSlice, placementOfficerSlice, usersSlice) -> useSelector(selectSession, selectOfficerData, selectPlacementHeaderUi, selectPlacementSignOutOpen, selectCurrentUser) -> UI render
+// User Actions -> dispatch(logoutUser, markAllNotificationsRead, fetchUserById, markAllRead) -> Slice reducers/thunks -> Redux state update
 import { useEffect, useRef } from 'react';
-import { useSelector } from 'react-redux';
-import { useOperations } from '../../../store/useOperations.js';
-import { useLogout } from '../../../shared/context/AuthContext.jsx';
-import { selectCurrentUser } from '../../../store/operations.js';
-import { selectSession } from '../../../store/sessionSlice.js';
-import { useOfficerData } from '../services/officerApi';
+import { useDispatch, useSelector } from 'react-redux';
+import { logoutUser, selectSession } from '../../../store/slices/authSlice.js';
+import { markAllNotificationsRead } from '../../../store/slices/notificationsSlice.js';
+import {
+  
+  closePlacementSignOut,
+  openPlacementSignOut,
+  selectOfficerData,
+  selectPlacementHeaderUi,
+  selectPlacementSignOutOpen,
+  setPlacementHeaderUi,
+  setPlacementPage,
+} from '../store/placementOfficerSlice.js';
+import { fetchUserById, selectCurrentUser } from '../../../store/slices/usersSlice.js';
 import { officerInitials } from '../utils/officerIdentity.js';
 import SignOutModal from './SignOutModal';
 
@@ -21,33 +31,31 @@ const PAGES = [
   { title: 'Department Report', page: 'dept-report', badge: 'Standard' },
 ];
 
-export default function Header({ title = 'Dashboard', onNavigate, profile }) {
-  const commands = useOperations();
-  const confirmSignOut = useLogout();
+export default function Header({ title = 'Dashboard', profile }) {
+  const dispatch = useDispatch();
+  const navigateTo = (page) => {
+    dispatch(setPlacementPage(page));
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+  };
+  const confirmSignOut = () => dispatch(logoutUser());
   const session = useSelector(selectSession) || {};
   const officer = useSelector(selectCurrentUser) || {};
   useEffect(() => {
-    if (session.id) commands.getUser(session.id).catch(() => {});
-  }, [commands, session.id]);
+    if (session.id) dispatch(fetchUserById(session.id));
+  }, [dispatch, session.id]);
   const officerName = profile?.name || officer.name || session.name || 'Placement Officer';
   const officerEmail = profile?.email || officer.email || session.email || '';
   const officerRole = profile?.role || officer.headline || 'Placement Officer';
   const initials = officerInitials(officerName);
-  const [
-    { profileOpen, isSignOutOpen, notifOpen, searchQuery, searchResultsOpen },
-    { setProfileOpen, setIsSignOutOpen, setNotifOpen, setSearchQuery, setSearchResultsOpen },
-  ] = useViewState('placementOfficer', 'Header/profileOpen', () => ({
-    profileOpen: false,
-    isSignOutOpen: false,
-    notifOpen: false,
-    searchQuery: '',
-    searchResultsOpen: false,
-  }));
-  const { data } = useOfficerData();
-  // Notifications are derived from what needs attention; read-state is kept per browser tab.
-  const [{ readIds }, { setReadIds }] = useViewState('placementOfficer', 'Header/readIds', () => ({
-    readIds: [],
-  }));
+  const { profileOpen, notifOpen, searchQuery, searchResultsOpen, readIds } = useSelector(selectPlacementHeaderUi);
+  const isSignOutOpen = useSelector(selectPlacementSignOutOpen);
+  const setProfileOpen = (v) => dispatch(setPlacementHeaderUi({ profileOpen: v }));
+  const setIsSignOutOpen = (v) => dispatch(v ? openPlacementSignOut() : closePlacementSignOut());
+  const setNotifOpen = (v) => dispatch(setPlacementHeaderUi({ notifOpen: v }));
+  const setSearchQuery = (v) => dispatch(setPlacementHeaderUi({ searchQuery: v }));
+  const setSearchResultsOpen = (v) => dispatch(setPlacementHeaderUi({ searchResultsOpen: v }));
+  const setReadIds = (v) => dispatch(setPlacementHeaderUi({ readIds: v }));
+  const data = useSelector(selectOfficerData);
   const notifications = (data.notifications || []).map(n => ({ ...n, read: n.read || readIds.includes(n.id) }));
 
   const headerRef = useRef(null);
@@ -58,14 +66,12 @@ export default function Header({ title = 'Dashboard', onNavigate, profile }) {
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (headerRef.current && !headerRef.current.contains(e.target)) {
-        setProfileOpen(false);
-        setNotifOpen(false);
-        setSearchResultsOpen(false);
+        dispatch(setPlacementHeaderUi({ profileOpen: false, notifOpen: false, searchResultsOpen: false }));
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [dispatch]);
 
   // Keyboard shortcut (Ctrl+K or Cmd+K) to focus search
   useEffect(() => {
@@ -94,18 +100,16 @@ export default function Header({ title = 'Dashboard', onNavigate, profile }) {
   const markAllRead = (e) => {
     e.stopPropagation();
     setReadIds(notifications.map(n => n.id));
-    commands.markAllNotificationsRead().catch(() => {});
+    dispatch(markAllNotificationsRead());
   };
 
   const handleNotifClick = (notif) => {
     setReadIds(prev => (prev.includes(notif.id) ? prev : [...prev, notif.id]));
     setNotifOpen(false);
-    if (onNavigate) {
-      if (notif.href === 'p2.html') onNavigate('p2');
-      else if (notif.href === 'p4.html') onNavigate('p4');
-      else if (notif.href === 'p3.html') onNavigate('p3');
-      else onNavigate('p1');
-    }
+    if (notif.href === 'p2.html') navigateTo('p2');
+    else if (notif.href === 'p4.html') navigateTo('p4');
+    else if (notif.href === 'p3.html') navigateTo('p3');
+    else navigateTo('p1');
   };
 
   // Filter items for search
@@ -191,7 +195,7 @@ export default function Header({ title = 'Dashboard', onNavigate, profile }) {
                         className="search-result-item"
                         onClick={() => {
                           clearSearch();
-                          if (onNavigate) onNavigate('p2');
+                          navigateTo('p2');
                         }}
                       >
                         <div className="search-result-avatar" style={{ background: opp.avatarBg || '#7c3aed' }}>
@@ -216,7 +220,7 @@ export default function Header({ title = 'Dashboard', onNavigate, profile }) {
                         className="search-result-item"
                         onClick={() => {
                           clearSearch();
-                          if (onNavigate) onNavigate('p4');
+                          navigateTo('p4');
                         }}
                       >
                         <div className="search-result-avatar" style={{ background: '#3b82f6' }}>
@@ -241,11 +245,11 @@ export default function Header({ title = 'Dashboard', onNavigate, profile }) {
                         className="search-result-item"
                         onClick={() => {
                           clearSearch();
-                          if (onNavigate) onNavigate(pg.page);
+                          navigateTo(pg.page);
                         }}
                       >
                         <div className="search-result-avatar" style={{ background: '#10b981' }}>
-                          📑
+                          ðŸ“‘
                         </div>
                         <div className="search-result-info">
                           <div className="search-result-title">{pg.title}</div>
@@ -347,7 +351,7 @@ export default function Header({ title = 'Dashboard', onNavigate, profile }) {
               className="profile-dd-item"
               onClick={() => {
                 setProfileOpen(false);
-                if (onNavigate) onNavigate('profile');
+                navigateTo('profile');
               }}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2">
@@ -361,7 +365,7 @@ export default function Header({ title = 'Dashboard', onNavigate, profile }) {
               className="profile-dd-item"
               onClick={() => {
                 setProfileOpen(false);
-                if (onNavigate) onNavigate('p1');
+                navigateTo('p1');
               }}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2">

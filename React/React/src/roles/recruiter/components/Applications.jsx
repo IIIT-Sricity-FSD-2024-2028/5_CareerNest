@@ -1,23 +1,27 @@
-import { useViewState } from '../../../store/useViewState.js';
+// Data Flow (roles/recruiter/components/Applications.jsx):
+// Backend API -> Redux Thunks/Slices (recruiterSlice) -> useSelector(selectRecruiter, selectRecruiterAppsUi, selectScheduleApplication) -> UI render
+// User Actions -> dispatch(slice actions) -> Slice reducers/thunks -> Redux state update
+import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { Search, Star } from 'lucide-react';
+import {
+  
+  selectRecruiter,
+  selectRecruiterAppsUi,
+  selectScheduleApplication,
+  setRecruiterAppsFilterReferred,
+  setRecruiterAppsSearch,
+  setRecruiterAppsStatusFilter,
+  setRecruiterRoleFilter,
+  setRecruiterSelectedCandidateId,
+  setRecruiterTab,
+} from '../store/recruiterSlice.js';
 import CandidateModal from './CandidateModal';
 
-export default function Applications({ 
-  applications, 
-  onUpdateStatus, 
-  selectedRoleFilter,
-  setSelectedRoleFilter,
-  onSchedule
-}) {
-  const [
-    { searchTerm, filterReferred, statusFilter, selectedCandidateId },
-    { setSearchTerm, setFilterReferred, setStatusFilter, setSelectedCandidateId },
-  ] = useViewState('recruiter', 'Applications', () => ({
-    searchTerm: '',
-    filterReferred: false,
-    statusFilter: 'All',
-    selectedCandidateId: null,
-  }));
+export default function Applications() {
+  const dispatch = useDispatch();
+  // Redux data source: recruiterSlice (applications from applicationsSlice + filter/selection UI state).
+  const { applications, selectedRoleFilter } = useSelector(selectRecruiter, shallowEqual);
+  const { searchTerm, filterReferred, statusFilter, selectedCandidateId } = useSelector(selectRecruiterAppsUi);
   const selectedCandidate = applications.find((app) => app.id === selectedCandidateId);
 
   const statuses = ['All', 'Applied', 'Shortlisted', 'Interview', 'Offered', 'Rejected', 'Withdrawn'];
@@ -60,7 +64,7 @@ export default function Applications({
             type="text" 
             placeholder="Search by candidate name, branch, or role..." 
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => dispatch(setRecruiterAppsSearch(e.target.value))}
           />
         </div>
 
@@ -70,7 +74,7 @@ export default function Applications({
             className="form-select"
             style={{ padding: '8px 12px', fontSize: '13px' }}
             value={selectedRoleFilter || 'All Roles'}
-            onChange={(e) => setSelectedRoleFilter(e.target.value)}
+            onChange={(e) => dispatch(setRecruiterRoleFilter(e.target.value))}
           >
             <option value="All Roles">All Roles</option>{uniqueRoles.map(role => <option key={role.id} value={role.id}>{role.label}</option>)}
           </select>
@@ -79,7 +83,7 @@ export default function Applications({
           <button 
             type="button"
             className={`btn-filter-pill ${filterReferred ? 'active' : ''}`}
-            onClick={() => setFilterReferred(!filterReferred)}
+            onClick={() => dispatch(setRecruiterAppsFilterReferred(!filterReferred))}
           >
             <Star size={14} fill={filterReferred ? '#F59E0B' : 'none'} color={filterReferred ? '#F59E0B' : '#6B7280'} />
             <span>Referred Only</span>
@@ -104,7 +108,7 @@ export default function Applications({
                 color: isActive ? '#FFFFFF' : '#4B5563',
                 borderColor: isActive ? '#0F8F63' : '#E5E7EB'
               }}
-              onClick={() => setStatusFilter(st)}
+              onClick={() => dispatch(setRecruiterAppsStatusFilter(st))}
             >
               <span>{st}</span>
               <span style={{ 
@@ -132,7 +136,7 @@ export default function Applications({
           const statusClass = (app.status || 'applied').toLowerCase();
           return (
             <div key={app.id} className="app-card-detailed">
-              <div className="app-card-left" onClick={() => setSelectedCandidateId(app.id)}>
+              <div className="app-card-left" onClick={() => dispatch(setRecruiterSelectedCandidateId(app.id))}>
                 <div className="app-card-avatar">{app.initials}</div>
                 <div className="app-card-content">
                   <h4>
@@ -181,11 +185,14 @@ export default function Applications({
               </div>
 
  <div className="app-card-right" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                {onSchedule && ['Shortlisted', 'Interview'].includes(app.status) && (
+                {['Shortlisted', 'Interview'].includes(app.status) && (
                   <button
                     className="btn-secondary-action"
                     style={{ padding: '6px 12px', fontSize: 12 }}
-                    onClick={() => onSchedule(app.id)}
+                    onClick={() => {
+                      dispatch(selectScheduleApplication(app.id));
+                      dispatch(setRecruiterTab('assessments'));
+                    }}
                     title="Schedule an assessment or interview for this candidate"
                   >
                     Schedule
@@ -193,7 +200,7 @@ export default function Applications({
                 )}
                 <button 
                   className={`badge-status ${statusClass}`}
-                  onClick={() => setSelectedCandidateId(app.id)}
+                  onClick={() => dispatch(setRecruiterSelectedCandidateId(app.id))}
                   style={{ cursor: 'pointer', border: 'none' }}
                 >
                   {app.status}
@@ -214,8 +221,7 @@ export default function Applications({
       {selectedCandidate && (
         <CandidateModal 
           candidate={selectedCandidate}
-          onClose={() => setSelectedCandidateId(null)}
-          onUpdateStatus={onUpdateStatus}
+          onClose={() => dispatch(setRecruiterSelectedCandidateId(null))}
         />
       )}
     </div>

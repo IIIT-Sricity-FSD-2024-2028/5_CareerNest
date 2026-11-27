@@ -1,3 +1,7 @@
+// Data Flow (roles/recruiter/components/Dashboard.jsx):
+// Backend API -> Redux Thunks/Slices (recruiterSlice) -> useSelector(selectOpportunitiesWithCount, selectRecruiter) -> UI render
+// User Actions -> dispatch(slice actions) -> Slice reducers/thunks -> Redux state update
+import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { 
   Briefcase, 
   Users, 
@@ -6,13 +10,18 @@ import {
   Plus, 
   ArrowRight 
 } from 'lucide-react';
+import {
+  
+  selectOpportunitiesWithCount,
+  selectRecruiter,
+  setRecruiterTab,
+} from '../store/recruiterSlice.js';
 
-export default function Dashboard({ 
-  recruiter, 
-  opportunities, 
-  applications, 
-  setActiveTab 
-}) {
+export default function Dashboard() {
+  const dispatch = useDispatch();
+  // Redux data source: recruiterSlice (recruiter profile, applications, and opportunities with applicant counts).
+  const { recruiter, applications } = useSelector(selectRecruiter, shallowEqual);
+  const opportunities = useSelector(selectOpportunitiesWithCount);
   const firstName = recruiter.name ? recruiter.name.split(' ')[0] : 'Recruiter';
   
   // Calculate real-time stats from data
@@ -32,14 +41,18 @@ export default function Dashboard({
         <div className="banner-actions">
           <button 
             className="btn-primary-white" 
-            onClick={() => setActiveTab('post')}
+            onClick={() => {
+              dispatch(setRecruiterTab('post'));
+            }}
           >
             <Plus size={16} />
             <span>Post Opportunity</span>
           </button>
           <button 
             className="btn-secondary-white" 
-            onClick={() => setActiveTab('applications')}
+            onClick={() => {
+              dispatch(setRecruiterTab('applications'));
+            }}
           >
             <Users size={16} />
             <span>View Applications</span>
@@ -90,7 +103,9 @@ export default function Dashboard({
             <h3>My Opportunities</h3>
             <button 
               className="view-all-link"
-              onClick={() => setActiveTab('opportunities')}
+              onClick={() => {
+                dispatch(setRecruiterTab('opportunities'));
+              }}
             >
               <span>View all</span>
               <ArrowRight size={14} />
@@ -123,7 +138,9 @@ export default function Dashboard({
             <h3>Recent Applications</h3>
             <button 
               className="view-all-link"
-              onClick={() => setActiveTab('applications')}
+              onClick={() => {
+                dispatch(setRecruiterTab('applications'));
+              }}
             >
               <span>View all</span>
               <ArrowRight size={14} />

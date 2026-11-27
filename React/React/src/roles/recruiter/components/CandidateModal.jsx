@@ -1,8 +1,17 @@
-import { ReduxAnchor } from '../../../shared/components/ReduxLink.jsx';
-import { useViewState } from '../../../store/useViewState.js';
+// Data Flow (roles/recruiter/components/CandidateModal.jsx):
+// Backend API -> Redux Thunks/Slices (applicationsSlice, recruiterSlice) -> useSelector(selectCandidateModalUi) -> UI render
+// User Actions -> dispatch(fetchApplicationResume, updateApplicationStatus, loadRecruiterWorkspace, createObjectURL, updateStatus) -> Slice reducers/thunks -> Redux state update
 import { useEffect } from 'react';
-import { useOperations } from '../../../store/useOperations.js';
-import { confirmDialog } from '../../../shared/components/AppDialog.jsx';
+import { useDispatch, useSelector } from 'react-redux';
+import { errorMessage } from '../../../services/api.js';
+import { confirmDialog, infoDialog } from '../../../shared/components/AppDialog.jsx';
+import { fetchApplicationResume, updateApplicationStatus } from '../../../store/slices/applicationsSlice.js';
+import {
+  initCandidateModal,
+  loadRecruiterWorkspace,
+  selectCandidateModalUi,
+  setCandidateModalField,
+} from '../store/recruiterSlice.js';
 import { X, FileText, Mail, Phone, Calendar, Eye } from 'lucide-react';
 
 // ── Round configuration ──────────────────────────────────────────────────────
@@ -11,32 +20,33 @@ const STAGES = ['Applied', 'Shortlisted', 'Interview', 'Offered'];
 export default function CandidateModal({
   candidate,
   onClose,
-  onUpdateStatus,
   initialShowResumePreview = false,
 }) {
-  const commands = useOperations();
-  const [
-    { showResumePreview, resumeBlob, resumeError },
-    { setShowResumePreview, setResumeBlob, setResumeError },
-  ] = useViewState('recruiter', 'CandidateModal', () => ({
-    showResumePreview: initialShowResumePreview,
-    resumeBlob: '',
-    resumeError: '',
-  }));
+  const dispatch = useDispatch();
+  const { showResumePreview, resumeBlob, resumeError, saving, feedback, rating } = useSelector(selectCandidateModalUi);
+
+  useEffect(() => {
+    dispatch(initCandidateModal({
+      showResumePreview: initialShowResumePreview,
+      feedback: candidate?.recruiterFeedback || '',
+      rating: candidate?.recruiterRating || 5,
+    }));
+  }, [dispatch, candidate?.id, initialShowResumePreview, candidate?.recruiterFeedback, candidate?.recruiterRating]);
+
   useEffect(() => {
     if (!showResumePreview || !candidate?.resumeUrl) return;
     let active = true; let url;
-    commands.getApplicationResume(candidate.id).then(({data}) => { if (active) { url = URL.createObjectURL(data); setResumeBlob(url); } }).catch(() => { if (active) setResumeError('Could not load the resume document.'); });
-    return () => { active = false; if (url) URL.revokeObjectURL(url); setResumeBlob(''); setResumeError(''); };
-  }, [showResumePreview, candidate?.id, candidate?.resumeUrl]);
-  const [
-    { saving, feedback, rating },
-    { setSaving, setFeedback, setRating },
-  ] = useViewState('recruiter', 'CandidateModal/saving', () => ({
-    saving: false,
-    feedback: candidate?.recruiterFeedback || '',
-    rating: candidate?.recruiterRating || 5,
-  }));
+    dispatch(fetchApplicationResume(candidate.id))
+      .unwrap()
+      .then((blob) => { if (active) { url = URL.createObjectURL(blob); dispatch(setCandidateModalField({ field: 'resumeBlob', value: url })); } })
+      .catch(() => { if (active) dispatch(setCandidateModalField({ field: 'resumeError', value: 'Could not load the resume document.' })); });
+    return () => {
+      active = false;
+      if (url) URL.revokeObjectURL(url);
+      dispatch(setCandidateModalField({ field: 'resumeBlob', value: '' }));
+      dispatch(setCandidateModalField({ field: 'resumeError', value: '' }));
+    };
+  }, [dispatch, showResumePreview, candidate?.id, candidate?.resumeUrl]);
   if (!candidate) return null;
 
   // Derived current status (read-only chip shown to recruiter)
@@ -55,11 +65,22 @@ export default function CandidateModal({
 
   const stageIndex = STAGES.indexOf(derivedStatus);
   const nextStatus = stageIndex >= 0 ? STAGES[stageIndex + 1] : null;
-  const updateStatus = async (status) => {
+  const updateStatus = async (update) => {
     if (saving) return;
-    setSaving(true);
-    try { await onUpdateStatus(candidate.id, status); }
-    finally { setSaving(false); }
+    dispatch(setCandidateModalField({ field: 'saving', value: true }));
+    try {
+      await dispatch(updateApplicationStatus({
+        id: candidate.id,
+        data: typeof update === 'string' ? { status: update } : update,
+      })).unwrap();
+      const refreshed = await dispatch(loadRecruiterWorkspace()).unwrap().then(() => true, () => false);
+      if (!refreshed) infoDialog('Changes were saved, but some workspace data could not be refreshed.');
+      else infoDialog(typeof update === 'string' ? `Application updated to "${update}"` : 'Feedback sent to candidate.');
+    } catch (error) {
+      infoDialog(errorMessage(error, 'Could not update the application.'));
+    } finally {
+      dispatch(setCandidateModalField({ field: 'saving', value: false }));
+    }
   };
   const handleReject = async () => {
     if (saving || !await confirmDialog(`Reject ${candidate.name} for ${candidate.role}?`)) return;
@@ -94,12 +115,12 @@ export default function CandidateModal({
         <section style={{ borderTop: '1px solid #e5e7eb', paddingTop: 16, marginBottom: 18 }}>
           <h4 style={{ marginBottom: 8 }}>Candidate feedback</h4>
           <label style={{ display: 'block', fontSize: 13, marginBottom: 8 }}>Rating
-            <select value={rating} onChange={(event) => setRating(Number(event.target.value))} style={{ marginLeft: 10, padding: 6 }}>
+            <select value={rating} onChange={(event) => dispatch(setCandidateModalField({ field: 'rating', value: Number(event.target.value) }))} style={{ marginLeft: 10, padding: 6 }}>
               {[1, 2, 3, 4, 5].map((value) => <option key={value} value={value}>{value} / 5</option>)}
             </select>
           </label>
-          <textarea value={feedback} onChange={(event) => setFeedback(event.target.value)} rows={3} maxLength={2000} placeholder="Share feedback with the candidate" style={{ width: '100%', resize: 'vertical' }} />
-          <button type="button" className="btn-secondary-action" disabled={saving || !feedback.trim()} onClick={async () => { setSaving(true); try { await onUpdateStatus(candidate.id, { recruiterRating: rating, recruiterFeedback: feedback.trim(), feedbackSent: true }); } finally { setSaving(false); } }}>Send feedback</button>
+          <textarea value={feedback} onChange={(event) => dispatch(setCandidateModalField({ field: 'feedback', value: event.target.value }))} rows={3} maxLength={2000} placeholder="Share feedback with the candidate" style={{ width: '100%', resize: 'vertical' }} />
+          <button type="button" className="btn-secondary-action" disabled={saving || !feedback.trim()} onClick={() => updateStatus({ recruiterRating: rating, recruiterFeedback: feedback.trim(), feedbackSent: true })}>Send feedback</button>
         </section>
 
         {/* ── REFERRAL INFO CARD ── */}
@@ -179,7 +200,7 @@ export default function CandidateModal({
             <FileText size={14} color="#0F8F63" />
             <button
               type="button"
-              onClick={() => setShowResumePreview(!showResumePreview)}
+              onClick={() => dispatch(setCandidateModalField({ field: 'showResumePreview', value: !showResumePreview }))}
               style={{
                 background: 'none', border: 'none', color: '#0F8F63', fontWeight: 600,
                 cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'center',
@@ -193,7 +214,7 @@ export default function CandidateModal({
         </div>
 
         {/* ── RESUME PREVIEW ── */}
-        {showResumePreview && <section style={{marginBottom:20}}><h4>Resume · {candidate.name}</h4>{candidate.resumeUrl ? resumeError ? <p>{resumeError}</p> : !resumeBlob ? <p>Loading resume…</p> : <>{candidate.resumeUrl.toLowerCase().endsWith('.pdf') ? <iframe title={`${candidate.name} application resume`} src={resumeBlob} style={{width:'100%',height:480,border:'1px solid #e5e7eb'}} /> : <p>This application includes a Word document. Open or download the exact file submitted with this application.</p>}<ReduxAnchor href={resumeBlob} target="_blank" rel="noreferrer" download={candidate.resumeUrl.toLowerCase().endsWith('.pdf') ? undefined : candidate.resumeFile || true}>Open / download application resume</ReduxAnchor></> : <p>No resume was attached to this application. Ask the candidate to apply again with the selected resume.</p>}</section>}
+        {showResumePreview && <section style={{marginBottom:20}}><h4>Resume · {candidate.name}</h4>{candidate.resumeUrl ? resumeError ? <p>{resumeError}</p> : !resumeBlob ? <p>Loading resume…</p> : <>{candidate.resumeUrl.toLowerCase().endsWith('.pdf') ? <iframe title={`${candidate.name} application resume`} src={resumeBlob} style={{width:'100%',height:480,border:'1px solid #e5e7eb'}} /> : <p>This application includes a Word document. Open or download the exact file submitted with this application.</p>}<a href={resumeBlob} target="_blank" rel="noreferrer" download={candidate.resumeUrl.toLowerCase().endsWith('.pdf') ? undefined : candidate.resumeFile || true}>Open / download application resume</a></> : <p>No resume was attached to this application. Ask the candidate to apply again with the selected resume.</p>}</section>}
 
         {/* ── AUTO-DERIVED PIPELINE STATUS (read-only) ── */}
         <div style={{ marginBottom: '20px' }}>

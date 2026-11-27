@@ -1,15 +1,19 @@
-import { useViewState } from '../../../store/useViewState.js';
+// Data Flow (roles/recruiter/components/OpportunityFields.jsx):
+// Backend API -> Redux Thunks/Slices (recruiterSlice) -> useSelector(selectOpportunityFieldsUi) -> UI render
+// User Actions -> dispatch(slice actions) -> Slice reducers/thunks -> Redux state update
+import { useDispatch, useSelector } from 'react-redux';
 import { X } from "lucide-react";
+import { selectOpportunityFieldsUi, setOpportunityFieldsUi } from "../store/recruiterSlice.js";
 import {
   allBranches,
   validateSkill,
   validateLocation,
 } from "../data/opportunityValidation.js";
 export function LocationAdder({ locations, setLocations }) {
-  const [{ cur, err }, { setCur, setErr }] = useViewState('recruiter', 'LocationAdder', () => ({
-    cur: "",
-    err: "",
-  }));
+  const dispatch = useDispatch();
+  const { locationCur: cur, locationErr: err } = useSelector(selectOpportunityFieldsUi);
+  const setCur = (v) => dispatch(setOpportunityFieldsUi({ locationCur: v }));
+  const setErr = (v) => dispatch(setOpportunityFieldsUi({ locationErr: v }));
 
   const add = () => {
     const t = cur.trim();
@@ -78,10 +82,10 @@ export function LocationAdder({ locations, setLocations }) {
 }
 
 export function SkillAdder({ skills, setSkills }) {
-  const [{ cur, err }, { setCur, setErr }] = useViewState('recruiter', 'SkillAdder', () => ({
-    cur: "",
-    err: "",
-  }));
+  const dispatch = useDispatch();
+  const { skillCur: cur, skillErr: err } = useSelector(selectOpportunityFieldsUi);
+  const setCur = (v) => dispatch(setOpportunityFieldsUi({ skillCur: v }));
+  const setErr = (v) => dispatch(setOpportunityFieldsUi({ skillErr: v }));
 
   const add = (e) => {
     e?.preventDefault();

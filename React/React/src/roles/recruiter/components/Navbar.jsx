@@ -1,16 +1,24 @@
-import { useViewState } from '../../../store/useViewState.js';
+// Data Flow (roles/recruiter/components/Navbar.jsx):
+// Backend API -> Redux Thunks/Slices (notificationsSlice, recruiterSlice) -> useSelector(selectRecruiter, selectRecruiterNavbarUi) -> UI render
+// User Actions -> dispatch(markAllNotificationsRead) -> Slice reducers/thunks -> Redux state update
 import { useRef, useEffect } from 'react';
+import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { Bell, User, LogOut } from 'lucide-react';
+import { markAllNotificationsRead } from '../../../store/slices/notificationsSlice.js';
+import {
+  
+  selectRecruiter,
+  selectRecruiterNavbarUi,
+  setRecruiterNavbarNotifs,
+  setRecruiterNavbarProfileMenu,
+  setRecruiterTab,
+} from '../store/recruiterSlice.js';
 
-export default function Navbar({ title, recruiter, setActiveTab, onSignOut, notifications = [], onMarkAllRead }) {
+export default function Navbar({ title, onSignOut }) {
+  const dispatch = useDispatch();
+  const { recruiter, notifications = [] } = useSelector(selectRecruiter, shallowEqual);
   const unread = notifications.filter((n) => !n.isRead).length;
-  const [
-    { showNotifs, showProfileMenu },
-    { setShowNotifs, setShowProfileMenu },
-  ] = useViewState('recruiter', 'Navbar', () => ({
-    showNotifs: false,
-    showProfileMenu: false,
-  }));
+  const { showNotifs, showProfileMenu } = useSelector(selectRecruiterNavbarUi);
   const notifRef = useRef(null);
   const profileRef = useRef(null);
 
@@ -18,15 +26,15 @@ export default function Navbar({ title, recruiter, setActiveTab, onSignOut, noti
   useEffect(() => {
     function handleClickOutside(e) {
       if (notifRef.current && !notifRef.current.contains(e.target)) {
-        setShowNotifs(false);
+        dispatch(setRecruiterNavbarNotifs(false));
       }
       if (profileRef.current && !profileRef.current.contains(e.target)) {
-        setShowProfileMenu(false);
+        dispatch(setRecruiterNavbarProfileMenu(false));
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [dispatch]);
 
   return (
     <header className="header-bar">
@@ -39,7 +47,7 @@ export default function Navbar({ title, recruiter, setActiveTab, onSignOut, noti
         <div ref={notifRef} style={{ position: 'relative' }}>
           <button 
             className="icon-btn" 
-            onClick={() => setShowNotifs(!showNotifs)}
+            onClick={() => dispatch(setRecruiterNavbarNotifs(!showNotifs))}
             title="Notifications"
           >
             <Bell size={20} />
@@ -55,7 +63,7 @@ export default function Navbar({ title, recruiter, setActiveTab, onSignOut, noti
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h4 style={{ margin: 0 }}>Notifications</h4>
                 {unread > 0 && (
-                  <button onClick={onMarkAllRead} style={{ background: 'none', border: 'none', color: '#0F8F63', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                  <button onClick={() => dispatch(markAllNotificationsRead())} style={{ background: 'none', border: 'none', color: '#0F8F63', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
                     Mark all read
                   </button>
                 )}
@@ -78,7 +86,7 @@ export default function Navbar({ title, recruiter, setActiveTab, onSignOut, noti
         <div ref={profileRef} style={{ position: 'relative' }}>
           <div 
             className="avatar avatar-nav" 
-            onClick={() => setShowProfileMenu(!showProfileMenu)}
+            onClick={() => dispatch(setRecruiterNavbarProfileMenu(!showProfileMenu))}
             title="Recruiter Account"
           >
             {recruiter.avatar || 'PK'}
@@ -95,8 +103,8 @@ export default function Navbar({ title, recruiter, setActiveTab, onSignOut, noti
               <button 
                 className="dropdown-item-btn"
                 onClick={() => {
-                  setActiveTab('profile');
-                  setShowProfileMenu(false);
+                  dispatch(setRecruiterTab('profile'));
+                  dispatch(setRecruiterNavbarProfileMenu(false));
                 }}
               >
                 <User size={15} />

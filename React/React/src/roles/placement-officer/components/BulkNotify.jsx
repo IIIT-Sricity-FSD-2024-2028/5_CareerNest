@@ -1,11 +1,18 @@
-import { useEntityList } from '../../../store/useEntities.js';
-import { useViewState } from '../../../store/useViewState.js';
+// Data Flow (roles/placement-officer/components/BulkNotify.jsx):
+// Backend API -> Redux Thunks/Slices (notificationDeliveriesSlice, placementOfficerSlice) -> useSelector(selectSentNotifications, selectBulkNotifyUi) -> UI render
+// User Actions -> dispatch(fetchSentNotifications, sendBulkNotification, sendError, loadHistory) -> Slice reducers/thunks -> Redux state update
 import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import './styles/p1.css';
 import { errorMessage } from '../../../services/api.js';
-import { useOperations } from '../../../store/useOperations.js';
+import {
+  fetchSentNotifications,
+  selectSentNotifications,
+  sendBulkNotification,
+} from '../../../store/slices/notificationDeliveriesSlice.js';
+import { selectBulkNotifyUi, setBulkNotifyUi } from '../store/placementOfficerSlice.js';
 
 const TARGETS = [
   { id: 'students', label: '👩‍🎓 Students' },
@@ -14,25 +21,25 @@ const TARGETS = [
   { id: 'all', label: '🌐 Everyone' }
 ];
 
-export default function BulkNotify({ onNavigate, activePage = 'bulk-notify' }) {
-  const commands = useOperations();
-  const history = [...useEntityList('notificationDeliveries', 'sent')]
+export default function BulkNotify({ activePage = 'bulk-notify' }) {
+  const dispatch = useDispatch();
+  const history = [...useSelector(selectSentNotifications)]
     .sort((a, b) => String(b.sentAt).localeCompare(String(a.sentAt)));
-  const [
-    { title, message, targetGroup, sending, successInfo, sendError, formErrors },
-    { setTitle, setMessage, setTargetGroup, setSending, setSuccessInfo, setSendError, setFormErrors },
-  ] = useViewState('placementOfficer', 'BulkNotify', () => ({
-    title: '',
-    message: '',
-    targetGroup: 'students',
-    sending: false,
-    successInfo: '',
-    sendError: '',
-    formErrors: { title: '', message: '' },
-  }));
+  const { title, message, targetGroup, sending, successInfo, sendError, formErrors } = useSelector(selectBulkNotifyUi);
+  const setTitle = (v) => dispatch(setBulkNotifyUi({ title: v }));
+  const setMessage = (v) => dispatch(setBulkNotifyUi({ message: v }));
+  const setTargetGroup = (v) => dispatch(setBulkNotifyUi({ targetGroup: v }));
+  const setSending = (v) => dispatch(setBulkNotifyUi({ sending: v }));
+  const setSuccessInfo = (v) => dispatch(setBulkNotifyUi({ successInfo: v }));
+  const setSendError = (v) => dispatch(setBulkNotifyUi({ sendError: v }));
+  const setFormErrors = (updater) => {
+    const next = typeof updater === 'function' ? updater(formErrors) : updater;
+    dispatch(setBulkNotifyUi({ formErrors: next }));
+  };
 
   const loadHistory = () =>
-    commands.listSentNotifications()
+    dispatch(fetchSentNotifications())
+      .unwrap()
       .catch((error) => setSendError(errorMessage(error, 'Could not load sent notifications.')));
 
   useEffect(() => { loadHistory(); }, []);
@@ -65,11 +72,11 @@ export default function BulkNotify({ onNavigate, activePage = 'bulk-notify' }) {
     setSending(true);
     setSendError('');
     try {
-      const { data: sent } = await commands.sendBulkNotification({
+      const sent = await dispatch(sendBulkNotification({
         title: title.trim(),
         message: message.trim(),
         targetGroup,
-      });
+      })).unwrap();
       await loadHistory();
       setSuccessInfo(`Sent to ${sent.recipientCount} recipients at ${new Date().toLocaleTimeString()}`);
       setTitle('');
@@ -85,9 +92,9 @@ export default function BulkNotify({ onNavigate, activePage = 'bulk-notify' }) {
 
   return (
     <div className="frame">
-      <Sidebar activePage={activePage} onNavigate={onNavigate} />
+      <Sidebar activePage={activePage} />
 
-      <Header title="Bulk Notifications ⭐" onNavigate={onNavigate} />
+      <Header title="Bulk Notifications ⭐" />
 
       <main className="main-content" id="mainContent" style={{ maxWidth: '900px', margin: '0 auto', padding: '24px 20px' }}>
         <div style={{ marginBottom: '24px' }}>

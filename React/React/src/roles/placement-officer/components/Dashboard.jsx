@@ -1,15 +1,30 @@
-import { useBrowserCommands } from '../../../store/useBrowserCommands.js';
-import { useEffect } from 'react';
+// Data Flow (roles/placement-officer/components/Dashboard.jsx):
+// Backend API -> Redux Thunks/Slices (placementOfficerSlice) -> useSelector(selectOfficerData, selectOfficerRequest) -> UI render
+// User Actions -> dispatch(loadOfficerData) -> Slice reducers/thunks -> Redux state update
+import { useCallback, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import './styles/p1.css';
 import './styles/dashboard.css';
-import { useOfficerData } from '../services/officerApi';
+import {
+  
+  loadOfficerData,
+  selectOfficerData,
+  selectOfficerRequest,
+  setPlacementPage,
+} from '../store/placementOfficerSlice.js';
 import { BadgeCheck, BriefcaseBusiness, Building2, CalendarClock, Clock3, GraduationCap, Handshake, RefreshCw, UsersRound } from 'lucide-react';
 
-export default function Dashboard({ onNavigate, activePage = 'p1' }) {
-  const { data, refresh, ready, error } = useOfficerData();
-  const { visit } = useBrowserCommands();
+export default function Dashboard({ activePage = 'p1' }) {
+  const dispatch = useDispatch();
+  // Redux data source: placementOfficerSlice (selectOfficerData aggregates stats, drives, interviews, submissions, announcements).
+  const data = useSelector(selectOfficerData);
+  const { ready, error } = useSelector(selectOfficerRequest);
+  const refresh = useCallback(
+    () => dispatch(loadOfficerData({ force: true })).unwrap().then(() => true, () => false),
+    [dispatch],
+  );
   const { stats, stakeholders, drives, interviews, announcements = [] } = data;
   const submissions = (data.submissions || []).slice(0, 6);
   const alertVisible = stats.pending > 0;
@@ -17,10 +32,10 @@ export default function Dashboard({ onNavigate, activePage = 'p1' }) {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('view') === 'profile') {
-      if (onNavigate) onNavigate('profile');
+      dispatch(setPlacementPage('profile'));
       window.history.replaceState(null, '', window.location.pathname);
     }
-  }, [onNavigate]);
+  }, [dispatch]);
 
   // Interview schedules are created in the recruiter workspace. Refresh this
   // read-only dashboard while it is visible so new drive-wide schedules appear
@@ -48,15 +63,15 @@ export default function Dashboard({ onNavigate, activePage = 'p1' }) {
   ];
 
   const handleNav = (target) => {
-    if (onNavigate) onNavigate(target);
-    else visit(`${target}.html`);
+    dispatch(setPlacementPage(target));
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
   };
 
   return (
     <div className="frame dashboard-page">
-      <Sidebar activePage={activePage} onNavigate={onNavigate} />
+      <Sidebar activePage={activePage} />
 
-      <Header title="Placement Control Center" onNavigate={onNavigate} />
+      <Header title="Placement Control Center" />
 
       <main className="main-content" id="mainContent">
           {/* Hero Card */}
@@ -113,10 +128,10 @@ export default function Dashboard({ onNavigate, activePage = 'p1' }) {
                 >
                   <RefreshCw size={15} aria-hidden="true" />
                 </button>
-                <span className="panel-link" onClick={() => handleNav('p2')}>Review All →</span>
+                <span className="panel-link" onClick={() => handleNav('p2')}>Review All â†’</span>
               </div>
               <div className="panel-body">
-                {!ready && <div className="row-sub">Loading recent opportunities…</div>}
+                {!ready && <div className="row-sub">Loading recent opportunitiesâ€¦</div>}
                 {error && <div className="row-sub">{error}</div>}
                 {ready && !error && submissions.length === 0 && <div className="row-sub">No recruiter submissions yet.</div>}
                 {submissions.map((sub) => (
@@ -171,7 +186,7 @@ export default function Dashboard({ onNavigate, activePage = 'p1' }) {
                     <div>
                       <div className="drive-company">{a.title}</div>
                       <div className="row-sub">{a.message}</div>
-                      <div className="row-sub" style={{ marginTop: 4, opacity: .8 }}>{a.date} · {a.author}</div>
+                      <div className="row-sub" style={{ marginTop: 4, opacity: .8 }}>{a.date} Â· {a.author}</div>
                     </div>
                     <span className="badge purple" style={{ textTransform: 'capitalize', ...(a.type === 'urgent' ? { background: '#fee2e2', color: '#b91c1c' } : {}) }}>{a.type}</span>
                   </div>

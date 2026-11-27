@@ -1,10 +1,26 @@
-import '../styles/ui.css';
+// Data Flow (roles/candidate/components/Layout.jsx):
+// Backend API -> Redux Thunks/Slices (candidateSlice, notificationsSlice) -> useSelector(selectCandidateNotifications, selectCandidateSignOutOpen, selectCandidateUI, selectCandidateWorkspace, selectUnreadCandidateNotifications) -> UI render
+// User Actions -> dispatch(loadCandidateSnapshot, markLocalNotificationsRead, markAllNotificationsRead, markNotificationRead, loadError, refreshWarning) -> Slice reducers/thunks -> Redux state update
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { memo, useCallback, useLayoutEffect, useRef, useState } from 'react';
+import '../styles/ui.css';
+import { memo, useCallback, useLayoutEffect, useRef } from 'react';
+import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { Bell } from 'lucide-react';
 import SignOutModal from './SignOutModal.jsx';
-import { useStore } from '../context/StoreContext.jsx';
-import { useUI } from '../context/UIContext.jsx';
+import {
+    closeCandidateNotifications,
+    closeCandidateSignOut,
+    loadCandidateSnapshot,
+    markLocalNotificationsRead,
+    openCandidateSignOut,
+    selectCandidateNotifications,
+    selectCandidateSignOutOpen,
+    selectCandidateUI,
+    selectCandidateWorkspace,
+    selectUnreadCandidateNotifications,
+    toggleCandidateNotifications,
+} from '../store/candidateSlice.js';
+import { markAllNotificationsRead, markNotificationRead } from '../../../store/slices/notificationsSlice.js';
 import { BriefcaseBusiness } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -60,12 +76,15 @@ const TopAvatar = memo(function TopAvatar({ name, avatar, avatarImage, onClick }
 });
 
 export default function Layout() {
-    const { store } = useStore();
-    const { notifOpen, toggleNotif, closeNotif, markAllRead, readAndNavigate, unreadCount } = useUI();
+    const dispatch = useDispatch();
+    const { store, loadError, refreshWarning } = useSelector(selectCandidateWorkspace, shallowEqual);
+    const { notifOpen } = useSelector(selectCandidateUI);
+    const notifications = useSelector(selectCandidateNotifications);
+    const unreadCount = useSelector(selectUnreadCandidateNotifications);
     const navigate = useNavigate();
     const location = useLocation();
     const user = store.currentUser;
-    const [isSignOutOpen, setIsSignOutOpen] = useState(false);
+    const isSignOutOpen = useSelector(selectCandidateSignOutOpen);
 
     const activeItem = [...NAV_ITEMS, PROFILE_TITLE].find((item) =>
         item.to === '/candidate' ? location.pathname === '/candidate' : location.pathname.startsWith(item.to)
@@ -117,7 +136,7 @@ export default function Layout() {
                 </nav>
 
                 <div className="sidebar-footer">
-                    <button type="button" className="sign-out" onClick={() => setIsSignOutOpen(true)}>
+                    <button type="button" className="sign-out" onClick={() => dispatch(openCandidateSignOut())}>
                         <i className="bx bx-log-out" />
                         <span>Sign Out</span>
                     </button>
@@ -135,7 +154,7 @@ export default function Layout() {
                                 className="notification-btn"
                                 aria-label={`Notifications${unreadCount ? `, ${unreadCount} unread` : ''}`}
                                 aria-expanded={notifOpen}
-                                onClick={toggleNotif}
+                                onClick={() => dispatch(toggleCandidateNotifications())}
                             >
                                 <Bell size={21} strokeWidth={2} aria-hidden="true" />
                                 <span
@@ -148,7 +167,7 @@ export default function Layout() {
                             {notifOpen && (
                                 <>
                                     <div
-                                        onClick={closeNotif}
+                                        onClick={() => dispatch(closeCandidateNotifications())}
                                         style={{ position: 'fixed', inset: 0, zIndex: 40 }}
                                     />
                                     <div className="notification-dropdown show" style={{ zIndex: 41 }}>
@@ -158,7 +177,8 @@ export default function Layout() {
                                                 href="#"
                                                 onClick={(e) => {
                                                     e.preventDefault();
-                                                    markAllRead();
+                                                    dispatch(markLocalNotificationsRead());
+                                                    dispatch(markAllNotificationsRead());
                                                 }}
                                             >
                                                 Mark all read
@@ -176,7 +196,12 @@ export default function Layout() {
                                                     <div
                                                         key={idx}
                                                         className={notif.isRead ? 'notif-item' : 'notif-item unread'}
-                                                        onClick={() => readAndNavigate(idx, targetRoute)}
+                                                        onClick={() => {
+                                                            const notification = notifications[idx];
+                                                            if (notification?.id != null) dispatch(markNotificationRead(notification.id));
+                                                            dispatch(closeCandidateNotifications());
+                                                            if (targetRoute && targetRoute !== '#') navigate(`/candidate/${targetRoute.replace('.html', '')}`);
+                                                        }}
                                                     >
                                                         <h6>{notif.title}</h6>
                                                         <p>{notif.message}</p>
@@ -192,9 +217,21 @@ export default function Layout() {
                     </div>
                 </header>
 
+                {(refreshWarning || loadError) && (
+                    <div role="status" className="cx-panel cx-panel--warn">
+                        {refreshWarning || loadError}{' '}
+                        <button
+                            type="button"
+                            className="cx-btn cx-btn--sm"
+                            onClick={() => dispatch(loadCandidateSnapshot({ silent: true }))}
+                        >
+                            Retry refresh
+                        </button>
+                    </div>
+                )}
                 <Outlet />
             </main>
-            <SignOutModal isOpen={isSignOutOpen} onClose={() => setIsSignOutOpen(false)} />
+            <SignOutModal isOpen={isSignOutOpen} onClose={() => dispatch(closeCandidateSignOut())} />
         </div>
     );
 }

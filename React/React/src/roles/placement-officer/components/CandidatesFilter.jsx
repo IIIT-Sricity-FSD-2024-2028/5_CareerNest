@@ -1,13 +1,18 @@
-import { useBrowserCommands } from '../../../store/useBrowserCommands.js';
-import { useEntityList } from '../../../store/useEntities.js';
-import { useViewState } from '../../../store/useViewState.js';
+// Data Flow (roles/placement-officer/components/CandidatesFilter.jsx):
+// Backend API -> Redux Thunks/Slices (placementOfficerSlice, usersSlice) -> useSelector(selectPlacementCandidatesFilterUi, selectOfficerCandidates) -> UI render
+// User Actions -> dispatch(fetchOfficerCandidates, loadError, createObjectURL, createElement) -> Slice reducers/thunks -> Redux state update
 import { infoDialog } from '../../../shared/components/AppDialog.jsx';
 import React, { useMemo, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import './styles/p1.css';
 import { errorMessage } from '../../../services/api.js';
-import { useOperations } from '../../../store/useOperations.js';
+import {
+  selectPlacementCandidatesFilterUi,
+  setPlacementCandidatesFilterUi,
+} from '../store/placementOfficerSlice.js';
+import { fetchOfficerCandidates, selectOfficerCandidates } from '../../../store/slices/usersSlice.js';
 
 // The API stores full department names; this screen filters on short codes.
 const DEPT_CODES = {
@@ -16,29 +21,20 @@ const DEPT_CODES = {
 };
 const deptCode = (name = '') => DEPT_CODES[name.trim().toLowerCase()] || name;
 
-export default function CandidatesFilter({ onNavigate, activePage = 'candidates-filter' }) {
-  const commands = useOperations();
-  const { download } = useBrowserCommands();
-  const candidates = useEntityList('users', 'candidateFilter');
-  const [
-    { loadError },
-    { setLoadError },
-  ] = useViewState('placementOfficer', 'CandidatesFilter', () => ({
-    loadError: '',
-  }));
+export default function CandidatesFilter({ activePage = 'candidates-filter' }) {
+  const dispatch = useDispatch();
+  const candidates = useSelector(selectOfficerCandidates);
+  const { loadError, dept, minCgpa, maxBacklogs } = useSelector(selectPlacementCandidatesFilterUi);
+  const setLoadError = (v) => dispatch(setPlacementCandidatesFilterUi({ loadError: v }));
+  const setDept = (v) => dispatch(setPlacementCandidatesFilterUi({ dept: v }));
+  const setMinCgpa = (v) => dispatch(setPlacementCandidatesFilterUi({ minCgpa: v }));
+  const setMaxBacklogs = (v) => dispatch(setPlacementCandidatesFilterUi({ maxBacklogs: v }));
 
   useEffect(() => {
-    commands.listOfficerCandidates()
-      .catch((error) => setLoadError(errorMessage(error, 'Could not load candidates.')));
-  }, []);
-  const [
-    { dept, minCgpa, maxBacklogs },
-    { setDept, setMinCgpa, setMaxBacklogs },
-  ] = useViewState('placementOfficer', 'CandidatesFilter/dept', () => ({
-    dept: '',
-    minCgpa: '',
-    maxBacklogs: '',
-  }));
+    dispatch(fetchOfficerCandidates())
+      .unwrap()
+      .catch((error) => dispatch(setPlacementCandidatesFilterUi({ loadError: errorMessage(error, 'Could not load candidates.') })));
+  }, [dispatch]);
 
   const filteredCandidates = useMemo(() => {
     return candidates.map((candidate) => ({
@@ -71,14 +67,21 @@ export default function CandidatesFilter({ onNavigate, activePage = 'candidates-
       c => `"${c.name}","${c.rollNo}","${c.dept}",${c.cgpa},${c.backlogs},"${c.batch}","${c.skills.join('; ')}"`
     );
     const csvContent = [header, ...rows].join('\n');
-    download('filtered_candidates.csv', csvContent, 'text/csv;charset=utf-8;');
+    const url = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'filtered_candidates.csv';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   return (
     <div className="frame">
-      <Sidebar activePage={activePage} onNavigate={onNavigate} />
+      <Sidebar activePage={activePage} />
 
-      <Header title="Candidate Filter " onNavigate={onNavigate} />
+      <Header title="Candidate Filter " />
 
       <main className="main-content" id="mainContent" style={{ maxWidth: '1100px', margin: '0 auto', padding: '24px 20px' }}>
         {loadError && (

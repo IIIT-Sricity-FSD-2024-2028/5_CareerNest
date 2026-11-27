@@ -1,30 +1,49 @@
-import { useViewState } from '../../../store/useViewState.js';
+// Data Flow (roles/placement-officer/components/ReviewOpportunities.jsx):
+// Backend API -> Redux Thunks/Slices (opportunitiesSlice, placementOfficerSlice) -> useSelector(selectOfficerData, selectOfficerRequest, selectPlacementReviewUi) -> UI render
+// User Actions -> dispatch(approveOpportunity, publishOpportunity, rejectOpportunity, undoOpportunityApproval, loadOfficerData, loadError, rejectModalOpen, rejectTarget) -> Slice reducers/thunks -> Redux state update
+import { useDispatch, useSelector } from 'react-redux';
 import { infoDialog } from '../../../shared/components/AppDialog.jsx';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import './styles/p2.css';
 import { errorMessage } from '../../../services/api.js';
-import { useOperations } from '../../../store/useOperations.js';
-import { useOfficerData } from '../services/officerApi';
+import {
+  approveOpportunity,
+  publishOpportunity,
+  rejectOpportunity,
+  undoOpportunityApproval,
+} from '../../../store/slices/opportunitiesSlice.js';
+import {
+  loadOfficerData,
+  selectOfficerData,
+  selectOfficerRequest,
+  selectPlacementReviewUi,
+  setPlacementReviewUi,
+  togglePlacementReviewCard,
+} from '../store/placementOfficerSlice.js';
 
 const REVIEW_STATUSES = ['all', 'pending', 'approved', 'published', 'rejected'];
 
-export default function ReviewOpportunities({ onNavigate, activePage = 'p2' }) {
-  const commands = useOperations();
-  const { data, refresh, ready, error: loadError } = useOfficerData();
+export default function ReviewOpportunities({ activePage = 'p2' }) {
+  const dispatch = useDispatch();
+  // Redux data source: placementOfficerSlice (selectOfficerData -> submissions from opportunitiesSlice; approve/reject/publish thunks).
+  const data = useSelector(selectOfficerData);
+  const { ready, error: loadError } = useSelector(selectOfficerRequest);
+  const refresh = () => dispatch(loadOfficerData({ force: true })).unwrap().then(() => true, () => false);
   const submissions = data.submissions || [];
-  const [
-    { activeStatus, typeFilter, openCards, rejectModalOpen, rejectTarget, rejectRemarks, rejectError },
-    { setActiveStatus, setTypeFilter, setOpenCards, setRejectModalOpen, setRejectTarget, setRejectRemarks, setRejectError },
-  ] = useViewState('placementOfficer', 'ReviewOpportunities', () => ({
-    activeStatus: 'all',
-    typeFilter: 'all',
-    openCards: {},
-    rejectModalOpen: false,
-    rejectTarget: null,
-    rejectRemarks: '',
-    rejectError: false,
-  }));
+  const {
+    activeStatus, typeFilter, openCards, rejectModalOpen, rejectTarget, rejectRemarks, rejectError,
+  } = useSelector(selectPlacementReviewUi);
+  const setActiveStatus = (v) => dispatch(setPlacementReviewUi({ activeStatus: v }));
+  const setTypeFilter = (v) => dispatch(setPlacementReviewUi({ typeFilter: v }));
+  const setOpenCards = (updater) => {
+    const next = typeof updater === 'function' ? updater(openCards) : updater;
+    dispatch(setPlacementReviewUi({ openCards: next }));
+  };
+  const setRejectModalOpen = (v) => dispatch(setPlacementReviewUi({ rejectModalOpen: v }));
+  const setRejectTarget = (v) => dispatch(setPlacementReviewUi({ rejectTarget: v }));
+  const setRejectRemarks = (v) => dispatch(setPlacementReviewUi({ rejectRemarks: v }));
+  const setRejectError = (v) => dispatch(setPlacementReviewUi({ rejectError: v }));
 
   const act = async (request) => {
     try {
@@ -50,9 +69,9 @@ export default function ReviewOpportunities({ onNavigate, activePage = 'p2' }) {
   });
 
   const toggleCard = (id) => setOpenCards((previous) => ({ ...previous, [id]: !previous[id] }));
-  const approveCard = (id) => act(() => commands.approveOpportunity(id));
-  const undoApproval = (id) => act(() => commands.undoOpportunityApproval(id));
-  const publishCard = (id) => act(() => commands.publishOpportunity(id));
+  const approveCard = (id) => act(() => dispatch(approveOpportunity(id)).unwrap());
+  const undoApproval = (id) => act(() => dispatch(undoOpportunityApproval(id)).unwrap());
+  const publishCard = (id) => act(() => dispatch(publishOpportunity(id)).unwrap());
 
   const openRejectModal = (id) => {
     setRejectTarget(id);
@@ -74,7 +93,7 @@ export default function ReviewOpportunities({ onNavigate, activePage = 'p2' }) {
       return;
     }
     setRejectError(false);
-    const rejected = await act(() => commands.rejectOpportunity(rejectTarget, rejectRemarks.trim()));
+    const rejected = await act(() => dispatch(rejectOpportunity({ id: rejectTarget, remark: rejectRemarks.trim() })).unwrap());
     if (rejected) closeRejectModal();
   };
 
@@ -109,8 +128,8 @@ export default function ReviewOpportunities({ onNavigate, activePage = 'p2' }) {
 
   return (
     <div className="frame">
-      <Sidebar activePage={activePage} onNavigate={onNavigate} />
-      <Header title="Review Opportunities" onNavigate={onNavigate} />
+      <Sidebar activePage={activePage} />
+      <Header title="Review Opportunities" />
       <main className="main-content" id="mainContent">
         {loadError && <p role="alert" style={{ color: '#b91c1c', marginBottom: '12px' }}>{loadError}</p>}
         <div className="filter-tabs" aria-label="Opportunity status filters">

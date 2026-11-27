@@ -1,11 +1,19 @@
-import { useViewState } from '../../../store/useViewState.js';
+// Data Flow (roles/placement-officer/components/AppTracking.jsx):
+// Backend API -> Redux Thunks/Slices (placementOfficerSlice) -> useSelector(selectAppTrackingUi, selectOfficerData, selectOfficerRequest) -> UI render
+// User Actions -> dispatch(slice actions) -> Slice reducers/thunks -> Redux state update
 import { useMemo } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { ArrowLeft, BriefcaseBusiness, CalendarDays, ChevronRight, Mail, Search, UserRound } from 'lucide-react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import './styles/p1.css';
 import './styles/p6.css';
-import { useOfficerData } from '../services/officerApi';
+import {
+  selectAppTrackingUi,
+  selectOfficerData,
+  selectOfficerRequest,
+  setAppTrackingUi,
+} from '../store/placementOfficerSlice.js';
 
 const STATUS_CLASS = { Applied: 'app-status--applied', Shortlisted: 'app-status--shortlisted', Interview: 'app-status--interview', Offered: 'app-status--selected', Rejected: 'app-status--rejected', Withdrawn: 'app-status--rejected' };
 const initials = (name = '') => name.split(' ').filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || 'C';
@@ -17,15 +25,13 @@ const placementStatus = (applications) => {
 };
 function StatusBadge({ status }) { return <span className={`app-status ${STATUS_CLASS[status] || `app-status--${status.toLowerCase().replaceAll(' ', '-')}`}`}>{status}</span>; }
 
-export default function AppTracking({ onNavigate, activePage = 'p6' }) {
-  const { data, ready, error } = useOfficerData();
-  const [
-    { searchQuery, selectedCandidateId },
-    { setSearchQuery, setSelectedCandidateId },
-  ] = useViewState('placementOfficer', 'AppTracking', () => ({
-    searchQuery: '',
-    selectedCandidateId: null,
-  }));
+export default function AppTracking({ activePage = 'p6' }) {
+  const dispatch = useDispatch();
+  const data = useSelector(selectOfficerData);
+  const { ready, error } = useSelector(selectOfficerRequest);
+  const { search: searchQuery, selectedCandidateId } = useSelector(selectAppTrackingUi);
+  const setSearchQuery = (v) => dispatch(setAppTrackingUi({ search: v }));
+  const setSelectedCandidateId = (v) => dispatch(setAppTrackingUi({ selectedCandidateId: v }));
   const candidates = useMemo(() => (data.users || []).filter((user) => user.role === 'candidate'), [data.users]);
   const applications = data.applications || [];
   const selectedCandidate = candidates.find((candidate) => candidate.id === selectedCandidateId);
@@ -35,8 +41,8 @@ export default function AppTracking({ onNavigate, activePage = 'p6' }) {
     return !term || candidate.name.toLowerCase().includes(term) || candidate.roll.toLowerCase().includes(term);
   });
   return <div className="frame">
-    <Sidebar activePage={activePage} onNavigate={onNavigate} />
-    <Header title="Application Tracker" onNavigate={onNavigate} />
+    <Sidebar activePage={activePage} />
+    <Header title="Application Tracker" />
     <main className="main-content app-tracker" id="mainContent">
       {!selectedCandidate ? <section aria-labelledby="candidate-list-title">
         <div className="app-tracker__heading"><div><p className="app-tracker__eyebrow">Candidate management</p><h1 id="candidate-list-title">Candidate Applications</h1><p>Choose a candidate to view their applications and manage each status.</p></div><div className="app-tracker__count"><UserRound size={18} /> {candidates.length} Candidates</div></div>

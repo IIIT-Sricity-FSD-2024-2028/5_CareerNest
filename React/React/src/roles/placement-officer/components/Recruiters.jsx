@@ -1,20 +1,28 @@
-import { useBrowserCommands } from '../../../store/useBrowserCommands.js';
-import { useViewState } from '../../../store/useViewState.js';
+// Data Flow (roles/placement-officer/components/Recruiters.jsx):
+// Backend API -> Redux Thunks/Slices (placementOfficerSlice, recruitersSlice) -> useSelector(selectOfficerData, selectOfficerRequest, selectPlacementRecruitersUi) -> UI render
+// User Actions -> dispatch(loadOfficerData, approveRecruiter, loadError) -> Slice reducers/thunks -> Redux state update
 import { infoDialog } from '../../../shared/components/AppDialog.jsx';
 import React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import Sidebar from './Sidebar';
 import RecruiterOpportunitiesModal from '../../../shared/components/RecruiterOpportunitiesModal.jsx';
 import Header from './Header';
 import './styles/p4.css';
 import { errorMessage } from '../../../services/api.js';
-import { useOperations } from '../../../store/useOperations.js';
-import { useOfficerData } from '../services/officerApi';
+import {
+  loadOfficerData,
+  selectOfficerData,
+  selectOfficerRequest,
+  selectPlacementRecruitersUi,
+  setPlacementRecruitersUi,
+} from '../store/placementOfficerSlice.js';
+import { approveRecruiter, declineRecruiter } from '../../../store/slices/recruitersSlice.js';
 
-export default function Recruiters({ onNavigate, activePage = 'p4' }) {
-  const commands = useOperations();
-  const { scrollTo, copyText } = useBrowserCommands();
-  /* ── Recruiters come from the API; approvals write to it and reload ── */
-  const { data, refresh, error: loadError } = useOfficerData();
+export default function Recruiters({ activePage = 'p4' }) {
+  const dispatch = useDispatch();
+  const data = useSelector(selectOfficerData);
+  const { error: loadError } = useSelector(selectOfficerRequest);
+  const refresh = () => dispatch(loadOfficerData({ force: true })).unwrap().then(() => true, () => false);
   const recruiters = data.recruiters || [];
 
   const act = async (request) => {
@@ -28,22 +36,19 @@ export default function Recruiters({ onNavigate, activePage = 'p4' }) {
     }
   };
 
-  const [
-    { selectedRecruiterId, searchQuery, openProfileIdx, openVerifyIdx, openDeclineIdx, declineRemarks, declineError, credentials },
-    { setSelectedRecruiterId, setSearchQuery, setOpenProfileIdx, setOpenVerifyIdx, setOpenDeclineIdx, setDeclineRemarks, setDeclineError, setCredentials },
-  ] = useViewState('placementOfficer', 'Recruiters', () => ({
-    selectedRecruiterId: null,
-    searchQuery: '',
-    openProfileIdx: null,
-    openVerifyIdx: null,
-    openDeclineIdx: null,
-    declineRemarks: '',
-    declineError: false,
-    credentials: null,
-  }));   // shown once after a recruiter is verified
-  const [{ copied }, { setCopied }] = useViewState('placementOfficer', 'Recruiters/copied', () => ({
-    copied: false,
-  }));
+  const {
+    selectedRecruiterId, searchQuery, openProfileIdx, openVerifyIdx,
+    openDeclineIdx, declineRemarks, declineError, credentials, copied,
+  } = useSelector(selectPlacementRecruitersUi);
+  const setSelectedRecruiterId = (v) => dispatch(setPlacementRecruitersUi({ selectedRecruiterId: v }));
+  const setSearchQuery = (v) => dispatch(setPlacementRecruitersUi({ searchQuery: v }));
+  const setOpenProfileIdx = (v) => dispatch(setPlacementRecruitersUi({ openProfileIdx: v }));
+  const setOpenVerifyIdx = (v) => dispatch(setPlacementRecruitersUi({ openVerifyIdx: v }));
+  const setOpenDeclineIdx = (v) => dispatch(setPlacementRecruitersUi({ openDeclineIdx: v }));
+  const setDeclineRemarks = (v) => dispatch(setPlacementRecruitersUi({ declineRemarks: v }));
+  const setDeclineError = (v) => dispatch(setPlacementRecruitersUi({ declineError: v }));
+  const setCredentials = (v) => dispatch(setPlacementRecruitersUi({ credentials: v }));
+  const setCopied = (v) => dispatch(setPlacementRecruitersUi({ copied: v }));
 
   const selectedRecruiter = recruiters.find((recruiter) => recruiter.id === selectedRecruiterId);
 
@@ -86,11 +91,11 @@ export default function Recruiters({ onNavigate, activePage = 'p4' }) {
     setDeclineError(false);
   };
 
-  const approveRecruiter = async (idx) => {
+  const handleApproveRecruiter = async (idx) => {
     const recruiter = recruiters.find((r) => r.id === idx);
     if (!recruiter) return;
     try {
-      const { data: result } = await commands.approveRecruiter(recruiter.id);
+      const result = await dispatch(approveRecruiter(recruiter.id)).unwrap();
       if (!await refresh()) infoDialog('Changes were saved, but some data could not be refreshed.');
       setCredentials({ name: recruiter.name, company: recruiter.company, ...result.credentials });
       setCopied(false);
@@ -109,7 +114,7 @@ export default function Recruiters({ onNavigate, activePage = 'p4' }) {
     setDeclineError(false);
     const recruiter = recruiters.find((r) => r.id === idx);
     if (!recruiter) return;
-    await act(() => commands.declineRecruiter(recruiter.id, declineRemarks.trim()));
+    await act(() => dispatch(declineRecruiter({ id: recruiter.id, remark: declineRemarks.trim() })).unwrap());
     setOpenDeclineIdx(null);
     setDeclineRemarks('');
   };
@@ -123,9 +128,9 @@ export default function Recruiters({ onNavigate, activePage = 'p4' }) {
 
   return (
     <div className="frame">
-      <Sidebar activePage={activePage} onNavigate={onNavigate} />
+      <Sidebar activePage={activePage} />
 
-      <Header title="Recruiter Management" onNavigate={onNavigate} />
+      <Header title="Recruiter Management" />
       {selectedRecruiter && <RecruiterOpportunitiesModal key={selectedRecruiter.id} recruiter={selectedRecruiter} onClose={() => setSelectedRecruiterId(null)} />}
 
       <main className="main-content" id="mainContent">
@@ -138,7 +143,7 @@ export default function Recruiters({ onNavigate, activePage = 'p4' }) {
             className="hero-btn"
             id="viewRecruitersBtn"
             onClick={() => {
-              scrollTo('recruiterTable');
+              document.getElementById('recruiterTable')?.scrollIntoView({ behavior: 'smooth' });
             }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9810fa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -359,7 +364,7 @@ export default function Recruiters({ onNavigate, activePage = 'p4' }) {
                                   <strong>Note:</strong> Approving will immediately dispatch credentials and activate job posting permissions.
                                 </div>
                                 <div className="verify-actions">
-                                  <button className="btn-approve" onClick={() => approveRecruiter(realIdx)}>
+                                  <button className="btn-approve" onClick={() => handleApproveRecruiter(realIdx)}>
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                                     </svg>{' '}
@@ -476,7 +481,7 @@ export default function Recruiters({ onNavigate, activePage = 'p4' }) {
               <button
                 className="btn-profile"
                 onClick={() => {
-                  copyText(`Email: ${credentials.email}\nPassword: ${credentials.password}`);
+                  navigator.clipboard?.writeText(`Email: ${credentials.email}\nPassword: ${credentials.password}`);
                   setCopied(true);
                 }}
               >{copied ? 'Copied ✓' : 'Copy credentials'}</button>

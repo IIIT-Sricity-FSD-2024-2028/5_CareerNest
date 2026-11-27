@@ -1,3 +1,5 @@
+// Data Flow (roles/placement-officer/components/SignOutModal.jsx):
+// Presentational component receiving Redux-backed data and dispatch callbacks as props from its parent container.
 
 export default function SignOutModal({ isOpen, onClose, onConfirm }) {
   if (!isOpen) return null;

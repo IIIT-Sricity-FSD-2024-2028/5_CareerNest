@@ -1,12 +1,42 @@
+// Data Flow (roles/candidate/pages/Opportunities.jsx):
+// Backend API -> Redux Thunks/Slices (authSlice, candidateSlice, savedDrivesSlice, usersSlice) -> useSelector(selectSession, selectCandidateStore, selectOpportunitiesUi, selectOpportunityResume) -> UI render
+// User Actions -> dispatch(markJobEligibilityChecked, saveDrive, uploadResume) -> Slice reducers/thunks -> Redux state update
+import { useDispatch, useSelector } from 'react-redux';
+import { selectSession } from '../../../store/slices/authSlice.js';
 import { infoDialog } from '../../../shared/components/AppDialog.jsx';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useStore } from '../context/StoreContext.jsx';
-import api, { readSession, errorMessage } from '../../../services/api.js';
-import { useUI } from '../context/UIContext.jsx';
+import {
+    addUploadedResume,
+    applyToJob,
+    closeOpportunityApplyModal,
+    closeOpportunitySuccessModal,
+    initOpportunityContactStep,
+    markJobEligibilityChecked,
+    openOpportunityApplyModal,
+    openOpportunitySuccessModal,
+    openQueryModal,
+    resetOpportunityAdvanced,
+    selectCandidateStore,
+    selectOpportunitiesUi,
+    selectOpportunityResume,
+    setActiveOpportunityId,
+    setOpportunityAdvancedField,
+    setOpportunityApplyError,
+    setOpportunityApplyStep,
+    setOpportunityContactField,
+    setOpportunityEligibilityInfo,
+    setOpportunityQuery,
+    setOpportunityQuestionField,
+    setOpportunityTermsChecked,
+    setOpportunityTypeFilter,
+    toggleOpportunityAdvanced,
+} from '../store/candidateSlice.js';
+import { saveDrive, unsaveDrive } from '../../../store/slices/savedDrivesSlice.js';
+import { uploadResume } from '../../../store/slices/usersSlice.js';
+import { errorMessage } from '../../../services/api.js';
 import '../styles/opportunities.css';
-import { Trash2, Check } from 'lucide-react';
-
+import { Check } from 'lucide-react';
 
 function mapDept(dept) {
     if (dept === 'Computer Science') return 'CSE';
@@ -15,36 +45,124 @@ function mapDept(dept) {
     return dept;
 }
 
+function ApplicationContactStep({ user, onCancel, onNext }) {
+    const dispatch = useDispatch();
+    const { contactPhone: phone, contactLinkedin: linkedin } = useSelector(selectOpportunitiesUi);
+
+    useEffect(() => {
+        dispatch(initOpportunityContactStep({ phone: user?.phone ?? '', linkedin: user?.socialLinks?.linkedin ?? '' }));
+    }, [dispatch, user?.phone, user?.socialLinks?.linkedin]);
+
+    return (
+        <div>
+            <p style={{ fontSize: 13, color: '#64748b', marginBottom: 20 }}>
+                Confirm your contact information before applying.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div>
+                    <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Full Name *</label>
+                    <input type="text" value={user?.name ?? ''} readOnly style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, background: '#f9fafb', boxSizing: 'border-box' }} />
+                </div>
+                <div>
+                    <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Email *</label>
+                    <input type="email" value={user?.email ?? ''} readOnly style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, background: '#f9fafb', boxSizing: 'border-box' }} />
+                </div>
+                <div>
+                    <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Phone *</label>
+                    <input type="tel" value={phone} onChange={(e) => dispatch(setOpportunityContactField({ field: 'contactPhone', value: e.target.value }))} style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }} />
+                </div>
+                <div>
+                    <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>LinkedIn Profile (optional)</label>
+                    <input type="url" value={linkedin} onChange={(e) => dispatch(setOpportunityContactField({ field: 'contactLinkedin', value: e.target.value }))} style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }} />
+                </div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 28 }}>
+                <button className="btn-secondary" onClick={onCancel}>Cancel</button>
+                <button className="btn-primary" onClick={onNext}>Next &gt; </button>
+            </div>
+        </div>
+    );
+}
+
+function ApplicationQuestionsStep({ onBack, onNext }) {
+    const dispatch = useDispatch();
+    const { workEligibility, experience, coverLetter } = useSelector(selectOpportunitiesUi);
+
+    return (
+        <div>
+            <p style={{ fontSize: 13, color: '#64748b', marginBottom: 20 }}>
+                Additional questions from the recruiter.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div>
+                    <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>
+                        Are you currently eligible to work in India? *
+                    </label>
+                    <select value={workEligibility} onChange={(e) => dispatch(setOpportunityQuestionField({ field: 'workEligibility', value: e.target.value }))} style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }}>
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                    </select>
+                </div>
+                <div>
+                    <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>
+                        How many years of relevant experience do you have? *
+                    </label>
+                    <select value={experience} onChange={(e) => dispatch(setOpportunityQuestionField({ field: 'experience', value: e.target.value }))} style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }}>
+                        <option value="0">Fresher / 0 years</option>
+                        <option value="1">1 year</option>
+                        <option value="2">2 years</option>
+                        <option value="3+">3+ years</option>
+                    </select>
+                </div>
+                <div>
+                    <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>
+                        Cover letter / additional message (optional)
+                    </label>
+                    <textarea value={coverLetter} onChange={(e) => dispatch(setOpportunityQuestionField({ field: 'coverLetter', value: e.target.value }))} rows={4} placeholder="Tell the recruiter why you are a great fit..." style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, resize: 'vertical', boxSizing: 'border-box' }} />
+                </div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginTop: 28 }}>
+                <button className="btn-secondary" onClick={onBack}>← Back</button>
+                <button className="btn-primary" onClick={onNext}>Next &gt; </button>
+            </div>
+        </div>
+    );
+}
+
 export default function Opportunities() {
-    const { store, updateStore, applyToJob, toggleSaved } = useStore();
-    const { openAskQuery } = useUI();
+    const dispatch = useDispatch();
+    const sessionId = useSelector(selectSession)?.id;
+    const store = useSelector(selectCandidateStore);
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
 
-    const [activeJobId, setActiveJobId] = useState(() => {
-        const passed = searchParams.get('jobId');
-        if (passed) return parseInt(passed, 10);
-        return store.recruiterJobs.length > 0 ? store.recruiterJobs[0].id : null;
-    });
-    const [typeFilter, setTypeFilter] = useState('All');
-    const [query, setQuery] = useState('');
-    // Advanced filters live here now (there is only one search box in the portal)
-    const [showAdvanced, setShowAdvanced] = useState(false);
-    const [advanced, setAdvanced] = useState({ location: '', branch: 'Any', minLpa: '', sort: 'latest' });
-    const [applyError, setApplyError] = useState('');
-
-    const [eligibilityInfo, setEligibilityInfo] = useState(null); // { job, isEligible, cgpaPass, branchPass, mappedDept }
-    const [termsOpen, setTermsOpen] = useState(false);
-    const [termsChecked, setTermsChecked] = useState(false);
-    const [successOpen, setSuccessOpen] = useState(false);
-    const [pendingApplyJobId, setPendingApplyJobId] = useState(null);
-
-    // Multi-step apply modal
-    const [applyStep, setApplyStep] = useState(1); // 1=Info, 2=Resume, 3=Questions, 4=Review
-    const [selectedResume, setSelectedResume] = useState(null);
-    const [selectedResumeUrl, setSelectedResumeUrl] = useState(null);
-    const [uploadedFile, setUploadedFile] = useState(null);
+    const {
+        activeJobId,
+        typeFilter,
+        query,
+        showAdvanced,
+        advanced,
+        applyError,
+        eligibilityInfo,
+        termsOpen,
+        termsChecked,
+        successOpen,
+        pendingApplyJobId,
+        applyStep,
+        selectedResume,
+        selectedResumeUrl,
+    } = useSelector(selectOpportunitiesUi);
     const resumeInputRef = useRef(null);
+
+    useEffect(() => {
+        const passed = searchParams.get('jobId');
+        if (passed) {
+            dispatch(setActiveOpportunityId(parseInt(passed, 10)));
+        } else if (activeJobId == null && store.recruiterJobs.length > 0) {
+            dispatch(setActiveOpportunityId(store.recruiterJobs[0].id));
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const resumeHistory = (store.profileResumeData?.resumeHistory || []).filter((resume) => !!resume.resumeUrl);
 
@@ -114,22 +232,23 @@ export default function Opportunities() {
 
     useEffect(() => {
         if (filteredJobs.length > 0 && !filteredJobs.find((j) => j.id === activeJobId)) {
-            setActiveJobId(filteredJobs[0].id);
+            dispatch(setActiveOpportunityId(filteredJobs[0].id));
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filteredJobs]);
 
     const activeJob = store.recruiterJobs.find((j) => j.id === activeJobId);
+    const eligibilityJob = store.recruiterJobs.find((job) => job.id === eligibilityInfo?.jobId);
 
     async function applyJob(jobId, resumeFile, resumeUrl) {
         const job = store.recruiterJobs.find((j) => j.id === jobId);
         if (!job) return false;
-        setApplyError('');
+        dispatch(setOpportunityApplyError(''));
         try {
-            await applyToJob(job, resumeFile, resumeUrl);
+            await dispatch(applyToJob({ job, resumeFile, resumeUrl })).unwrap();
             return true;
         } catch (error) {
-            setApplyError(errorMessage(error, 'Could not submit your application.'));
+            dispatch(setOpportunityApplyError(errorMessage(error, 'Could not submit your application.')));
             return false;
         }
     }
@@ -146,31 +265,24 @@ export default function Opportunities() {
         const branchPass = job.branches.includes(mappedDept) || job.branches.includes('Any');
         const isEligible = cgpaPass && branchPass;
 
-        setEligibilityInfo({ job, isEligible, cgpaPass, branchPass, mappedDept, userCgpa, reqCgpa });
+        dispatch(setOpportunityEligibilityInfo({ jobId, isEligible, cgpaPass, branchPass, mappedDept, userCgpa, reqCgpa }));
 
-        updateStore((s) => {
-            const innerJob = s.recruiterJobs.find((j) => j.id === jobId);
-            if (innerJob) innerJob.eligibilityChecked = true;
-        });
+        dispatch(markJobEligibilityChecked(jobId));
     }
 
     function confirmEligibilityApply(jobId) {
-        setEligibilityInfo(null);
-        setTermsChecked(false);
-        setApplyStep(1);
-        // Pre-select the most recent resume if available
         const history = resumeHistory;
-        setSelectedResume(history.length > 0 ? history[0].name : null);
-        setSelectedResumeUrl(history.length > 0 ? history[0].resumeUrl : null);
-        setUploadedFile(null);
-        setPendingApplyJobId(jobId);
-        setTermsOpen(true);
+        dispatch(openOpportunityApplyModal({
+            jobId,
+            selectedResume: history.length > 0 ? history[0].name : null,
+            selectedResumeUrl: history.length > 0 ? history[0].resumeUrl : null,
+        }));
     }
 
     async function finalizeApplication() {
-        setTermsOpen(false);
+        dispatch(closeOpportunityApplyModal());
         const applied = pendingApplyJobId != null ? await applyJob(pendingApplyJobId, selectedResume, selectedResumeUrl) : false;
-        if (applied) setTimeout(() => setSuccessOpen(true), 300);
+        if (applied) setTimeout(() => dispatch(openOpportunitySuccessModal()), 300);
     }
 
     async function handleResumeUpload(e) {
@@ -178,18 +290,11 @@ export default function Opportunities() {
         if (!file) return;
         if (!/\.(pdf|doc|docx)$/i.test(file.name) || file.size > 2 * 1024 * 1024) { infoDialog('Choose a PDF, DOC or DOCX file no larger than 2 MB.'); e.target.value = ''; return; }
         let saved;
-        try { const form = new FormData(); form.append('file', file); saved = (await api.post(`/users/${readSession().id}/resume`, form, { headers: { 'Content-Type': 'multipart/form-data' } })).data; }
+        try { const form = new FormData(); form.append('file', file); saved = await dispatch(uploadResume({ id: sessionId, form })).unwrap(); }
         catch (error) { infoDialog(errorMessage(error, 'Could not upload resume.')); return; }
         const newEntry = { resumeUrl: saved.resumeUrl, name: file.name, date: new Date().toISOString().split('T')[0], size: `${Math.round(file.size / 1024)} KB` };
-        updateStore((s) => {
-            if (!s.profileResumeData) s.profileResumeData = {};
-            const rd = s.profileResumeData;
-            rd.uploadedResume = newEntry;
-            rd.resumeHistory = [newEntry, ...(rd.resumeHistory || [])];
-        });
-        setUploadedFile(newEntry);
-        setSelectedResume(file.name);
-        setSelectedResumeUrl(saved.resumeUrl);
+        dispatch(addUploadedResume(newEntry));
+        dispatch(selectOpportunityResume({ name: file.name, resumeUrl: saved.resumeUrl }));
         e.target.value = '';
     }
 
@@ -204,16 +309,16 @@ export default function Opportunities() {
                         type="text"
                         placeholder="Search jobs, companies, skills..."
                         value={query}
-                        onChange={(e) => setQuery(e.target.value)}
+                        onChange={(e) => dispatch(setOpportunityQuery(e.target.value))}
                     />
                 </div>
                 <div className="filter-actions">
                     {['All', 'Full-time', 'Internship'].map((f) => (
-                        <button key={f} className={`filter-btn ${typeFilter === f ? 'active' : ''}`} onClick={() => setTypeFilter(f)}>
+                        <button key={f} className={`filter-btn ${typeFilter === f ? 'active' : ''}`} onClick={() => dispatch(setOpportunityTypeFilter(f))}>
                             {f}
                         </button>
                     ))}
-                    <button className={`filter-btn ${showAdvanced ? 'active' : ''}`} onClick={() => setShowAdvanced((v) => !v)}>
+                    <button className={`filter-btn ${showAdvanced ? 'active' : ''}`} onClick={() => dispatch(toggleOpportunityAdvanced())}>
                         <i className="bx bx-slider-alt" /> Filters
                     </button>
                     <span className="opp-count-text">
@@ -226,27 +331,27 @@ export default function Opportunities() {
                 <div className="advanced-filter-bar">
                     <label>
                         <span>Location</span>
-                        <input type="text" placeholder="e.g. Bangalore" value={advanced.location} onChange={(e) => setAdvanced((a) => ({ ...a, location: e.target.value }))} />
+                        <input type="text" placeholder="e.g. Bangalore" value={advanced.location} onChange={(e) => dispatch(setOpportunityAdvancedField({ field: 'location', value: e.target.value }))} />
                     </label>
                     <label>
                         <span>Branch</span>
-                        <select value={advanced.branch} onChange={(e) => setAdvanced((a) => ({ ...a, branch: e.target.value }))}>
+                        <select value={advanced.branch} onChange={(e) => dispatch(setOpportunityAdvancedField({ field: 'branch', value: e.target.value }))}>
                             {['Any', 'CSE', 'IT', 'ECE', 'EEE', 'Mechanical', 'Civil'].map((b) => <option key={b}>{b}</option>)}
                         </select>
                     </label>
                     <label>
                         <span>Min package (LPA)</span>
-                        <input type="number" min="0" placeholder="e.g. 10" value={advanced.minLpa} onChange={(e) => setAdvanced((a) => ({ ...a, minLpa: e.target.value }))} />
+                        <input type="number" min="0" placeholder="e.g. 10" value={advanced.minLpa} onChange={(e) => dispatch(setOpportunityAdvancedField({ field: 'minLpa', value: e.target.value }))} />
                     </label>
                     <label>
                         <span>Sort by</span>
-                        <select value={advanced.sort} onChange={(e) => setAdvanced((a) => ({ ...a, sort: e.target.value }))}>
+                        <select value={advanced.sort} onChange={(e) => dispatch(setOpportunityAdvancedField({ field: 'sort', value: e.target.value }))}>
                             <option value="latest">Newest first</option>
                             <option value="deadline">Closing soon</option>
                             <option value="cgpa">Lowest CGPA cut-off</option>
                         </select>
                     </label>
-                    <button className="btn-secondary" onClick={() => setAdvanced({ location: '', branch: 'Any', minLpa: '', sort: 'latest' })}>Reset</button>
+                    <button className="btn-secondary" onClick={() => dispatch(resetOpportunityAdvanced())}>Reset</button>
                 </div>
             )}
             {applyError && <div className="inline-alert inline-alert--error">{applyError}</div>}
@@ -262,7 +367,7 @@ export default function Opportunities() {
                             <div
                                 key={job.id}
                                 className={`job-item-card ${job.id === activeJobId ? 'active-card' : ''}`}
-                                onClick={() => setActiveJobId(job.id)}
+                                onClick={() => dispatch(setActiveOpportunityId(job.id))}
                             >
                                 <div className="job-item-header">
                                     <h4>{job.title} ({job.jobId})</h4>
@@ -306,11 +411,15 @@ export default function Opportunities() {
                                 store={store}
                                 onApply={confirmEligibilityApply}
                                 onCheckEligibility={checkEligibility}
-                                onAskQuery={openAskQuery}
+                                onAskQuery={(e) => {
+                                    if (e) e.preventDefault();
+                                    dispatch(openQueryModal());
+                                }}
                                 isSaved={store.savedDriveIds.includes(activeJob.id)}
                                 onToggleSave={async () => {
-                                    try { await toggleSaved(activeJob.id, store.savedDriveIds.includes(activeJob.id)); }
-                                    catch (error) { setApplyError(errorMessage(error, 'Could not update saved drives.')); }
+                                    const isSaved = store.savedDriveIds.includes(activeJob.id);
+                                    try { await dispatch(isSaved ? unsaveDrive(activeJob.id) : saveDrive(activeJob.id)).unwrap(); }
+                                    catch (error) { dispatch(setOpportunityApplyError(errorMessage(error, 'Could not update saved drives.'))); }
                                 }}
                                 isPlaced={store.currentUser.status === 'placed'}
                                 onGoToApplications={() => navigate('/candidate/applications')}
@@ -321,15 +430,15 @@ export default function Opportunities() {
             </div>
 
             {/* Eligibility Check Modal */}
-            <dialog ref={eligibilityRef} className="profile-modal" onClose={() => setEligibilityInfo(null)}>
+            <dialog ref={eligibilityRef} className="profile-modal" onClose={() => dispatch(setOpportunityEligibilityInfo(null))}>
                 <div className="modal-header">
                     <h3>Eligibility Check</h3>
-                    <button className="modal-close" onClick={() => setEligibilityInfo(null)}>
+                    <button className="modal-close" onClick={() => dispatch(setOpportunityEligibilityInfo(null))}>
                         <i className="bx bx-x" />
                     </button>
                 </div>
                 <div style={{ padding: 24, color: 'var(--text-primary)' }}>
-                    {eligibilityInfo && (
+                    {eligibilityInfo && eligibilityJob && (
                         <>
                             <div style={{ marginBottom: 24, textAlign: 'center' }}>
                                 <div
@@ -353,7 +462,7 @@ export default function Opportunities() {
                                     {eligibilityInfo.isEligible ? 'You are Eligible!' : 'Not Eligible'}
                                 </h3>
                                 <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>
-                                    {eligibilityInfo.job.title} at {eligibilityInfo.job.company}
+                                    {eligibilityJob.title} at {eligibilityJob.company}
                                 </p>
                             </div>
 
@@ -392,7 +501,7 @@ export default function Opportunities() {
 
                                 <div style={{ display: 'flex', padding: 16, alignItems: 'center' }}>
                                     <div style={{ flex: 2, fontWeight: 500, fontSize: 14 }}>Branch</div>
-                                    <div style={{ flex: 1, textAlign: 'center', fontSize: 14 }}>{eligibilityInfo.job.branches.join(', ')}</div>
+                                    <div style={{ flex: 1, textAlign: 'center', fontSize: 14 }}>{(eligibilityJob.branches || []).join(', ')}</div>
                                     <div style={{ flex: 1, textAlign: 'center', fontSize: 14, color: eligibilityInfo.branchPass ? 'inherit' : '#ef4444' }}>
                                         {eligibilityInfo.mappedDept}
                                     </div>
@@ -407,11 +516,11 @@ export default function Opportunities() {
                             </div>
 
                             <div style={{ marginTop: 32, display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
-                                <button className="btn-secondary" onClick={() => setEligibilityInfo(null)}>
+                                <button className="btn-secondary" onClick={() => dispatch(setOpportunityEligibilityInfo(null))}>
                                     Close
                                 </button>
                                 {eligibilityInfo.isEligible ? (
-                                    <button className="btn-primary" onClick={() => confirmEligibilityApply(eligibilityInfo.job.id)}>
+                                    <button className="btn-primary" onClick={() => confirmEligibilityApply(eligibilityJob.id)}>
                                         Apply Now
                                     </button>
                                 ) : (
@@ -426,14 +535,14 @@ export default function Opportunities() {
             </dialog>
 
             {/* ── Multi-Step Apply Modal ── */}
-            <dialog ref={termsRef} className="profile-modal" style={{ width: 560, maxWidth: '95vw', padding: 0 }} onClose={() => setTermsOpen(false)}>
+            <dialog ref={termsRef} className="profile-modal" style={{ width: 560, maxWidth: '95vw', padding: 0 }} onClose={() => dispatch(closeOpportunityApplyModal())}>
                 {/* Progress bar */}
                 <div style={{ padding: '20px 28px 0 28px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
                         <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
                             Apply to {store.recruiterJobs.find(j => j.id === pendingApplyJobId)?.company || 'Company'}
                         </h3>
-                        <button className="modal-close" onClick={() => setTermsOpen(false)} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: '#64748b' }}>
+                        <button className="modal-close" onClick={() => dispatch(closeOpportunityApplyModal())} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: '#64748b' }}>
                             <i className="bx bx-x" />
                         </button>
                     </div>
@@ -448,33 +557,7 @@ export default function Opportunities() {
 
                     {/* ── Step 1: Contact Info ── */}
                     {applyStep === 1 && (
-                        <div>
-                            <p style={{ fontSize: 13, color: '#64748b', marginBottom: 20 }}>
-                                Confirm your contact information before applying.
-                            </p>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                                <div>
-                                    <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Full Name *</label>
-                                    <input type="text" defaultValue={store.currentUser?.name} readOnly style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, background: '#f9fafb', boxSizing: 'border-box' }} />
-                                </div>
-                                <div>
-                                    <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Email *</label>
-                                    <input type="email" defaultValue={store.currentUser?.email} readOnly style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, background: '#f9fafb', boxSizing: 'border-box' }} />
-                                </div>
-                                <div>
-                                    <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Phone *</label>
-                                    <input type="tel" defaultValue={store.currentUser?.phone} style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }} />
-                                </div>
-                                <div>
-                                    <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>LinkedIn Profile (optional)</label>
-                                    <input type="url" defaultValue={store.currentUser?.socialLinks?.linkedin} style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }} />
-                                </div>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 28 }}>
-                                <button className="btn-secondary" onClick={() => setTermsOpen(false)}>Cancel</button>
-                                <button className="btn-primary" onClick={() => setApplyStep(2)}>Next &gt; </button>
-                            </div>
-                        </div>
+                        <ApplicationContactStep user={store.currentUser} onCancel={() => dispatch(closeOpportunityApplyModal())} onNext={() => dispatch(setOpportunityApplyStep(2))} />
                     )}
 
                     {/* ── Step 2: Resume Selection (matches screenshot) ── */}
@@ -495,7 +578,7 @@ export default function Opportunities() {
                                     return (
                                         <div
                                             key={idx}
-                                            onClick={() => { setSelectedResume(resume.name); setSelectedResumeUrl(resume.resumeUrl); }}
+                                            onClick={() => dispatch(selectOpportunityResume({ name: resume.name, resumeUrl: resume.resumeUrl }))}
                                             style={{
                                                 display: 'flex', alignItems: 'center', gap: 12,
                                                 border: isSelected ? '1.5px solid #374151' : '1px solid #e5e7eb',
@@ -543,51 +626,15 @@ export default function Opportunities() {
                             </button>
 
                             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginTop: 28 }}>
-                                <button className="btn-secondary" onClick={() => setApplyStep(1)}>← Back</button>
-                                <button className="btn-primary" disabled={!selectedResume || !selectedResumeUrl} style={{ opacity: selectedResume && selectedResumeUrl ? 1 : 0.5 }} onClick={() => setApplyStep(3)}>Next &gt; </button>
+                                <button className="btn-secondary" onClick={() => dispatch(setOpportunityApplyStep(1))}>← Back</button>
+                                <button className="btn-primary" disabled={!selectedResume || !selectedResumeUrl} style={{ opacity: selectedResume && selectedResumeUrl ? 1 : 0.5 }} onClick={() => dispatch(setOpportunityApplyStep(3))}>Next &gt; </button>
                             </div>
                         </div>
                     )}
 
                     {/* ── Step 3: Application Questions ── */}
                     {applyStep === 3 && (
-                        <div>
-                            <p style={{ fontSize: 13, color: '#64748b', marginBottom: 20 }}>
-                                Additional questions from the recruiter.
-                            </p>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                                <div>
-                                    <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>
-                                        Are you currently eligible to work in India? *
-                                    </label>
-                                    <select defaultValue="yes" style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }}>
-                                        <option value="yes">Yes</option>
-                                        <option value="no">No</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>
-                                        How many years of relevant experience do you have? *
-                                    </label>
-                                    <select defaultValue="0" style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }}>
-                                        <option value="0">Fresher / 0 years</option>
-                                        <option value="1">1 year</option>
-                                        <option value="2">2 years</option>
-                                        <option value="3+">3+ years</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>
-                                        Cover letter / additional message (optional)
-                                    </label>
-                                    <textarea rows={4} placeholder="Tell the recruiter why you are a great fit..." style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, resize: 'vertical', boxSizing: 'border-box' }} />
-                                </div>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginTop: 28 }}>
-                                <button className="btn-secondary" onClick={() => setApplyStep(2)}>← Back</button>
-                                <button className="btn-primary" onClick={() => setApplyStep(4)}>Next &gt; </button>
-                            </div>
-                        </div>
+                        <ApplicationQuestionsStep onBack={() => dispatch(setOpportunityApplyStep(2))} onNext={() => dispatch(setOpportunityApplyStep(4))} />
                     )}
 
                     {/* ── Step 4: Review & Terms ── */}
@@ -614,13 +661,13 @@ export default function Opportunities() {
                                 By applying, you acknowledge that you have read the job description and meet the requirements. All information in your profile is accurate.
                             </p>
                             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 28, background: '#f8fafc', padding: 14, borderRadius: 8 }}>
-                                <input type="checkbox" id="chk-terms" checked={termsChecked} onChange={(e) => setTermsChecked(e.target.checked)} style={{ marginTop: 3, transform: 'scale(1.2)', cursor: 'pointer', flexShrink: 0 }} />
+                                <input type="checkbox" id="chk-terms" checked={termsChecked} onChange={(e) => dispatch(setOpportunityTermsChecked(e.target.checked))} style={{ marginTop: 3, transform: 'scale(1.2)', cursor: 'pointer', flexShrink: 0 }} />
                                 <label htmlFor="chk-terms" style={{ cursor: 'pointer', fontSize: 13, fontWeight: 500, color: '#374151' }}>
                                     I have read all the rules and regulations of the company, and I abide by them.
                                 </label>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
-                                <button className="btn-secondary" onClick={() => setApplyStep(3)}>← Back</button>
+                                <button className="btn-secondary" onClick={() => dispatch(setOpportunityApplyStep(3))}>← Back</button>
                                 <button className="btn-primary" disabled={!termsChecked} style={{ opacity: termsChecked ? 1 : 0.5 }} onClick={finalizeApplication}>
                                     Submit Application
                                 </button>
@@ -631,7 +678,7 @@ export default function Opportunities() {
             </dialog>
 
             {/* Success Modal */}
-            <dialog ref={successRef} className="profile-modal" style={{ width: 400, textAlign: 'center' }} onClose={() => setSuccessOpen(false)}>
+            <dialog ref={successRef} className="profile-modal" style={{ width: 400, textAlign: 'center' }} onClose={() => dispatch(closeOpportunitySuccessModal())}>
                 <div style={{ padding: '40px 24px' }}>
                     <div
                         style={{
@@ -658,7 +705,7 @@ export default function Opportunities() {
                         className="btn-primary"
                         style={{ width: '100%' }}
                         onClick={() => {
-                            setSuccessOpen(false);
+                            dispatch(closeOpportunitySuccessModal());
                             navigate('/candidate/applications');
                         }}
                     >
@@ -716,6 +763,8 @@ function ActiveJobDetails({ job, store, onApply, onCheckEligibility, onAskQuery,
         } else {
             actionButton = (
                 <button
+                    type="button"
+                    disabled
                     className="btn-ineligible-state"
                     style={{ width: '100%', borderRadius: 'var(--radius-md)', padding: 16, fontWeight: 600, backgroundColor: '#fee2e2', color: '#ef4444', border: 'none', marginBottom: 20, cursor: 'not-allowed' }}
                 >

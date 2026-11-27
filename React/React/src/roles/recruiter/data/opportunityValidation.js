@@ -1,3 +1,5 @@
+// Helper/Data Module (roles/recruiter/data/opportunityValidation.js):
+// Supports Redux slices/components with data mapping, validation, or static configuration.
 export const allBranches = ["CSE", "ECE", "IT", "EEE", "MECH", "CIVIL"];
 
 export const getTodayStr = () => new Date().toISOString().split("T")[0];

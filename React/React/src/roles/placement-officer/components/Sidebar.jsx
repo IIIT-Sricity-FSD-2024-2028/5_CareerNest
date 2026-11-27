@@ -1,6 +1,16 @@
-import { useBrowserCommands } from '../../../store/useBrowserCommands.js';
-import { useViewState } from '../../../store/useViewState.js';
-import { useLogout } from '../../../shared/context/AuthContext.jsx';
+// Data Flow (roles/placement-officer/components/Sidebar.jsx):
+// Backend API -> Redux Thunks/Slices (authSlice, placementOfficerSlice) -> useSelector(selectPlacementPage, selectPlacementSignOutOpen) -> UI render
+// User Actions -> dispatch(logoutUser) -> Slice reducers/thunks -> Redux state update
+import { useDispatch, useSelector } from 'react-redux';
+import { logoutUser } from '../../../store/slices/authSlice.js';
+import {
+  
+  closePlacementSignOut,
+  openPlacementSignOut,
+  selectPlacementPage,
+  selectPlacementSignOutOpen,
+  setPlacementPage,
+} from '../store/placementOfficerSlice.js';
 import { BarChart3, Bell, BriefcaseBusiness, ClipboardList, LayoutDashboard, LogOut, UserCog, UsersRound } from 'lucide-react';
 import SignOutModal from './SignOutModal';
 
@@ -14,18 +24,15 @@ const navItems = [
   { label: 'Bulk Notifications',   href: 'bulk-notify.html',      page: 'bulk-notify',      icon: Bell },
 ];
 
-export default function Sidebar({ activePage = 'p1', onNavigate }) {
-  const confirmSignOut = useLogout();
-  const { visit } = useBrowserCommands();
-  const [{ isSignOutOpen }, { setIsSignOutOpen }] = useViewState('placementOfficer', 'Sidebar', () => ({
-    isSignOutOpen: false,
-  }));
+export default function Sidebar({ activePage: activePageProp }) {
+  const dispatch = useDispatch();
+  const currentPage = useSelector(selectPlacementPage);
+  const activePage = activePageProp || currentPage || 'p1';
+  const confirmSignOut = () => dispatch(logoutUser());
+  const isSignOutOpen = useSelector(selectPlacementSignOutOpen);
   const handleClick = (item) => {
-    if (onNavigate) {
-      onNavigate(item.page);
-    } else {
-      visit(item.href);
-    }
+    dispatch(setPlacementPage(item.page));
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
   };
 
   return (
@@ -53,14 +60,14 @@ export default function Sidebar({ activePage = 'p1', onNavigate }) {
         <button
           type="button"
           style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', padding: 0 }}
-          onClick={() => setIsSignOutOpen(true)}
+          onClick={() => dispatch(openPlacementSignOut())}
         >
           <span className="placement-nav-label"><LogOut size={18} strokeWidth={2} aria-hidden="true" />Sign Out</span>
         </button>
       </div>
       <SignOutModal
         isOpen={isSignOutOpen}
-        onClose={() => setIsSignOutOpen(false)}
+        onClose={() => dispatch(closePlacementSignOut())}
         onConfirm={confirmSignOut}
       />
     </nav>

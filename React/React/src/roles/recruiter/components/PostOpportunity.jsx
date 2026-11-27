@@ -1,9 +1,25 @@
-import { useViewState } from '../../../store/useViewState.js';
+// Data Flow (roles/recruiter/components/PostOpportunity.jsx):
+// Backend API -> Redux Thunks/Slices (opportunitiesSlice, recruiterSlice) -> useSelector(selectPostOpportunityUi, selectRecruiter) -> UI render
+// User Actions -> dispatch(createOpportunity, loadRecruiterWorkspace) -> Slice reducers/thunks -> Redux state update
+import { useEffect } from 'react';
+import { shallowEqual, useDispatch, useSelector } from 'react-redux';
+import { errorMessage } from '../../../services/api.js';
 import { infoDialog } from '../../../shared/components/AppDialog.jsx';
+import { createOpportunity } from '../../../store/slices/opportunitiesSlice.js';
+import {
+  
+  loadRecruiterWorkspace,
+  resetPostOpportunityForm,
+  selectPostOpportunityUi,
+  selectRecruiter,
+  setPostOpportunityField,
+  setRecruiterTab,
+} from '../store/recruiterSlice.js';
+import { fromOpportunity } from '../data/api.js';
 import { LocationAdder, SkillAdder, BranchSelector } from './OpportunityFields.jsx';
 import { getTodayStr, getMaxDeadlineStr, validateTitle, validateCtcLpa, validateInternComp, validateCgpa, validateDeadline } from '../data/opportunityValidation.js';
 
-// ── Shared helpers ────────────────────────────────────────────────────────────
+// â”€â”€ Shared helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
  * Returns true if an opportunity with the same title (case-insensitive)
@@ -18,24 +34,26 @@ function isDuplicate(existingOpportunities, title, type) {
   );
 }
 
-// ── Full-Time Form ────────────────────────────────────────────────────────────
+// â”€â”€ Full-Time Form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function FullTimeForm({ onAddOpportunity, setActiveTab, existingOpportunities }) {
-  const [
-    { jobId, title, locations, ctcLpa, cgpa, deadline, description, selectedBranches, skills, errors },
-    { setJobId, setTitle, setLocations, setCtcLpa, setCgpa, setDeadline, setDescription, setSelectedBranches, setSkills, setErrors },
-  ] = useViewState('recruiter', 'FullTimeForm', () => ({
-    jobId: '',
-    title: '',
-    locations: [],
-    ctcLpa: '',
-    cgpa: '',
-    deadline: '',
-    description: '',
-    selectedBranches: [],
-    skills: [],
-    errors: {},
-  }));
+  const dispatch = useDispatch();
+  const {
+    jobId, title, locations, ctcLpa, cgpa, deadline, description, selectedBranches, skills, errors,
+  } = useSelector(selectPostOpportunityUi);
+  const setJobId = (v) => dispatch(setPostOpportunityField({ field: 'jobId', value: v }));
+  const setTitle = (v) => dispatch(setPostOpportunityField({ field: 'title', value: v }));
+  const setLocations = (v) => dispatch(setPostOpportunityField({ field: 'locations', value: v }));
+  const setCtcLpa = (v) => dispatch(setPostOpportunityField({ field: 'ctcLpa', value: v }));
+  const setCgpa = (v) => dispatch(setPostOpportunityField({ field: 'cgpa', value: v }));
+  const setDeadline = (v) => dispatch(setPostOpportunityField({ field: 'deadline', value: v }));
+  const setDescription = (v) => dispatch(setPostOpportunityField({ field: 'description', value: v }));
+  const setSelectedBranches = (v) => dispatch(setPostOpportunityField({ field: 'selectedBranches', value: v }));
+  const setSkills = (v) => dispatch(setPostOpportunityField({ field: 'skills', value: v }));
+  const setErrors = (updater) => {
+    const next = typeof updater === 'function' ? updater(errors) : updater;
+    dispatch(setPostOpportunityField({ field: 'errors', value: next }));
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -51,7 +69,7 @@ function FullTimeForm({ onAddOpportunity, setActiveTab, existingOpportunities })
     if (locations.length === 0) { infoDialog('Please add at least one work location.'); return; }
     if (selectedBranches.length === 0) { infoDialog('Please select at least one eligible branch.'); return; }
 
-    // Duplicate check — same title + same type
+    // Duplicate check â€” same title + same type
     if (isDuplicate(existingOpportunities, title, 'Full-Time')) {
       setErrors((prev) => ({
         ...prev,
@@ -171,25 +189,27 @@ function FullTimeForm({ onAddOpportunity, setActiveTab, existingOpportunities })
   );
 }
 
-// ── Internship Form ───────────────────────────────────────────────────────────
+// â”€â”€ Internship Form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function InternshipForm({ onAddOpportunity, setActiveTab, existingOpportunities }) {
-  const [
-    { jobId, title, locations, duration, compensation, cgpa, deadline, description, selectedBranches, skills, errors },
-    { setJobId, setTitle, setLocations, setDuration, setCompensation, setCgpa, setDeadline, setDescription, setSelectedBranches, setSkills, setErrors },
-  ] = useViewState('recruiter', 'InternshipForm', () => ({
-    jobId: '',
-    title: '',
-    locations: [],
-    duration: '',
-    compensation: '',
-    cgpa: '',
-    deadline: '',
-    description: '',
-    selectedBranches: [],
-    skills: [],
-    errors: {},
-  }));
+  const dispatch = useDispatch();
+  const {
+    jobId, title, locations, duration, compensation, cgpa, deadline, description, selectedBranches, skills, errors,
+  } = useSelector(selectPostOpportunityUi);
+  const setJobId = (v) => dispatch(setPostOpportunityField({ field: 'jobId', value: v }));
+  const setTitle = (v) => dispatch(setPostOpportunityField({ field: 'title', value: v }));
+  const setLocations = (v) => dispatch(setPostOpportunityField({ field: 'locations', value: v }));
+  const setDuration = (v) => dispatch(setPostOpportunityField({ field: 'duration', value: v }));
+  const setCompensation = (v) => dispatch(setPostOpportunityField({ field: 'compensation', value: v }));
+  const setCgpa = (v) => dispatch(setPostOpportunityField({ field: 'cgpa', value: v }));
+  const setDeadline = (v) => dispatch(setPostOpportunityField({ field: 'deadline', value: v }));
+  const setDescription = (v) => dispatch(setPostOpportunityField({ field: 'description', value: v }));
+  const setSelectedBranches = (v) => dispatch(setPostOpportunityField({ field: 'selectedBranches', value: v }));
+  const setSkills = (v) => dispatch(setPostOpportunityField({ field: 'skills', value: v }));
+  const setErrors = (updater) => {
+    const next = typeof updater === 'function' ? updater(errors) : updater;
+    dispatch(setPostOpportunityField({ field: 'errors', value: next }));
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -205,7 +225,7 @@ function InternshipForm({ onAddOpportunity, setActiveTab, existingOpportunities 
     if (locations.length === 0) { infoDialog('Please add at least one work location.'); return; }
     if (selectedBranches.length === 0) { infoDialog('Please select at least one eligible branch.'); return; }
 
-    // Duplicate check — same title + same type
+    // Duplicate check â€” same title + same type
     if (isDuplicate(existingOpportunities, title, 'Internship')) {
       setErrors((prev) => ({
         ...prev,
@@ -338,12 +358,36 @@ function InternshipForm({ onAddOpportunity, setActiveTab, existingOpportunities 
   );
 }
 
-// ── Main PostOpportunity wrapper ──────────────────────────────────────────────
+// â”€â”€ Main PostOpportunity wrapper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-export default function PostOpportunity({ onAddOpportunity, setActiveTab, existingOpportunities = [] }) {
-  const [{ jobType }, { setJobType }] = useViewState('recruiter', 'PostOpportunity', () => ({
-    jobType: 'Full-Time',
-  }));
+export default function PostOpportunity() {
+  const dispatch = useDispatch();
+  const { recruiter, opportunities: existingOpportunities = [] } = useSelector(selectRecruiter, shallowEqual);
+  const { jobType } = useSelector(selectPostOpportunityUi);
+
+  useEffect(() => {
+    dispatch(resetPostOpportunityForm('Full-Time'));
+  }, [dispatch]);
+
+  const setJobType = (nextType) => dispatch(resetPostOpportunityForm(nextType));
+
+  const setActiveTab = (tab) => {
+    dispatch(setRecruiterTab(tab));
+  };
+
+  const onAddOpportunity = async (newOpportunity) => {
+    try {
+      await dispatch(createOpportunity(fromOpportunity(newOpportunity, {
+        company: recruiter.company || newOpportunity.company || 'Company',
+        submittedBy: recruiter.name,
+      }))).unwrap();
+      const refreshed = await dispatch(loadRecruiterWorkspace()).unwrap().then(() => true, () => false);
+      infoDialog(refreshed ? `Opportunity "${newOpportunity.title}" submitted for placement cell approval.` : 'Changes were saved, but some workspace data could not be refreshed.');
+      setActiveTab('opportunities');
+    } catch (error) {
+      infoDialog(errorMessage(error, 'Could not post the opportunity.'));
+    }
+  };
 
   return (
     <div className="form-container-card">

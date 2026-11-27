@@ -1,47 +1,32 @@
-import { useEffect, useState } from "react";
+// Data Flow (public-pages/login/LoginPage.jsx):
+// Backend API -> Redux Thunks/Slices (authSlice) -> useSelector(selectLoginForm) -> UI render
+// User Actions -> dispatch(loginForm) -> Slice reducers/thunks -> Redux state update
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  resetLoginForm,
+  selectLoginForm,
+  setLoginEmail,
+  setLoginPassword,
+  signIn,
+  toggleLoginPasswordVisibility,
+} from "../../store/slices/authSlice.js";
 import "./Login.css";
-
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
-
-/* =========================================================
-   ROLE REDIRECTS
-   ========================================================= */
-
-const ROLE_REDIRECT = {
-  candidate: "/candidate",
-  alumni: "/alumni",
-  recruiter: "/recruiter",
-  placement_officer: "/placement",
-  college_admin: "/college-admin",
-  super_admin: "/super-admin",
-};
 
 /* =========================================================
    APP
    ========================================================= */
 
 function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [message, setMessage] = useState("");
-  const [messageColor, setMessageColor] = useState("");
-  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
+  const { email, password, showPassword, message, messageColor, loading } = useSelector(selectLoginForm);
 
   useEffect(() => {
     document.title = "Login — CareerNest";
-  }, []);
-
-  /* =========================================================
-     HELPERS
-     ========================================================= */
-
-  const displayMessage = (text, color) => {
-    setMessage(text);
-    setMessageColor(color);
-  };
-
-  const togglePassword = () => setShowPassword((prev) => !prev);
+    return () => {
+      dispatch(resetLoginForm());
+    };
+  }, [dispatch]);
 
   /* =========================================================
      LOGIN
@@ -52,83 +37,11 @@ function LoginPage() {
      ========================================================= */
 
   const login = async () => {
-    const cleanEmail = email.trim();
-    const cleanPassword = password.trim();
-
-    setMessage("");
-    setMessageColor("");
-
-    if (!cleanEmail || !cleanPassword) {
-      displayMessage("Please enter your email and password.", "red");
-      return;
-    }
-
-    setLoading(true);
-
     try {
-      const response = await fetch(`${BASE_URL}/users/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: cleanEmail, password: cleanPassword }),
-      });
-
-      if (response.ok) {
-        const user = await response.json();
-
-        /* Persist full session — AuthContext.readSession() reads loggedInUser */
-        localStorage.setItem("loggedInUser", JSON.stringify(user));
-        localStorage.setItem("userRole", user.role);
-        localStorage.setItem("userName", user.name || "");
-        localStorage.setItem("userEmail", user.email || "");
-        localStorage.setItem("userId", String(user.id));
-        localStorage.setItem(
-          "collegeId",
-          user.collegeId != null ? String(user.collegeId) : "null"
-        );
-        /* accessToken is critical — ProtectedRoute checks user?.accessToken */
-        localStorage.setItem("accessToken", user.accessToken || "");
-
-        if (user.role === "recruiter") {
-          localStorage.setItem("recruiterEmail", user.email);
-          localStorage.setItem("recruiterName", user.name);
-          localStorage.setItem("recruiterCompany", user.company || "");
-        }
-
-        const redirectUrl = ROLE_REDIRECT[user.role];
-
-        if (!redirectUrl) {
-          displayMessage(`Unknown role: ${user.role}`, "red");
-          setLoading(false);
-          return;
-        }
-
-        displayMessage("Login successful! Redirecting…", "green");
-
-        /* window.location.replace() triggers a full navigation so the new
-           route's AuthContext mounts with the localStorage we just wrote. */
-        setTimeout(() => { window.location.replace(redirectUrl); }, 600);
-
-      } else {
-        let errorMsg = "Invalid email or password.";
-        try {
-          const errorData = await response.json();
-          if (Array.isArray(errorData.message)) {
-            errorMsg = errorData.message.join(", ");
-          } else if (errorData.message) {
-            errorMsg = errorData.message;
-          }
-        } catch { /* use default */ }
-        displayMessage(errorMsg, "red");
-        setLoading(false);
-      }
-
-    } catch (error) {
-      console.error("[login] Network error:", error);
-      displayMessage(
-        "Cannot reach login server. Make sure the backend is running on port 3000.",
-        "red"
-      );
-      setLoading(false);
+      const { redirectUrl } = await dispatch(signIn({ email, password })).unwrap();
+      setTimeout(() => window.location.replace(redirectUrl), 600);
+    } catch {
+      // Error message is stored in auth.loginForm by signIn.rejected
     }
   };
 
@@ -136,9 +49,7 @@ function LoginPage() {
     if (event.key === "Enter") login();
   };
 
-  const handleBackToHome = () => {
-    window.location.href = "/";
-  };
+  const handleBackToHome = () => window.location.assign("/");
 
   /* =========================================================
      PAGE
@@ -165,7 +76,6 @@ function LoginPage() {
               <p className="login-brand__sub">Sign in to your account</p>
             </div>
 
-
             {/* EMAIL */}
 
             <div className="input-group">
@@ -174,11 +84,10 @@ function LoginPage() {
                 type="email"
                 placeholder="Enter your email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => dispatch(setLoginEmail(e.target.value))}
                 autoComplete="username"
               />
             </div>
-
 
             {/* PASSWORD */}
 
@@ -189,18 +98,18 @@ function LoginPage() {
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => dispatch(setLoginPassword(e.target.value))}
                   onKeyDown={handlePasswordKeyDown}
                   autoComplete="current-password"
                 />
                 <span
                   className="toggle-password"
-                  onClick={togglePassword}
+                  onClick={() => dispatch(toggleLoginPasswordVisibility())}
                   role="button"
                   tabIndex={0}
                   aria-label={showPassword ? "Hide password" : "Show password"}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") togglePassword();
+                    if (e.key === "Enter" || e.key === " ") dispatch(toggleLoginPasswordVisibility());
                   }}
                 >
                   <i className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"}`}></i>
@@ -208,21 +117,17 @@ function LoginPage() {
               </div>
             </div>
 
-
             {/* LOGIN BUTTON */}
 
             <button className="login-btn" onClick={login} disabled={loading}>
               {loading ? "Signing in…" : "Sign In"}
             </button>
 
-
             {/* MESSAGE */}
 
             <p id="msg-display" style={{ color: messageColor }}>{message}</p>
 
-
           </div>
-
 
           {/* =================================================
               BACK TO HOME

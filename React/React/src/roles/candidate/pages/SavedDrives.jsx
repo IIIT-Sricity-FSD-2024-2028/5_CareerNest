@@ -1,7 +1,17 @@
+// Data Flow (roles/candidate/pages/SavedDrives.jsx):
+// Backend API -> Redux Thunks/Slices (candidateSlice, savedDrivesSlice) -> useSelector(selectCandidateStore, selectCandidateToast) -> UI render
+// User Actions -> dispatch(slice actions) -> Slice reducers/thunks -> Redux state update
+import { useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { useStore } from '../context/StoreContext.jsx';
+import {
+    hideCandidateToast,
+    selectCandidateStore,
+    selectCandidateToast,
+    showCandidateToast,
+} from '../store/candidateSlice.js';
 import { errorMessage } from '../../../services/api.js';
-import { useToast } from '../hooks/useToast.js';
+import { unsaveDrive } from '../../../store/slices/savedDrivesSlice.js';
 import '../styles/features.css';
 
 function daysLeft(deadline) {
@@ -9,15 +19,23 @@ function daysLeft(deadline) {
 }
 
 export default function SavedDrives() {
-    const { store, toggleSaved } = useStore();
-    const { toast, showToast } = useToast();
+    const dispatch = useDispatch();
+    const store = useSelector(selectCandidateStore);
+    const toast = useSelector(selectCandidateToast);
+    const toastTimer = useRef(null);
     const navigate = useNavigate();
+
+    const showToast = (message) => {
+        dispatch(showCandidateToast(message));
+        if (toastTimer.current) clearTimeout(toastTimer.current);
+        toastTimer.current = setTimeout(() => dispatch(hideCandidateToast()), 3000);
+    };
 
     const savedJobs = store.recruiterJobs.filter((j) => store.savedDriveIds.includes(j.id));
 
     async function removeSaved(jobId) {
         try {
-            await toggleSaved(jobId, true);
+            await dispatch(unsaveDrive(jobId)).unwrap();
             showToast('Removed from saved drives');
         } catch (error) {
             showToast(errorMessage(error, 'Could not update saved drives.'));

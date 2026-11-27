@@ -1,13 +1,33 @@
-import { ReduxAnchor } from '../../../shared/components/ReduxLink.jsx';
-import { useViewState } from '../../../store/useViewState.js';
-import { confirmDialog } from '../../../shared/components/AppDialog.jsx';
+// Data Flow (roles/recruiter/components/Assessments.jsx):
+// Backend API -> Redux Thunks/Slices (assessmentsSlice, recruiterSlice) -> useSelector(selectOpportunitiesWithCount, selectRecruiter, selectRecruiterAssessmentsUi, selectScheduleApplication) -> UI render
+// User Actions -> dispatch(deleteAssessment, loadRecruiterWorkspace) -> Slice reducers/thunks -> Redux state update
+import { useEffect } from 'react';
+import { shallowEqual, useDispatch, useSelector } from 'react-redux';
+import { errorMessage } from '../../../services/api.js';
+import { confirmDialog, infoDialog } from '../../../shared/components/AppDialog.jsx';
 import { Calendar, Video, Users, ExternalLink, Plus, Trash2, Mail } from 'lucide-react';
+import { deleteAssessment } from '../../../store/slices/assessmentsSlice.js';
+import {
+  loadRecruiterWorkspace,
+  selectOpportunitiesWithCount,
+  selectRecruiter,
+  selectRecruiterAssessmentsUi,
+  selectScheduleApplication,
+  setRecruiterShowScheduleModal,
+} from '../store/recruiterSlice.js';
 import ScheduleModal from './ScheduleModal';
 
-export default function Assessments({ assessments, opportunities = [], applications = [], onAddAssessment, onDeleteAssessment, preselectApplicationId, onModalClosed }) {
-  const [{ showScheduleModal }, { setShowScheduleModal }] = useViewState('recruiter', 'Assessments', () => ({
-    showScheduleModal: Boolean(preselectApplicationId),
-  }));
+export default function Assessments() {
+  const dispatch = useDispatch();
+  const { assessments, applications = [], scheduleFor: preselectApplicationId } = useSelector(selectRecruiter, shallowEqual);
+  const opportunities = useSelector(selectOpportunitiesWithCount);
+  const { showScheduleModal } = useSelector(selectRecruiterAssessmentsUi);
+
+  useEffect(() => {
+    if (preselectApplicationId) {
+      dispatch(setRecruiterShowScheduleModal(true));
+    }
+  }, [dispatch, preselectApplicationId]);
 
   return (
     <div>
@@ -23,7 +43,7 @@ export default function Assessments({ assessments, opportunities = [], applicati
         <button 
           className="btn-primary-action"
           style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-          onClick={() => setShowScheduleModal(true)}
+          onClick={() => dispatch(setRecruiterShowScheduleModal(true))}
         >
           <Plus size={16} />
           <span>Schedule New Round</span>
@@ -33,7 +53,7 @@ export default function Assessments({ assessments, opportunities = [], applicati
       {assessments.length === 0 ? (
         <div style={{ background: 'white', padding: '40px', textAlign: 'center', borderRadius: '14px', border: '1px solid #E5E7EB' }}>
           <p style={{ color: '#6B7280', fontSize: '14px', marginBottom: '16px' }}>No assessment rounds currently scheduled.</p>
-          <button className="btn-primary-action" onClick={() => setShowScheduleModal(true)}>
+          <button className="btn-primary-action" onClick={() => dispatch(setRecruiterShowScheduleModal(true))}>
             Schedule First Round
           </button>
         </div>
@@ -56,8 +76,13 @@ export default function Assessments({ assessments, opportunities = [], applicati
                   style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', padding: '4px' }}
                   title="Remove Round"
                   onClick={async () => {
-                    if (await confirmDialog(`Delete assessment round "${item.title}"?`)) {
-                      onDeleteAssessment(item.id);
+                    if (!await confirmDialog(`Delete assessment round "${item.title}"?`)) return;
+                    try {
+                      await dispatch(deleteAssessment(item.id)).unwrap();
+                      const refreshed = await dispatch(loadRecruiterWorkspace()).unwrap().then(() => true, () => false);
+                      infoDialog(refreshed ? 'Assessment round removed.' : 'Changes were saved, but some workspace data could not be refreshed.');
+                    } catch (error) {
+                      infoDialog(errorMessage(error, 'Could not remove the assessment.'));
                     }
                   }}
                 >
@@ -92,7 +117,7 @@ export default function Assessments({ assessments, opportunities = [], applicati
               </div>
 
               <div style={{ marginTop: 'auto', paddingTop: '10px', borderTop: '1px solid #F3F4F6' }}>
-                <ReduxAnchor
+                <a
                   href={item.link} 
                   target="_blank" 
                   rel="noreferrer"
@@ -112,7 +137,7 @@ export default function Assessments({ assessments, opportunities = [], applicati
                 >
                   <span>Open Session Link</span>
                   <ExternalLink size={14} />
-                </ReduxAnchor>
+                </a>
               </div>
             </div>
           ))}
@@ -121,9 +146,8 @@ export default function Assessments({ assessments, opportunities = [], applicati
 
       {showScheduleModal && (
         <ScheduleModal 
-          onClose={() => { setShowScheduleModal(false); onModalClosed?.(); }}
+          onClose={() => { dispatch(setRecruiterShowScheduleModal(false)); dispatch(selectScheduleApplication(null)); }}
           preselectApplicationId={preselectApplicationId}
-          onAddAssessment={onAddAssessment}
           opportunities={opportunities}
           applications={applications}
         />

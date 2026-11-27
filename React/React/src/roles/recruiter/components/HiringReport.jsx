@@ -1,6 +1,13 @@
+// Data Flow (roles/recruiter/components/HiringReport.jsx):
+// Backend API -> Redux Thunks/Slices (recruiterSlice) -> useSelector(selectOpportunitiesWithCount, selectRecruiter) -> UI render
+// User Actions -> dispatch(slice actions) -> Slice reducers/thunks -> Redux state update
+import { shallowEqual, useSelector } from 'react-redux';
 import { TrendingUp } from 'lucide-react';
+import { selectOpportunitiesWithCount, selectRecruiter } from '../store/recruiterSlice.js';
 
-export default function HiringReport({ applications, opportunities }) {
+export default function HiringReport() {
+  const { applications } = useSelector(selectRecruiter, shallowEqual);
+  const opportunities = useSelector(selectOpportunitiesWithCount);
   // Compute analytics
   const totalApps = applications.length;
   const shortlisted = applications.filter(a => ['Shortlisted', 'Interview', 'Offered'].includes(a.status)).length;

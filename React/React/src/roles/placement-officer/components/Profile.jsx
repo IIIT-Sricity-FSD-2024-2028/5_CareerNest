@@ -1,36 +1,44 @@
-import { ReduxAnchor } from '../../../shared/components/ReduxLink.jsx';
-import { useViewState } from '../../../store/useViewState.js';
+// Data Flow (roles/placement-officer/components/Profile.jsx):
+// Backend API -> Redux Thunks/Slices (authSlice, placementOfficerSlice, usersSlice) -> useSelector(selectSession, selectOfficerData, selectPlacementProfileUi, selectCurrentUser) -> UI render
+// User Actions -> dispatch(updateSessionUser, fetchUserById, updateUser, updateSession, updateDraft, saveInlineEdit) -> Slice reducers/thunks -> Redux state update
 import { phoneError, phoneInputProps } from '../../../shared/utils/phone.js';
 import { infoDialog } from '../../../shared/components/AppDialog.jsx';
 import { useEffect } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import './styles/p1.css';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { errorMessage } from '../../../services/api.js';
-import { useOperations } from '../../../store/useOperations.js';
-import { selectCurrentUser } from '../../../store/operations.js';
-import { selectSession } from '../../../store/sessionSlice.js';
-import { useUpdateSession } from '../../../shared/context/AuthContext.jsx';
-import { useOfficerData } from '../services/officerApi';
+import { selectSession, updateSessionUser } from '../../../store/slices/authSlice.js';
+import {
+  
+  selectOfficerData,
+  selectPlacementProfileUi,
+  setPlacementPage,
+  setPlacementProfileUi,
+} from '../store/placementOfficerSlice.js';
+import { fetchUserById, selectCurrentUser, updateUser } from '../../../store/slices/usersSlice.js';
 import { officerInitials } from '../utils/officerIdentity.js';
 import ChangePasswordModal from '../../../shared/components/ChangePasswordModal';
 
 function StyledInput({ hasError, ...props }) {
-  const [{ focused }, { setFocused }] = useViewState('placementOfficer', 'StyledInput', () => ({
-    focused: false,
-  }));
   return (
     <input
       {...props}
-      onFocus={() => setFocused(true)}
-      onBlur={() => setFocused(false)}
+      onFocus={(e) => {
+        e.currentTarget.style.borderColor = hasError ? '#ef4444' : '#7c3aed';
+        e.currentTarget.style.boxShadow = `0 0 0 3px rgba(${hasError ? '239,68,68' : '124,58,237'},.1)`;
+      }}
+      onBlur={(e) => {
+        e.currentTarget.style.borderColor = hasError ? '#ef4444' : '#d1d5db';
+        e.currentTarget.style.boxShadow = 'none';
+      }}
       style={{
         display: 'block', width: '100%', boxSizing: 'border-box',
         padding: '10px 12px', fontSize: '14px', color: '#1e2939',
         borderRadius: '8px', fontFamily: 'inherit', outline: 'none',
-        border: `1.5px solid ${hasError ? '#ef4444' : focused ? '#7c3aed' : '#d1d5db'}`,
-        boxShadow: focused ? `0 0 0 3px rgba(${hasError ? '239,68,68' : '124,58,237'},.1)` : 'none',
+        border: `1.5px solid ${hasError ? '#ef4444' : '#d1d5db'}`,
+        boxShadow: 'none',
         background: '#fff', transition: 'border-color .15s, box-shadow .15s',
       }}
     />
@@ -38,21 +46,24 @@ function StyledInput({ hasError, ...props }) {
 }
 
 function StyledTextarea({ hasError, rows = 3, ...props }) {
-  const [{ focused }, { setFocused }] = useViewState('placementOfficer', 'StyledTextarea', () => ({
-    focused: false,
-  }));
   return (
     <textarea
       {...props}
       rows={rows}
-      onFocus={() => setFocused(true)}
-      onBlur={() => setFocused(false)}
+      onFocus={(e) => {
+        e.currentTarget.style.borderColor = hasError ? '#ef4444' : '#7c3aed';
+        e.currentTarget.style.boxShadow = `0 0 0 3px rgba(${hasError ? '239,68,68' : '124,58,237'},.1)`;
+      }}
+      onBlur={(e) => {
+        e.currentTarget.style.borderColor = hasError ? '#ef4444' : '#d1d5db';
+        e.currentTarget.style.boxShadow = 'none';
+      }}
       style={{
         display: 'block', width: '100%', boxSizing: 'border-box',
         padding: '10px 12px', fontSize: '14px', color: '#1e2939',
         borderRadius: '8px', fontFamily: 'inherit', outline: 'none', resize: 'vertical',
-        border: `1.5px solid ${hasError ? '#ef4444' : focused ? '#7c3aed' : '#d1d5db'}`,
-        boxShadow: focused ? `0 0 0 3px rgba(${hasError ? '239,68,68' : '124,58,237'},.1)` : 'none',
+        border: `1.5px solid ${hasError ? '#ef4444' : '#d1d5db'}`,
+        boxShadow: 'none',
         background: '#fff', transition: 'border-color .15s, box-shadow .15s',
       }}
     />
@@ -87,11 +98,11 @@ function InlineEditActions({ onSave, onCancel }) {
   );
 }
 
-/* ── Main Profile Component ──────────────────────────── */
-export default function Profile({ onNavigate, activePage = 'profile' }) {
-  const commands = useOperations();
+/* â”€â”€ Main Profile Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+export default function Profile({ activePage = 'profile' }) {
+  const dispatch = useDispatch();
   const session = useSelector(selectSession) || {};
-  const updateSession = useUpdateSession();
+  const updateSession = (u) => dispatch(updateSessionUser({ user: u }));
   const initialsOf = officerInitials;
   const user = useSelector(selectCurrentUser) || {};
   const extra = user.resumeData?.officerProfile || {};
@@ -104,20 +115,19 @@ export default function Profile({ onNavigate, activePage = 'profile' }) {
     education: extra.education || [], skills: extra.skills || [], achievements: extra.achievements || [],
     social: { linkedin: user.socialLinks?.linkedin || '', website: user.socialLinks?.portfolio || '' },
   };
-  const { data: officerData } = useOfficerData();
+  const officerData = useSelector(selectOfficerData);
 
   useEffect(() => {
-    if (session.id) commands.getUser(session.id).catch(() => {});
-  }, [commands, session.id]);
+    if (session.id) dispatch(fetchUserById(session.id));
+  }, [dispatch, session.id]);
 
-  const [
-    { editingSection, draft, isChangePasswordOpen },
-    { setEditingSection, setDraft, setIsChangePasswordOpen },
-  ] = useViewState('placementOfficer', 'Profile/editingSection', () => ({
-    editingSection: null,
-    draft: {},
-    isChangePasswordOpen: false,
-  }));
+  const { editingSection, draft, isChangePasswordOpen } = useSelector(selectPlacementProfileUi);
+  const setEditingSection = (v) => dispatch(setPlacementProfileUi({ editingSection: v }));
+  const setDraft = (updater) => {
+    const next = typeof updater === 'function' ? updater(draft) : updater;
+    dispatch(setPlacementProfileUi({ draft: next }));
+  };
+  const setIsChangePasswordOpen = (v) => dispatch(setPlacementProfileUi({ isChangePasswordOpen: v }));
 
 
   const stats = officerData.stats;
@@ -166,12 +176,15 @@ export default function Profile({ onNavigate, activePage = 'profile' }) {
       initials: initialsOf(form.name),
     };
     try {
-      await commands.updateUser(session.id, {
-        name: next.name, phone: next.phone, university: next.institution, department: next.department,
-        location: next.location, about: next.bio,
-        socialLinks: { linkedin: next.social.linkedin, portfolio: next.social.website },
-        resumeData: { officerProfile: { employeeId: next.employeeId, education: next.education, skills: next.skills, achievements: next.achievements } },
-      });
+      await dispatch(updateUser({
+        id: session.id,
+        data: {
+          name: next.name, phone: next.phone, university: next.institution, department: next.department,
+          location: next.location, about: next.bio,
+          socialLinks: { linkedin: next.social.linkedin, portfolio: next.social.website },
+          resumeData: { officerProfile: { employeeId: next.employeeId, education: next.education, skills: next.skills, achievements: next.achievements } },
+        },
+      })).unwrap();
       const nextSession = { ...session, name: next.name, email: next.email };
       if (!updateSession(nextSession)) return;
       infoDialog('Profile updated successfully.');
@@ -209,15 +222,17 @@ export default function Profile({ onNavigate, activePage = 'profile' }) {
 
   return (
     <div className="frame">
-      <Sidebar activePage={activePage} onNavigate={onNavigate} />
+      <Sidebar activePage={activePage} />
 
-      <Header title="Placement Officer Profile" onNavigate={onNavigate} profile={userData} />
+      <Header title="Placement Officer Profile" profile={userData} />
 
       <main className="main-content" id="mainContent">
         {/* Back navigation button */}
         <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <button
-            onClick={() => onNavigate('p1')}
+            onClick={() => {
+              dispatch(setPlacementPage('p1'));
+            }}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '8px',
               padding: '8px 16px', background: '#fff', border: '1px solid #e5e7eb',
@@ -225,7 +240,7 @@ export default function Profile({ onNavigate, activePage = 'profile' }) {
               cursor: 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
             }}
           >
-            ← Back to Dashboard
+            â† Back to Dashboard
           </button>
 
           <button
@@ -251,7 +266,7 @@ export default function Profile({ onNavigate, activePage = 'profile' }) {
             onMouseEnter={e => e.currentTarget.style.opacity = '.9'}
             onMouseLeave={e => e.currentTarget.style.opacity = '1'}
           >
-            ✏️ Edit Profile
+            âœï¸ Edit Profile
           </button>
         </div>
 
@@ -296,7 +311,7 @@ export default function Profile({ onNavigate, activePage = 'profile' }) {
                 onMouseEnter={e => e.currentTarget.style.background = '#ede9fe'}
                 onMouseLeave={e => e.currentTarget.style.background = '#f5f3ff'}
               >
-                ✏️ Edit
+                âœï¸ Edit
               </button>
             </div>
             <div className="panel-body">
@@ -400,7 +415,7 @@ export default function Profile({ onNavigate, activePage = 'profile' }) {
               ) : <div className="pm-achieve-list">
                 {(userData.achievements || []).map((a, idx) => (
                   <div className="pm-achieve-card" key={idx}>
-                    <div className="pm-achieve-icon">🏆</div>
+                    <div className="pm-achieve-icon">ðŸ†</div>
                     <div>
                       <div className="pm-achieve-title">{a.title}</div>
                       <div className="pm-achieve-desc">{a.desc}</div>
@@ -446,14 +461,14 @@ export default function Profile({ onNavigate, activePage = 'profile' }) {
                     </>
                   ) : <div className="pm-social-row" style={{ flexDirection: 'column' }}>
                     {userData.social.linkedin && (
-                      <ReduxAnchor className="pm-social-link" href={`https://${userData.social.linkedin}`} target="_blank" rel="noreferrer">
-                        🔗 LinkedIn Profile
-                      </ReduxAnchor>
+                      <a className="pm-social-link" href={`https://${userData.social.linkedin}`} target="_blank" rel="noreferrer">
+                        ðŸ”— LinkedIn Profile
+                      </a>
                     )}
                     {userData.social.website && (
-                      <ReduxAnchor className="pm-social-link" href={`https://${userData.social.website}`} target="_blank" rel="noreferrer">
-                        🌐 Institutional Webpage
-                      </ReduxAnchor>
+                      <a className="pm-social-link" href={`https://${userData.social.website}`} target="_blank" rel="noreferrer">
+                        ðŸŒ Institutional Webpage
+                      </a>
                     )}
                   </div>}
                 </div>

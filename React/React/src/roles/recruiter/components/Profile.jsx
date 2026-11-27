@@ -1,22 +1,34 @@
-import { useViewState } from '../../../store/useViewState.js';
+// Data Flow (roles/recruiter/components/Profile.jsx):
+// Backend API -> Redux Thunks/Slices (authSlice, recruiterSlice, usersSlice) -> useSelector(selectSession, selectRecruiter, selectRecruiterProfileUi) -> UI render
+// User Actions -> dispatch(updateSessionUser, updateUser, updateSession) -> Slice reducers/thunks -> Redux state update
+import { useEffect } from 'react';
+import { shallowEqual, useDispatch, useSelector } from 'react-redux';
+import { errorMessage } from '../../../services/api.js';
+import { infoDialog } from '../../../shared/components/AppDialog.jsx';
 import { phoneInputProps } from '../../../shared/utils/phone.js';
 import ChangePasswordModal from '../../../shared/components/ChangePasswordModal.jsx';
-import { useSelector } from 'react-redux';
-import { selectSession } from '../../../store/sessionSlice.js';
+import { selectSession, updateSessionUser } from '../../../store/slices/authSlice.js';
+import {
+  initRecruiterProfileUi,
+  selectRecruiter,
+  selectRecruiterProfileUi,
+  setRecruiterProfileFormField,
+  setRecruiterProfileUi,
+} from '../store/recruiterSlice.js';
+import { updateUser } from '../../../store/slices/usersSlice.js';
 import { Edit3, AlertCircle } from 'lucide-react';
 
-export default function Profile({ recruiter, onUpdateProfile }) {
-  const userId = useSelector(selectSession)?.id;
-  const [
-    { passwordOpen, saving, isEditing, formData, errors },
-    { setPasswordOpen, setSaving, setIsEditing, setFormData, setErrors },
-  ] = useViewState('recruiter', 'Profile', () => ({
-    passwordOpen: false,
-    saving: false,
-    isEditing: false,
-    formData: { ...recruiter },
-    errors: {},
-  }));
+export default function Profile() {
+  const dispatch = useDispatch();
+  const updateSession = (u) => dispatch(updateSessionUser({ user: u }));
+  const session = useSelector(selectSession);
+  const { recruiter } = useSelector(selectRecruiter, shallowEqual);
+  const userId = session?.id;
+  const { passwordOpen, saving, isEditing, formData, errors } = useSelector(selectRecruiterProfileUi);
+
+  useEffect(() => {
+    dispatch(initRecruiterProfileUi({ ...recruiter }));
+  }, [dispatch, recruiter.name, recruiter.email, recruiter.company, recruiter.role, recruiter.department, recruiter.phone, recruiter.location]);
 
   const validate = (data = formData) => {
     const errs = {};
@@ -67,33 +79,47 @@ export default function Profile({ recruiter, onUpdateProfile }) {
   const handleToggleEdit = () => {
     if (!isEditing) {
       const initialData = { ...recruiter };
-      setFormData(initialData);
-      setErrors(validate(initialData));
-      setIsEditing(true);
+      dispatch(setRecruiterProfileUi({ formData: initialData, errors: validate(initialData), isEditing: true }));
     } else {
-      setIsEditing(false);
-      setErrors({});
+      dispatch(setRecruiterProfileUi({ isEditing: false, errors: {} }));
     }
   };
 
   const handleChange = (field, value) => {
     const updated = { ...formData, [field]: value };
-    setFormData(updated);
+    dispatch(setRecruiterProfileFormField({ field, value }));
     const errs = validate(updated);
-    setErrors((prev) => ({ ...prev, [field]: errs[field] }));
+    dispatch(setRecruiterProfileUi({ errors: { ...errors, [field]: errs[field] } }));
   };
 
   const handleSave = async (e) => {
     e.preventDefault();
     const errs = validate(formData);
-    setErrors(errs);
+    dispatch(setRecruiterProfileUi({ errors: errs }));
     if (Object.keys(errs).length > 0) {
       return;
     }
-    setSaving(true);
-    const ok = await onUpdateProfile(formData);
-    setSaving(false);
-    if (ok) setIsEditing(false);
+    dispatch(setRecruiterProfileUi({ saving: true }));
+    try {
+      const user = await dispatch(updateUser({
+        id: session.id,
+        data: {
+          name: formData.name,
+          phone: formData.phone,
+          location: formData.location,
+          department: formData.department,
+          company: formData.company,
+          headline: formData.role,
+        },
+      })).unwrap();
+      updateSession({ ...session, name: user.name, company: user.company });
+      infoDialog('Profile information saved successfully!');
+      dispatch(setRecruiterProfileUi({ isEditing: false }));
+    } catch (error) {
+      infoDialog(errorMessage(error, 'Could not save your profile.'));
+    } finally {
+      dispatch(setRecruiterProfileUi({ saving: false }));
+    }
   };
 
   return (
@@ -105,8 +131,8 @@ export default function Profile({ recruiter, onUpdateProfile }) {
         </p>
       </div>
 
-      <button className="btn-secondary-action" style={{marginBottom:16}} onClick={() => setPasswordOpen(true)}>Change Password</button>
-      <ChangePasswordModal isOpen={passwordOpen} onClose={() => setPasswordOpen(false)} userId={userId} accentColor="#0f8f63" />
+      <button className="btn-secondary-action" style={{marginBottom:16}} onClick={() => dispatch(setRecruiterProfileUi({ passwordOpen: true }))}>Change Password</button>
+      <ChangePasswordModal isOpen={passwordOpen} onClose={() => dispatch(setRecruiterProfileUi({ passwordOpen: false }))} userId={userId} accentColor="#0f8f63" />
       <div className="profile-card-full">
         <div className="profile-top-wrap">
           <div className="profile-avatar-large">
@@ -235,7 +261,7 @@ export default function Profile({ recruiter, onUpdateProfile }) {
                   type="text" 
                   className="form-input" 
                   value={formData.location || ''}
-                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                  onChange={(e) => dispatch(setRecruiterProfileFormField({ field: 'location', value: e.target.value }))}
                 />
               </div>
             </div>
@@ -245,8 +271,7 @@ export default function Profile({ recruiter, onUpdateProfile }) {
                 type="button" 
                 className="btn-secondary-action"
                 onClick={() => {
-                  setIsEditing(false);
-                  setErrors({});
+                  dispatch(setRecruiterProfileUi({ isEditing: false, errors: {} }));
                 }}
               >
                 Cancel

@@ -1,14 +1,29 @@
-import { useViewState } from '../../../store/useViewState.js';
-import { useEffect, useRef } from 'react';
+// Data Flow (roles/placement-officer/components/Statistics.jsx):
+// Backend API -> Redux Thunks/Slices (placementOfficerSlice) -> useSelector(selectOfficerData, selectOfficerRequest, selectPlacementStatsUi) -> UI render
+// User Actions -> dispatch(loadOfficerData) -> Slice reducers/thunks -> Redux state update
+import { useCallback, useEffect, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import Chart from 'chart.js/auto';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import '../styles/p3.css';
 import './styles/statistics.css';
-import { useOfficerData } from '../services/officerApi';
+import {
+  loadOfficerData,
+  selectOfficerData,
+  selectOfficerRequest,
+  selectPlacementStatsUi,
+  setPlacementStatsUi,
+} from '../store/placementOfficerSlice.js';
 
-export default function Statistics({ onNavigate, activePage = 'p3' }) {
-  const { data, ready, refresh, error } = useOfficerData();
+export default function Statistics({ activePage = 'p3' }) {
+  const dispatch = useDispatch();
+  const data = useSelector(selectOfficerData);
+  const { ready, error } = useSelector(selectOfficerRequest);
+  const refresh = useCallback(
+    () => dispatch(loadOfficerData({ force: true })).unwrap().then(() => true, () => false),
+    [dispatch],
+  );
   const s = data.stats;
   const branches = data.branches;
   const trend = data.trend;
@@ -24,17 +39,11 @@ export default function Statistics({ onNavigate, activePage = 'p3' }) {
   const doughnutChartRef = useRef(null);
   const chartInstances = useRef([]);
 
-  const [
-    { showFullTime, showInternships },
-    { setShowFullTime, setShowInternships },
-  ] = useViewState('placementOfficer', 'Statistics', () => ({
-    showFullTime: true,
-    showInternships: true,
-  }));
+  const { showFullTime, showInternships, activeTab } = useSelector(selectPlacementStatsUi);
+  const setShowFullTime = (v) => dispatch(setPlacementStatsUi({ showFullTime: v }));
+  const setShowInternships = (v) => dispatch(setPlacementStatsUi({ showInternships: v }));
   const lineChart = useRef(null);
-  const [{ activeTab }, { setActiveTab }] = useViewState('placementOfficer', 'Statistics/activeTab', () => ({
-    activeTab: 'overview',
-  }));
+  const setActiveTab = (v) => dispatch(setPlacementStatsUi({ activeTab: v }));
 
   const maxTrend = Math.max(1, ...monthlyTrend.map((m) => m.placements));
 
@@ -136,8 +145,8 @@ export default function Statistics({ onNavigate, activePage = 'p3' }) {
 
   return (
     <div className="frame statistics-page">
-      <Sidebar activePage={activePage} onNavigate={onNavigate} />
-      <Header title="Statistics & Analytics" onNavigate={onNavigate} />
+      <Sidebar activePage={activePage} />
+      <Header title="Statistics & Analytics" />
 
       <main className="main-content" id="mainContent">
         {error && <p role="alert" style={{ color: '#b91c1c', marginBottom: 16 }}>{error}</p>}

@@ -1,4 +1,14 @@
-import { useViewState } from '../../../store/useViewState.js';
+// Data Flow (roles/recruiter/components/OpportunityEditor.jsx):
+// Backend API -> Redux Thunks/Slices (recruiterSlice) -> useSelector(selectOpportunityEditorUi) -> UI render
+// User Actions -> dispatch(slice actions) -> Slice reducers/thunks -> Redux state update
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  initOpportunityEditor,
+  selectOpportunityEditorUi,
+  setOpportunityEditorField,
+  setOpportunityEditorState,
+} from '../store/recruiterSlice.js';
 
 import {
   LocationAdder,
@@ -28,27 +38,39 @@ export default function OpportunityEditor({
   onSave,
   onClose,
 }) {
-  const [
-    { form, locations, amount, errors, saving },
-    { setForm, setLocations, setAmount, setErrors, setSaving },
-  ] = useViewState('recruiter', 'OpportunityEditor', () => ({
-    form: { ...opportunity },
-    locations: (opportunity.location || "")
-        .split("|")
+  const dispatch = useDispatch();
+  const { form: storedForm, locations, amount, errors, saving } = useSelector(selectOpportunityEditorUi);
+
+  useEffect(() => {
+    dispatch(initOpportunityEditor({
+      form: { ...opportunity },
+      locations: (opportunity.location || '')
+        .split('|')
         .map((value) => value.trim())
         .filter(Boolean),
-    amount: compensationAmount(opportunity.ctc),
-    errors: {},
-    saving: false,
-  }));
+      amount: compensationAmount(opportunity.ctc),
+    }));
+  }, [dispatch, opportunity]);
+
+  const form = storedForm || { ...opportunity };
+  const setLocations = (updater) => {
+    const next = typeof updater === 'function' ? updater(locations) : updater;
+    dispatch(setOpportunityEditorState({ locations: next }));
+  };
+  const setAmount = (val) => dispatch(setOpportunityEditorState({ amount: val }));
+  const setErrors = (updater) => {
+    const next = typeof updater === 'function' ? updater(errors) : updater;
+    dispatch(setOpportunityEditorState({ errors: next }));
+  };
+  const setSaving = (val) => dispatch(setOpportunityEditorState({ saving: val }));
   const locked = ["published", "closed"].includes(
     opportunity.status.toLowerCase(),
   );
   const approved = locked || opportunity.status.toLowerCase() === "approved";
   const internship = form.type === "Internship";
   const set = (key, value) => {
-    setForm((previous) => ({ ...previous, [key]: value }));
-    setErrors((previous) => ({ ...previous, [key]: "" }));
+    dispatch(setOpportunityEditorField({ field: key, value }));
+    dispatch(setOpportunityEditorState({ errors: { ...errors, [key]: "" } }));
   };
   const submit = async (event) => {
     event.preventDefault();

@@ -1,3 +1,5 @@
+// Helper/Data Module (roles/recruiter/data/api.js):
+// Supports Redux slices/components with data mapping, validation, or static configuration.
 // Translate between the shapes the recruiter screens use and the backend's.
 
 const initialsOf = (name = '') => name.split(' ').filter(Boolean).map((w) => w[0]).join('').slice(0, 2).toUpperCase();

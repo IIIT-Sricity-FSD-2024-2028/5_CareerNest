@@ -1,8 +1,30 @@
+// Data Flow (roles/candidate/pages/Applications.jsx):
+// Backend API -> Redux Thunks/Slices (candidateSlice, usersSlice) -> useSelector(selectApplicationsUi, selectCandidateStore, selectReferralAlumni) -> UI render
+// User Actions -> dispatch(withdrawCandidateApplication, fetchReferralAlumni) -> Slice reducers/thunks -> Redux state update
 import { confirmDialog } from '../../../shared/components/AppDialog.jsx';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useSearchParams } from 'react-router-dom';
-import { useStore } from '../context/StoreContext.jsx';
 import { errorMessage } from '../../../services/api.js';
+import {
+    closeApplicationReferralModal,
+    openApplicationReferralModal,
+    referralCompanyKey,
+    requestCandidateReferral,
+    selectApplicationsUi,
+    selectCandidateStore,
+    setApplicationsExpandedId,
+    setApplicationsFilter,
+    setApplicationsNotice,
+    setApplicationsSearch,
+    setReferralModalError,
+    setReferralModalLoaded,
+    setReferralModalMessage,
+    setReferralModalSelectedId,
+    setReferralModalSending,
+    withdrawCandidateApplication,
+} from '../store/candidateSlice.js';
+import { fetchReferralAlumni, selectReferralAlumni } from '../../../store/slices/usersSlice.js';
 import { Avatar, Modal, ReferralPill, ScheduleItem, StatusPill, normReferralStatus } from '../components/shared.jsx';
 import '../styles/applications.css';
 import { BriefcaseBusiness } from 'lucide-react';
@@ -13,33 +35,41 @@ const TERMINAL = ['Rejected', 'Withdrawn', 'Offered', 'Offer'];
 
 // ── Ask an alumnus of the company for a referral ────────────────────────────────
 function GetReferralModal({ app, requestedAlumniIds, onClose, onSent }) {
-    const { fetchAlumniForCompany, requestReferral } = useStore();
-    const [alumni, setAlumni] = useState(null);
-    const [selected, setSelected] = useState(null);
-    const [message, setMessage] = useState(
-        `Hi, I recently applied for ${app.title} at ${app.company}. I would really appreciate it if you could refer me. Thank you!`
-    );
-    const [sending, setSending] = useState(false);
-    const [error, setError] = useState('');
+    const dispatch = useDispatch();
+    const directory = useSelector(selectReferralAlumni);
+    const { referralModal } = useSelector(selectApplicationsUi);
+    const { loaded, selectedId, message, sending, error } = referralModal;
+    const company = referralCompanyKey(app.company);
+
+    const alumni = loaded ? directory.filter((user) =>
+        referralCompanyKey(user.company) === company && !requestedAlumniIds.has(user.id)
+    ) : null;
+    const selected = alumni?.find((user) => user.id === selectedId);
 
     useEffect(() => {
-        let alive = true;
-        fetchAlumniForCompany(app.company)
-            .then((list) => { if (alive) setAlumni(list.filter((a) => !requestedAlumniIds.has(a.id))); })
-            .catch((e) => { if (alive) { setAlumni([]); setError(errorMessage(e, 'Could not load alumni.')); } });
-        return () => { alive = false; };
-    }, [app.company]);   // eslint-disable-line react-hooks/exhaustive-deps
+        dispatch(setReferralModalMessage(
+            `Hi, I recently applied for ${app.title} at ${app.company}. I would really appreciate it if you could refer me. Thank you!`
+        ));
+        dispatch(fetchReferralAlumni()).unwrap()
+            .catch((e) => dispatch(setReferralModalError(errorMessage(e, 'Could not load alumni.'))))
+            .finally(() => dispatch(setReferralModalLoaded(true)));
+    }, [dispatch, app.title, app.company]);
 
     async function send() {
         if (!selected) return;
-        setSending(true);
-        setError('');
+        dispatch(setReferralModalSending(true));
+        dispatch(setReferralModalError(''));
         try {
-            await requestReferral({ applicationId: app.id, opportunityId: app.opportunityId, alumniId: selected.id, message: message.trim() });
+            await dispatch(requestCandidateReferral({
+                applicationId: app.id,
+                opportunityId: app.opportunityId,
+                alumniId: selected.id,
+                message: message.trim(),
+            })).unwrap();
             onSent(selected);
         } catch (e) {
-            setError(errorMessage(e, 'Could not send the request.'));
-            setSending(false);
+            dispatch(setReferralModalError(errorMessage(e, 'Could not send the request.')));
+            dispatch(setReferralModalSending(false));
         }
     }
 
@@ -68,7 +98,7 @@ function GetReferralModal({ app, requestedAlumniIds, onClose, onSent }) {
                 <>
                     <p className="cx-muted" style={{ marginBottom: 12 }}>Choose an alumnus who works at {app.company}:</p>
                     {alumni.map((a) => (
-                        <button key={a.id} className={`cx-choice ${selected?.id === a.id ? 'selected' : ''}`} onClick={() => setSelected(a)}>
+                        <button key={a.id} className={`cx-choice ${selected?.id === a.id ? 'selected' : ''}`} onClick={() => dispatch(setReferralModalSelectedId(a.id))}>
                             <Avatar name={a.name} color={a.avatarColor || '#3934A0'} />
                             <div>
                                 <strong>{a.name}</strong>
@@ -77,7 +107,7 @@ function GetReferralModal({ app, requestedAlumniIds, onClose, onSent }) {
                         </button>
                     ))}
                     <label className="cx-muted" style={{ display: 'block', margin: '14px 0 6px', fontWeight: 600 }}>Your message</label>
-                    <textarea className="cx-field" rows={4} value={message} onChange={(e) => setMessage(e.target.value)} />
+                    <textarea className="cx-field" rows={4} value={message} onChange={(e) => dispatch(setReferralModalMessage(e.target.value))} />
                 </>
             )}
         </Modal>
@@ -155,8 +185,6 @@ function AppDetails({ app, referrals, schedule, onGetReferral, onCancel }) {
                 </div>
             )}
 
-
-
             <div className="activity-log-container">
                 <h5 className="activity-header">ACTIVITY LOG</h5>
                 {timeline.map((t, i) => (
@@ -191,20 +219,23 @@ function AppDetails({ app, referrals, schedule, onGetReferral, onCancel }) {
 
 // ── Page ───────────────────────────────────────────────────────────────────────
 export default function Applications() {
-    const { store, withdrawApplication } = useStore();
+    const dispatch = useDispatch();
+    const store = useSelector(selectCandidateStore);
     const [searchParams] = useSearchParams();
     const focusAppId = parseInt(searchParams.get('appId'), 10);
 
-    const [filter, setFilter] = useState('All');
-    const [search, setSearch] = useState('');
-    const [expandedId, setExpandedId] = useState(Number.isNaN(focusAppId) ? null : focusAppId);
-    const [referralApp, setReferralApp] = useState(null);
-    const [notice, setNotice] = useState({ type: '', text: '' });
+    const { filter, search, expandedId, referralAppId, notice } = useSelector(selectApplicationsUi);
     const focusRef = useRef(null);
 
-    useEffect(() => { focusRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, []);
+    useEffect(() => {
+        if (!Number.isNaN(focusAppId)) {
+            dispatch(setApplicationsExpandedId(focusAppId));
+        }
+        focusRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, [dispatch, focusAppId]);
 
     const apps = store.myApplications;
+    const referralApp = apps.find((app) => app.id === referralAppId);
     const counts = useMemo(() => {
         const c = { All: apps.length };
         FILTERS.slice(1).forEach((f) => { c[f] = apps.filter((a) => a.status === f).length; });
@@ -221,8 +252,8 @@ export default function Applications() {
 
     async function cancelApplication(id) {
         if (!await confirmDialog('Withdraw this application? This cannot be undone.')) return;
-        try { await withdrawApplication(id); }
-        catch (e) { setNotice({ type: 'error', text: errorMessage(e, 'Could not withdraw this application.') }); }
+        try { await dispatch(withdrawCandidateApplication(id)).unwrap(); }
+        catch (e) { dispatch(setApplicationsNotice({ type: 'error', text: errorMessage(e, 'Could not withdraw this application.') })); }
     }
 
     const requestedIds = (app) => new Set(
@@ -246,11 +277,11 @@ export default function Applications() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 24 }}>
                     <div className="search-container" style={{ maxWidth: 400 }}>
                         <i className="bx bx-search" />
-                        <input type="text" placeholder="Search by company or role..." value={search} onChange={(e) => setSearch(e.target.value)} />
+                        <input type="text" placeholder="Search by company or role..." value={search} onChange={(e) => dispatch(setApplicationsSearch(e.target.value))} />
                     </div>
                     <div className="filter-pills-row">
                         {FILTERS.filter((f) => f === 'All' || counts[f] > 0 || filter === f).map((f) => (
-                            <button key={f} className={`filter-pill ${filter === f ? 'active' : ''}`} onClick={() => setFilter(f)}>
+                            <button key={f} className={`filter-pill ${filter === f ? 'active' : ''}`} onClick={() => dispatch(setApplicationsFilter(f))}>
                                 {f} ({counts[f] ?? 0})
                             </button>
                         ))}
@@ -272,7 +303,7 @@ export default function Applications() {
                         const canAsk = !TERMINAL.includes(app.status) && !refs.some((r) => ['approved', 'pending'].includes(normReferralStatus(r.status)));
                         return (
                             <div key={app.id} className={`app-row-card ${open ? 'expanded' : ''}`} ref={app.id === focusAppId ? focusRef : null}>
-                                <div className="app-row-header" onClick={() => setExpandedId(open ? null : app.id)}>
+                                <div className="app-row-header" onClick={() => dispatch(setApplicationsExpandedId(open ? null : app.id))}>
                                     <div className="app-row-left">
                                         <div className="app-icon-box"><BriefcaseBusiness size={24} strokeWidth={1.7} color="#4338ca" /><i className="bx bx-building-house" /></div>
                                         <div className="app-info">
@@ -283,7 +314,7 @@ export default function Applications() {
                                     <div className="app-row-right" style={{ gap: 10 }}>
                                         {best && <ReferralPill status={best.status} />}
                                         {canAsk && (
-                                            <button className="cx-btn cx-btn--outline cx-btn--sm" onClick={(e) => { e.stopPropagation(); setReferralApp(app); }}>
+                                            <button className="cx-btn cx-btn--outline cx-btn--sm" onClick={(e) => { e.stopPropagation(); dispatch(openApplicationReferralModal(app.id)); }}>
                                                 <i className="bx bx-user-plus" /> Get referral
                                             </button>
                                         )}
@@ -296,7 +327,7 @@ export default function Applications() {
                                         app={app}
                                         referrals={store.referralRequests}
                                         schedule={store.schedule}
-                                        onGetReferral={() => setReferralApp(app)}
+                                        onGetReferral={() => dispatch(openApplicationReferralModal(app.id))}
                                         onCancel={cancelApplication}
                                     />
                                 )}
@@ -310,10 +341,10 @@ export default function Applications() {
                 <GetReferralModal
                     app={referralApp}
                     requestedAlumniIds={requestedIds(referralApp)}
-                    onClose={() => setReferralApp(null)}
+                    onClose={() => dispatch(closeApplicationReferralModal())}
                     onSent={(alum) => {
-                        setReferralApp(null);
-                        setNotice({ type: 'ok', text: `Referral request sent to ${alum.name}. You will see their reply here and in your notifications.` });
+                        dispatch(closeApplicationReferralModal());
+                        dispatch(setApplicationsNotice({ type: 'ok', text: `Referral request sent to ${alum.name}. You will see their reply here and in your notifications.` }));
                     }}
                 />
             )}

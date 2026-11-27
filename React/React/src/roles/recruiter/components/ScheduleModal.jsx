@@ -1,27 +1,56 @@
-import { useViewState } from '../../../store/useViewState.js';
+// Data Flow (roles/recruiter/components/ScheduleModal.jsx):
+// Backend API -> Redux Thunks/Slices (assessmentsSlice, recruiterSlice) -> useSelector(selectScheduleModalUi) -> UI render
+// User Actions -> dispatch(createAssessment, loadRecruiterWorkspace) -> Slice reducers/thunks -> Redux state update
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { X, AlertCircle } from 'lucide-react';
+import { errorMessage } from '../../../services/api.js';
+import { infoDialog } from '../../../shared/components/AppDialog.jsx';
+import { createAssessment } from '../../../store/slices/assessmentsSlice.js';
+import {
+  initScheduleModalUi,
+  loadRecruiterWorkspace,
+  selectScheduleModalUi,
+  setScheduleModalField,
+  setScheduleModalState,
+} from '../store/recruiterSlice.js';
 
-export default function ScheduleModal({ onClose, onAddAssessment, opportunities = [], applications = [], preselectApplicationId }) {
+export default function ScheduleModal({ onClose, opportunities = [], applications = [], preselectApplicationId }) {
+  const dispatch = useDispatch();
   // Who this round is for: one application ("app:12") or everyone who applied to a role ("opp:3")
   const schedulable = applications.filter((a) => ['Shortlisted', 'Interview'].includes(a.status));
   const isPreselectedValid = preselectApplicationId && schedulable.some((a) => a.id === Number(preselectApplicationId));
-  const [
-    { title, jobId, selectedIds, search, saving, date, time, duration, platform, type, link, errors },
-    { setTitle, setJobId, setSelectedIds, setSearch, setSaving, setDate, setTime, setDuration, setPlatform, setType, setLink, setErrors },
-  ] = useViewState('recruiter', 'ScheduleModal', () => ({
-    title: '',
-    jobId: isPreselectedValid ? String(schedulable.find(a => a.id === Number(preselectApplicationId)).opportunityId) : '',
-    selectedIds: isPreselectedValid ? [Number(preselectApplicationId)] : [],
-    search: '',
-    saving: false,
-    date: '',
-    time: '10:00',
-    duration: '60 min',
-    platform: 'Google Meet',
-    type: 'Technical Interview',
-    link: '',
-    errors: {},
-  }));
+  const {
+    title, jobId, selectedIds, search, saving,
+    date, time, duration, platform, type, link, errors,
+  } = useSelector(selectScheduleModalUi);
+
+  useEffect(() => {
+    dispatch(initScheduleModalUi({
+      jobId: isPreselectedValid ? String(schedulable.find((a) => a.id === Number(preselectApplicationId)).opportunityId) : '',
+      selectedIds: isPreselectedValid ? [Number(preselectApplicationId)] : [],
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch, preselectApplicationId]);
+
+  const setTitle = (v) => dispatch(setScheduleModalField({ field: 'title', value: v }));
+  const setJobId = (v) => dispatch(setScheduleModalField({ field: 'jobId', value: v }));
+  const setSelectedIds = (updater) => {
+    const next = typeof updater === 'function' ? updater(selectedIds) : updater;
+    dispatch(setScheduleModalField({ field: 'selectedIds', value: next }));
+  };
+  const setSearch = (v) => dispatch(setScheduleModalField({ field: 'search', value: v }));
+  const setSaving = (v) => dispatch(setScheduleModalField({ field: 'saving', value: v }));
+  const setDate = (v) => dispatch(setScheduleModalField({ field: 'date', value: v }));
+  const setTime = (v) => dispatch(setScheduleModalField({ field: 'time', value: v }));
+  const setDuration = (v) => dispatch(setScheduleModalField({ field: 'duration', value: v }));
+  const setPlatform = (v) => dispatch(setScheduleModalField({ field: 'platform', value: v }));
+  const setType = (v) => dispatch(setScheduleModalField({ field: 'type', value: v }));
+  const setLink = (v) => dispatch(setScheduleModalField({ field: 'link', value: v }));
+  const setErrors = (updater) => {
+    const next = typeof updater === 'function' ? updater(errors) : updater;
+    dispatch(setScheduleModalState({ errors: next }));
+  };
   const eligible = schedulable.filter(a => String(a.opportunityId) === jobId);
   const visible = eligible.filter(a => `${a.name} ${a.email} ${a.branch} ${a.role} ${a.jobId || ''}`.toLowerCase().includes(search.toLowerCase()));
 
@@ -120,9 +149,16 @@ export default function ScheduleModal({ onClose, onAddAssessment, opportunities 
       isDraft: false,
     };
 
-    const ok = await onAddAssessment(newAssessment);
-    setSaving(false);
-    if (ok) onClose();
+    try {
+      await dispatch(createAssessment(newAssessment)).unwrap();
+      const refreshed = await dispatch(loadRecruiterWorkspace()).unwrap().then(() => true, () => false);
+      infoDialog(refreshed ? `Assessment "${newAssessment.title}" scheduled. The candidate can access the link now.` : 'Changes were saved, but some workspace data could not be refreshed.');
+      setSaving(false);
+      onClose();
+    } catch (error) {
+      infoDialog(errorMessage(error, 'Could not schedule the assessment.'));
+      setSaving(false);
+    }
   };
 
   return (

@@ -1,6 +1,9 @@
+// Data Flow (public-pages/landing/components/Roles.jsx):
+// Backend API -> Redux Thunks/Slices (publicSlice) -> useSelector(selectLandingContent) -> UI render
+// User Actions -> dispatch(slice actions) -> Slice reducers/thunks -> Redux state update
 import { useSelector } from 'react-redux';
-import { selectLandingContent } from '../../../store/publicSlice.js';
-import ReduxLink from '../../../shared/components/ReduxLink.jsx';
+import { Link } from 'react-router-dom';
+import { selectLandingContent } from '../../store/publicSlice.js';
 
 function Roles() {
   const { roles } = useSelector(selectLandingContent);
@@ -36,7 +39,7 @@ function Roles() {
               <h3>{role.title}</h3>
               <p>{role.description}</p>
 
-              <ReduxLink
+              <Link
                 to={`/login?role=${role.role}`}
                 className="role-link"
               >
@@ -54,7 +57,7 @@ function Roles() {
                   <line x1="5" y1="12" x2="19" y2="12" />
                   <polyline points="12 5 19 12 12 19" />
                 </svg>
-              </ReduxLink>
+              </Link>
             </div>
           ))}
         </div>

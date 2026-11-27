@@ -1,26 +1,32 @@
-import { useBrowserCommands } from '../../../store/useBrowserCommands.js';
-import { ReduxAnchor } from '../../../shared/components/ReduxLink.jsx';
-import { useViewState } from '../../../store/useViewState.js';
+// Data Flow (public-pages/landing/components/Footer.jsx):
+// Backend API -> Redux Thunks/Slices (publicSlice) -> useSelector(selectNewsletterEmail, selectNewsletterSubscribed) -> UI render
+// User Actions -> dispatch(slice actions) -> Slice reducers/thunks -> Redux state update
+import { useDispatch, useSelector } from 'react-redux';
 import { infoDialog } from '../../../shared/components/AppDialog.jsx';
+import {
+  resetNewsletterSubscribed,
+  selectNewsletterEmail,
+  selectNewsletterSubscribed,
+  setNewsletterEmail,
+  subscribeNewsletter,
+} from '../../store/publicSlice.js';
 
 function Footer() {
-  const [{ email, subscribed }, { setEmail, setSubscribed }] = useViewState('publicPages', 'Footer', () => ({
-    email: "",
-    subscribed: false,
-  }));
+  const dispatch = useDispatch();
+  const email = useSelector(selectNewsletterEmail);
+  const subscribed = useSelector(selectNewsletterSubscribed);
 
   const handleSubscribe = (e) => {
     e.preventDefault();
     if (email.trim() && email.includes("@")) {
-      setSubscribed(true);
-      setEmail("");
-      setTimeout(() => setSubscribed(false), 5000);
+      dispatch(subscribeNewsletter());
+      setTimeout(() => dispatch(resetNewsletterSubscribed()), 5000);
     } else {
       infoDialog("Please enter a valid email address.");
     }
   };
 
-  const { scrollTo } = useBrowserCommands();
+  const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
 
   return (
     <footer className="footer" id="footer">
@@ -28,7 +34,7 @@ function Footer() {
         <div className="footer-container">
           {/* Brand */}
           <div className="footer-brand">
-            <ReduxAnchor
+            <a
               href="#hero"
               className="logo"
               onClick={(e) => {
@@ -53,7 +59,7 @@ function Footer() {
                 </svg>
               </span>
               <span className="logo-text">CareerNest</span>
-            </ReduxAnchor>
+            </a>
 
             <p>
               Transforming campus placements with intelligent automation and transparency.
@@ -77,7 +83,7 @@ function Footer() {
           <div className="footer-links-group">
             <div className="footer-col">
               <h4>Product</h4>
-              <ReduxAnchor
+              <a
                 href="#features"
                 onClick={(e) => {
                   e.preventDefault();
@@ -85,8 +91,8 @@ function Footer() {
                 }}
               >
                 Features
-              </ReduxAnchor>
-              <ReduxAnchor
+              </a>
+              <a
                 href="#process"
                 onClick={(e) => {
                   e.preventDefault();
@@ -94,8 +100,8 @@ function Footer() {
                 }}
               >
                 How It Works
-              </ReduxAnchor>
-              <ReduxAnchor
+              </a>
+              <a
                 href="#roles"
                 onClick={(e) => {
                   e.preventDefault();
@@ -103,8 +109,8 @@ function Footer() {
                 }}
               >
                 Stakeholder Roles
-              </ReduxAnchor>
-              <ReduxAnchor
+              </a>
+              <a
                 href="#faq"
                 onClick={(e) => {
                   e.preventDefault();
@@ -112,23 +118,23 @@ function Footer() {
                 }}
               >
                 FAQ
-              </ReduxAnchor>
+              </a>
             </div>
 
             <div className="footer-col">
               <h4>Company</h4>
-              <ReduxAnchor href="#hero">About Us</ReduxAnchor>
-              <ReduxAnchor href="#hero">Careers</ReduxAnchor>
-              <ReduxAnchor href="#hero">Blog</ReduxAnchor>
-              <ReduxAnchor href="#hero">Press</ReduxAnchor>
+              <a href="#hero">About Us</a>
+              <a href="#hero">Careers</a>
+              <a href="#hero">Blog</a>
+              <a href="#hero">Press</a>
             </div>
 
             <div className="footer-col">
               <h4>Support</h4>
-              <ReduxAnchor href="#faq">Help Center</ReduxAnchor>
-              <ReduxAnchor href="#faq">Documentation</ReduxAnchor>
-              <ReduxAnchor href="#footer">Privacy Policy</ReduxAnchor>
-              <ReduxAnchor href="#footer">Terms of Service</ReduxAnchor>
+              <a href="#faq">Help Center</a>
+              <a href="#faq">Documentation</a>
+              <a href="#footer">Privacy Policy</a>
+              <a href="#footer">Terms of Service</a>
             </div>
           </div>
 
@@ -141,7 +147,7 @@ function Footer() {
                 type="email"
                 placeholder="Enter your email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => dispatch(setNewsletterEmail(e.target.value))}
                 aria-label="Email address"
                 required
               />
@@ -160,15 +166,15 @@ function Footer() {
         <div className="footer-bottom">
           <p>© 2026 CareerNest. All rights reserved.</p>
           <div className="socials">
-            <ReduxAnchor href="#" aria-label="LinkedIn">
+            <a href="#" aria-label="LinkedIn">
               in
-            </ReduxAnchor>
-            <ReduxAnchor href="#" aria-label="Twitter">
+            </a>
+            <a href="#" aria-label="Twitter">
               𝕏
-            </ReduxAnchor>
-            <ReduxAnchor href="#" aria-label="Facebook">
+            </a>
+            <a href="#" aria-label="Facebook">
               f
-            </ReduxAnchor>
+            </a>
           </div>
         </div>
       </div>

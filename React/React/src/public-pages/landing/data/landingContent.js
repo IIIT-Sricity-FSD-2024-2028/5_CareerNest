@@ -1,3 +1,5 @@
+// Helper/Data Module (public-pages/landing/data/landingContent.js):
+// Supports Redux slices/components with data mapping, validation, or static configuration.
 import { featureData } from './featureData.js';
 
 export const landingContent = {

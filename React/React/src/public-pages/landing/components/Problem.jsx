@@ -1,5 +1,9 @@
+// Data Flow (public-pages/landing/components/Problem.jsx):
+// Backend API -> Redux Thunks/Slices (publicSlice) -> useSelector(selectLandingContent) -> UI render
+// User Actions -> dispatch(slice actions) -> Slice reducers/thunks -> Redux state update
 import { useSelector } from 'react-redux';
-import { selectLandingContent } from '../../../store/publicSlice.js';
+import { selectLandingContent } from '../../store/publicSlice.js';
+
 function Problem() {
   const { problems } = useSelector(selectLandingContent);
   return (

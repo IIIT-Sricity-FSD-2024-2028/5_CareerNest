@@ -1,34 +1,39 @@
-import { useBrowserCommands } from '../../../store/useBrowserCommands.js';
-import { ReduxAnchor } from '../../../shared/components/ReduxLink.jsx';
-import { useReduxNavigate } from '../../../store/useBrowserCommands.js';
-import { useViewState } from '../../../store/useViewState.js';
+// Data Flow (public-pages/landing/components/Navbar.jsx):
+// Backend API -> Redux Thunks/Slices (publicSlice) -> useSelector(selectNavScrolled, selectTheme) -> UI render
+// User Actions -> dispatch(slice actions) -> Slice reducers/thunks -> Redux state update
 import { useEffect } from "react";
-import { useTheme } from "../context/ThemeContext";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from 'react-router-dom';
+import {
+  selectNavScrolled,
+  selectTheme,
+  setNavScrolled,
+  toggleTheme,
+} from "../../store/publicSlice.js";
 
 function Navbar() {
-  const { theme, toggleTheme } = useTheme();
-  const [{ scrolled }, { setScrolled }] = useViewState('publicPages', 'Navbar', () => ({
-    scrolled: false,
-  }));
-  const navigate = useReduxNavigate();
+  const dispatch = useDispatch();
+  const theme = useSelector(selectTheme);
+  const scrolled = useSelector(selectNavScrolled);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 30);
+      dispatch(setNavScrolled(window.scrollY > 30));
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
-  }, []);
+  }, [dispatch]);
 
-  const { scrollTo: scrollToSection } = useBrowserCommands();
+  const scrollToSection = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
 
   return (
     <nav className={`navbar ${scrolled ? "scrolled" : ""}`} id="navbar">
       <div className="nav-inner">
-        <ReduxAnchor
+        <a
           href="#hero"
           className="logo"
           onClick={(e) => {
@@ -53,11 +58,11 @@ function Navbar() {
             </svg>
           </span>
           <span className="logo-text">CareerNest</span>
-        </ReduxAnchor>
+        </a>
 
         <ul className="nav-links" id="nav-links">
           <li>
-            <ReduxAnchor
+            <a
               href="#hero"
               onClick={(e) => {
                 e.preventDefault();
@@ -65,10 +70,10 @@ function Navbar() {
               }}
             >
               Home
-            </ReduxAnchor>
+            </a>
           </li>
           <li>
-            <ReduxAnchor
+            <a
               href="#roles"
               onClick={(e) => {
                 e.preventDefault();
@@ -76,10 +81,10 @@ function Navbar() {
               }}
             >
               Roles
-            </ReduxAnchor>
+            </a>
           </li>
           <li>
-            <ReduxAnchor
+            <a
               href="#features"
               onClick={(e) => {
                 e.preventDefault();
@@ -87,10 +92,10 @@ function Navbar() {
               }}
             >
               Features
-            </ReduxAnchor>
+            </a>
           </li>
           <li>
-            <ReduxAnchor
+            <a
               href="#process"
               onClick={(e) => {
                 e.preventDefault();
@@ -98,10 +103,10 @@ function Navbar() {
               }}
             >
               How It Works
-            </ReduxAnchor>
+            </a>
           </li>
           <li>
-            <ReduxAnchor
+            <a
               href="#faq"
               onClick={(e) => {
                 e.preventDefault();
@@ -109,10 +114,10 @@ function Navbar() {
               }}
             >
               FAQ
-            </ReduxAnchor>
+            </a>
           </li>
           <li>
-            <ReduxAnchor
+            <a
               href="#contact"
               onClick={(e) => {
                 e.preventDefault();
@@ -120,7 +125,7 @@ function Navbar() {
               }}
             >
               Contact
-            </ReduxAnchor>
+            </a>
           </li>
         </ul>
 
@@ -128,7 +133,7 @@ function Navbar() {
           <button
             className="theme-toggle"
             id="theme-toggle"
-            onClick={toggleTheme}
+            onClick={() => dispatch(toggleTheme())}
             aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
             title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
           >

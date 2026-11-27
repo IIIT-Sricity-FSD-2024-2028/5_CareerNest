@@ -1,12 +1,18 @@
-import { useSelector } from 'react-redux';
-import { selectLandingContent } from '../../../store/publicSlice.js';
-import { useViewState } from '../../../store/useViewState.js';
+// Data Flow (public-pages/landing/components/Features.jsx):
+// Backend API -> Redux Thunks/Slices (publicSlice) -> useSelector(selectActiveFeatureRole, selectFeatureRole, selectLandingContent) -> UI render
+// User Actions -> dispatch(slice actions) -> Slice reducers/thunks -> Redux state update
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  selectActiveFeatureRole,
+  selectFeatureRole,
+  selectLandingContent,
+} from '../../store/publicSlice.js';
 
 function Features() {
+  const dispatch = useDispatch();
+  // Redux data source: publicSlice (featureData per role + selected feature tab).
   const { featureData, featureRoles: roles } = useSelector(selectLandingContent);
-  const [{ activeRole }, { setActiveRole }] = useViewState('publicPages', 'Features', () => ({
-    activeRole: "candidate",
-  }));
+  const activeRole = useSelector(selectActiveFeatureRole);
 
   const selected = featureData[activeRole];
 
@@ -47,9 +53,7 @@ function Features() {
                   ? "active"
                   : ""
               }`}
-              onClick={() =>
-                setActiveRole(role.id)
-              }
+              onClick={() => dispatch(selectFeatureRole(role.id))}
             >
               <span className="tab-icon">
                 {role.icon}

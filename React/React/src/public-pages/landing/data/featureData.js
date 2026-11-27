@@ -1,3 +1,5 @@
+// Helper/Data Module (public-pages/landing/data/featureData.js):
+// Supports Redux slices/components with data mapping, validation, or static configuration.
 export const featureData = {
   candidate: {
     title: "Candidates",

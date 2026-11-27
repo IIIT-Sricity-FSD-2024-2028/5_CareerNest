@@ -1,21 +1,28 @@
-import { useSelector } from 'react-redux';
-import { selectLandingContent } from '../../../store/publicSlice.js';
-import { useViewState } from '../../../store/useViewState.js';
+// Data Flow (public-pages/landing/components/Stats.jsx):
+// Backend API -> Redux Thunks/Slices (publicSlice) -> useSelector(selectLandingContent, selectStatsStarted, selectStatsValues) -> UI render
+// User Actions -> dispatch(slice actions) -> Slice reducers/thunks -> Redux state update
 import { useEffect, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  selectLandingContent,
+  selectStatsStarted,
+  selectStatsValues,
+  setStatsValues,
+  startStatsAnimation,
+} from "../../store/publicSlice.js";
 
 function Stats() {
+  const dispatch = useDispatch();
   const { stats } = useSelector(selectLandingContent);
+  const started = useSelector(selectStatsStarted);
+  const values = useSelector(selectStatsValues);
   const sectionRef = useRef(null);
-  const [{ started, values }, { setStarted, setValues }] = useViewState('publicPages', 'Stats', () => ({
-    started: false,
-    values: stats.map(() => 0),
-  }));
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setStarted(true);
+          dispatch(startStatsAnimation());
           observer.disconnect();
         }
       },
@@ -29,7 +36,7 @@ function Stats() {
     }
 
     return () => observer.disconnect();
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => {
     if (!started) return;
@@ -41,7 +48,7 @@ function Stats() {
       const progress = Math.min((time - startTime) / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
 
-      setValues(stats.map((stat) => Math.round(stat.target * eased)));
+      dispatch(setStatsValues(stats.map((stat) => Math.round(stat.target * eased))));
 
       if (progress < 1) {
         requestAnimationFrame(animate);
@@ -49,7 +56,7 @@ function Stats() {
     };
 
     requestAnimationFrame(animate);
-  }, [started]);
+  }, [dispatch, started, stats]);
 
   return (
     <section className="stats" id="stats" ref={sectionRef}>

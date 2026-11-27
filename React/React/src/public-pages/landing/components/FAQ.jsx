@@ -1,18 +1,17 @@
-import { useSelector } from 'react-redux';
-import { selectLandingContent } from '../../../store/publicSlice.js';
-import { useViewState } from '../../../store/useViewState.js';
+// Data Flow (public-pages/landing/components/FAQ.jsx):
+// Backend API -> Redux Thunks/Slices (publicSlice) -> useSelector(selectActiveFaqIndex, selectLandingContent) -> UI render
+// User Actions -> dispatch(slice actions) -> Slice reducers/thunks -> Redux state update
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  selectActiveFaqIndex,
+  selectLandingContent,
+  toggleFaqItem,
+} from '../../store/publicSlice.js';
 
 function FAQ() {
+  const dispatch = useDispatch();
   const { faqs } = useSelector(selectLandingContent);
-  const [{ activeIndex }, { setActiveIndex }] = useViewState('publicPages', 'FAQ', () => ({
-    activeIndex: null,
-  }));
-
-  const toggleFAQ = (index) => {
-    setActiveIndex(
-      activeIndex === index ? null : index
-    );
-  };
+  const activeIndex = useSelector(selectActiveFaqIndex);
 
   return (
     <section className="faq" id="faq">
@@ -51,9 +50,7 @@ function FAQ() {
 
                 <button
                   className="faq-question"
-                  onClick={() =>
-                    toggleFAQ(index)
-                  }
+                  onClick={() => dispatch(toggleFaqItem(index))}
                   aria-expanded={active}
                 >
                   <span>

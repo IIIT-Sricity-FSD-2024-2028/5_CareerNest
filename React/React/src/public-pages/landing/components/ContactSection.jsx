@@ -1,11 +1,20 @@
-import { useEntityList } from '../../../store/useEntities.js';
-import { useViewState } from '../../../store/useViewState.js';
+// Data Flow (public-pages/landing/components/ContactSection.jsx):
+// Backend API -> Redux Thunks/Slices (collegesSlice, recruitersSlice, publicSlice) -> useSelector(selectPublicColleges, selectContactForm, selectContactStatus, selectContactTouched) -> UI render
+// User Actions -> dispatch(fetchPublicColleges, submitRecruiterContact) -> Slice reducers/thunks -> Redux state update
 import { phoneError, phoneInputProps } from '../../../shared/utils/phone.js';
 import { useEffect } from "react";
-import { useSelector } from 'react-redux';
-import { selectWorkspaceVersion } from '../../../store/sessionSlice.js';
-import { errorMessage } from '../../../services/api.js';
-import { useOperations } from '../../../store/useOperations.js';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchPublicColleges, selectPublicColleges } from '../../../store/slices/collegesSlice.js';
+import { submitRecruiterContact } from '../../../store/slices/recruitersSlice.js';
+import {
+  resetContactStatus,
+  selectContactForm,
+  selectContactStatus,
+  selectContactTouched,
+  setContactField,
+  touchAllContactFields,
+  touchContactField,
+} from '../../store/publicSlice.js';
 
 const EMPTY = { name: "", company: "", role: "", email: "", phone: "", collegeId: "", message: "" };
 
@@ -23,46 +32,33 @@ function validate(f) {
 }
 
 function ContactSection() {
-  const commands = useOperations();
-  const workspaceVersion = useSelector(selectWorkspaceVersion);
-  const colleges = useEntityList('colleges', 'public');
-  const [
-    { form, touched, status },
-    { setForm, setTouched, setStatus },
-  ] = useViewState('publicPages', 'ContactSection', () => ({
-    form: EMPTY,
-    touched: {},
-    status: { state: "idle", text: "" },
-  }));
+  const dispatch = useDispatch();
+  // Data is read from Redux (collegesSlice & publicSlice) and updated via dispatch(...).
+  const colleges = useSelector(selectPublicColleges);
+  const form = useSelector(selectContactForm);
+  const touched = useSelector(selectContactTouched);
+  const status = useSelector(selectContactStatus);
 
   useEffect(() => {
-    commands.listPublicColleges().catch(() => {});
-  }, [commands, workspaceVersion]);
+    dispatch(fetchPublicColleges());
+  }, [dispatch]);
 
   const errors = validate(form);
-  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
-  const blur = (k) => () => setTouched((t) => ({ ...t, [k]: true }));
+  const set = (k) => (e) => dispatch(setContactField({ field: k, value: e.target.value }));
+  const blur = (k) => () => dispatch(touchContactField(k));
   const showError = (k) => touched[k] && errors[k];
 
   const submit = async (ev) => {
     ev.preventDefault();
-    setTouched(Object.fromEntries(Object.keys(EMPTY).map((k) => [k, true])));
+    dispatch(touchAllContactFields());
     if (Object.keys(errors).length) return;
-    setStatus({ state: "sending", text: "" });
-    try {
-      const payload = {
-        name: form.name.trim(), company: form.company.trim(), role: form.role.trim(),
-        email: form.email.trim(), collegeId: Number(form.collegeId),
-        ...(form.phone.trim() ? { phone: form.phone.trim() } : {}),
-        ...(form.message.trim() ? { message: form.message.trim() } : {}),
-      };
-      const { data } = await commands.submitRecruiterContact(payload);
-      setStatus({ state: "done", text: data.message });
-      setForm(EMPTY);
-      setTouched({});
-    } catch (error) {
-      setStatus({ state: "error", text: errorMessage(error, "Could not send your request. Please try again.") });
-    }
+    const payload = {
+      name: form.name.trim(), company: form.company.trim(), role: form.role.trim(),
+      email: form.email.trim(), collegeId: Number(form.collegeId),
+      ...(form.phone.trim() ? { phone: form.phone.trim() } : {}),
+      ...(form.message.trim() ? { message: form.message.trim() } : {}),
+    };
+    dispatch(submitRecruiterContact(payload));
   };
 
   const field = (k, label, props = {}) => (
@@ -91,7 +87,7 @@ function ContactSection() {
               <div className="contact-success-icon">✓</div>
               <h3>Request received</h3>
               <p>{status.text}</p>
-              <button className="btn-secondary" onClick={() => setStatus({ state: "idle", text: "" })}>Send another request</button>
+              <button className="btn-secondary" onClick={() => dispatch(resetContactStatus())}>Send another request</button>
             </div>
           ) : (
             <form onSubmit={submit} noValidate>

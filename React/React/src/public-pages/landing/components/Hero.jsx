@@ -1,15 +1,20 @@
-import { useSelector } from 'react-redux';
-import { selectLandingContent } from '../../../store/publicSlice.js';
-import { useBrowserCommands } from '../../../store/useBrowserCommands.js';
-import { useViewState } from '../../../store/useViewState.js';
+// Data Flow (public-pages/landing/components/Hero.jsx):
+// Backend API -> Redux Thunks/Slices (publicSlice) -> useSelector(selectHeroImageIndex, selectLandingContent) -> UI render
+// User Actions -> dispatch(slice actions) -> Slice reducers/thunks -> Redux state update
 import { useEffect, useMemo } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  advanceHeroImage,
+  selectHeroImageIndex,
+  selectLandingContent,
+} from "../../store/publicSlice.js";
 
 function Hero() {
+  const dispatch = useDispatch();
+  // Redux data source: publicSlice (heroImages, stats, and active hero slide index).
   const { heroImages, stats } = useSelector(selectLandingContent);
+  const currentImage = useSelector(selectHeroImageIndex);
   const collegeCount = stats.find((stat) => stat.label === 'Colleges');
-  const [{ currentImage }, { setCurrentImage }] = useViewState('publicPages', 'Hero', () => ({
-    currentImage: 0,
-  }));
 
   useEffect(() => {
     heroImages.forEach((src) => {
@@ -18,11 +23,11 @@ function Hero() {
     });
 
     const interval = setInterval(() => {
-      setCurrentImage((prev) => (prev + 1) % heroImages.length);
+      dispatch(advanceHeroImage());
     }, 5000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [dispatch, heroImages]);
 
   const particles = useMemo(() => {
     return Array.from({ length: 30 }, (_, index) => ({
@@ -36,7 +41,7 @@ function Hero() {
     }));
   }, []);
 
-  const { scrollTo } = useBrowserCommands();
+  const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
 
   return (
     <section className="hero" id="hero">

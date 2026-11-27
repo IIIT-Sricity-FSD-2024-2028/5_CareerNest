@@ -1,7 +1,9 @@
-import { useReduxNavigate } from '../../../store/useBrowserCommands.js';
+// Data Flow (public-pages/landing/components/CTA.jsx):
+// Presentational component receiving Redux-backed data and dispatch callbacks as props from its parent container.
+import { useNavigate } from 'react-router-dom';
 
 function CTA() {
-  const navigate = useReduxNavigate();
+  const navigate = useNavigate();
 
   return (
     <section className="cta" id="cta">

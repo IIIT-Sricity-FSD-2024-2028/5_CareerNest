@@ -1,6 +1,11 @@
-import React, { useEffect, useState } from 'react';
+// Data Flow (roles/super-admin/pages/ActivityLog.jsx):
+// Backend API -> Redux Thunks/Slices (activitySlice, superAdminSlice) -> useSelector(selectPlatformActivity, selectSuperAdminActivityLogUi, selectSuperAdminPlatform) -> UI render
+// User Actions -> dispatch(fetchPlatformActivity) -> Slice reducers/thunks -> Redux state update
+import { useCallback, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Activity, Clock, AlertTriangle, RefreshCw, Building2, UserCog, MessageSquare, Settings, Users, Briefcase, FileText, HeartHandshake, Bell, LogIn } from 'lucide-react';
-import { usePlatformData } from '../../../shared/context/PlatformDataContext.jsx';
+import { fetchPlatformActivity, selectPlatformActivity } from '../../../store/slices/activitySlice.js';
+import { selectSuperAdminActivityLogUi, selectSuperAdminPlatform, setSuperAdminActivityLogUi } from '../store/superAdminSlice.js';
 import { errorMessage } from '../../../services/api.js';
 
 const TYPE_CONFIG = {
@@ -32,25 +37,25 @@ const FILTERS = [
 ];
 
 export default function ActivityLog() {
-  const { getActivityLog } = usePlatformData();
-  const [entries, setEntries] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [err, setErr]         = useState('');
-  const [filter, setFilter]   = useState('all');
-  const { data: platformData } = usePlatformData();
+  const dispatch = useDispatch();
+  const entries = useSelector(selectPlatformActivity);
+  const { data: platformData } = useSelector(selectSuperAdminPlatform);
+  const { loading, err, filter } = useSelector(selectSuperAdminActivityLogUi);
+  const setLoading = useCallback((v) => dispatch(setSuperAdminActivityLogUi({ loading: v })), [dispatch]);
+  const setErr = useCallback((v) => dispatch(setSuperAdminActivityLogUi({ err: v })), [dispatch]);
+  const setFilter = (v) => dispatch(setSuperAdminActivityLogUi({ filter: v }));
   const collegeName = (id) => (platformData?.colleges || []).find((c) => c.id === id)?.name;
   const shown = entries.filter((e) => filter === 'all' || e.type === filter);
 
-  const load = () => {
+  const load = useCallback(() => {
     setLoading(true);
     setErr('');
-    getActivityLog()
-      .then(res  => setEntries(res.data || []))
+    dispatch(fetchPlatformActivity()).unwrap()
       .catch(e   => setErr(errorMessage(e, 'Could not load the activity log.')))
       .finally(() => setLoading(false));
-  };
+  }, [dispatch]);
 
-  useEffect(load, []);
+  useEffect(load, [load]);
 
   return (
     <>

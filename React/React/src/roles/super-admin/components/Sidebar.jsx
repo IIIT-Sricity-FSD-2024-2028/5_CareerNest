@@ -1,7 +1,15 @@
-import React from 'react';
+// Data Flow (roles/super-admin/components/Sidebar.jsx):
+// Backend API -> Redux Thunks/Slices (superAdminSlice) -> useSelector(store state) -> UI render
+// User Actions -> dispatch(slice actions) -> Slice reducers/thunks -> Redux state update
+import { useDispatch } from 'react-redux';
 import {
   LayoutDashboard, Building2, UserCog, Activity, Crown, LogOut, MessageSquare
 } from 'lucide-react';
+import {
+  
+  SUPER_ADMIN_TABS,
+  setSuperAdminTab,
+} from '../store/superAdminSlice.js';
 
 const NAV_ITEMS = [
   { id: 'dashboard',      label: 'Dashboard',        icon: LayoutDashboard },
@@ -11,7 +19,8 @@ const NAV_ITEMS = [
   { id: 'activity',       label: 'Activity Log',      icon: Activity },
 ];
 
-export default function SuperAdminSidebar({ activeTab, setActiveTab, onSignOut }) {
+export default function SuperAdminSidebar({ activeTab, onSignOut }) {
+  const dispatch = useDispatch();
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
@@ -28,7 +37,10 @@ export default function SuperAdminSidebar({ activeTab, setActiveTab, onSignOut }
           <button
             key={id}
             className={`nav-item ${activeTab === id ? 'active' : ''}`}
-            onClick={() => setActiveTab(id)}
+            onClick={() => {
+              const nextTab = SUPER_ADMIN_TABS.includes(id) ? id : 'dashboard';
+              dispatch(setSuperAdminTab(nextTab));
+            }}
           >
             <Icon size={17} />
             {label}

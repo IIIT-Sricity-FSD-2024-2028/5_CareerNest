@@ -1,17 +1,27 @@
-import React, { useEffect, useRef, useState } from 'react';
+// Data Flow (roles/super-admin/components/Topbar.jsx):
+// Backend API -> Redux Thunks/Slices (superAdminSlice) -> useSelector(selectSuperAdminTopbarUi) -> UI render
+// User Actions -> dispatch(slice actions) -> Slice reducers/thunks -> Redux state update
+import { useEffect, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { LogOut, User } from 'lucide-react';
+import { selectSuperAdminTopbarUi, setSuperAdminTopbarUi } from '../store/superAdminSlice.js';
 
 export default function Topbar({ title, userName, avatarInitials, onProfileClick, onSignOutClick }) {
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dispatch = useDispatch();
+  const { dropdownOpen } = useSelector(selectSuperAdminTopbarUi);
+  const setDropdownOpen = (updater) => {
+    const next = typeof updater === 'function' ? updater(dropdownOpen) : updater;
+    dispatch(setSuperAdminTopbarUi({ dropdownOpen: next }));
+  };
   const dropdownRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) setDropdownOpen(false);
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) dispatch(setSuperAdminTopbarUi({ dropdownOpen: false }));
     };
     if (dropdownOpen) document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [dropdownOpen]);
+  }, [dispatch, dropdownOpen]);
 
   return (
     <header className="topbar">

@@ -1,12 +1,28 @@
-import React, { useState } from 'react';
+// Data Flow (roles/super-admin/pages/CollegeAdmins.jsx):
+// Backend API -> Redux Thunks/Slices (superAdminSlice, usersSlice) -> useSelector(selectAdminCollege, selectSuperAdminCollegeAdminsUi) -> UI render
+// User Actions -> dispatch(refreshSuperAdminData, assignCollegeAdmin, updateCollegeAdminStatus, assignTargetId, assignTarget) -> Slice reducers/thunks -> Redux state update
+import { useDispatch, useSelector } from 'react-redux';
 import { errorMessage } from '../../../services/api.js';
+import {
+  refreshSuperAdminData,
+  selectAdminCollege,
+  selectSuperAdminCollegeAdminsUi,
+  setSuperAdminCollegeAdminsUi,
+} from '../store/superAdminSlice.js';
+import { assignCollegeAdmin, updateCollegeAdminStatus } from '../../../store/slices/usersSlice.js';
 import { collegeEmailDomain, collegeEmailError } from '../../../shared/utils/collegeEmail.js';
-import { ArrowLeft, UserPlus, Ban, CheckCircle, AlertTriangle, ShieldCheck, Users } from 'lucide-react';
+import { ArrowLeft, UserPlus, Ban, CheckCircle, AlertTriangle } from 'lucide-react';
 
 function AssignAdminModal({ college, onClose, onSave }) {
+  const dispatch = useDispatch();
+  // Redux data source: superAdminSlice (modal form state) + usersSlice (assignCollegeAdmin, updateCollegeAdminStatus thunks).
   const emailDomain = collegeEmailDomain(college);
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
-  const [error, setError] = useState('');
+  const { form, error } = useSelector(selectSuperAdminCollegeAdminsUi);
+  const setForm = (updater) => {
+    const next = typeof updater === 'function' ? updater(form) : updater;
+    dispatch(setSuperAdminCollegeAdminsUi({ form: next }));
+  };
+  const setError = (v) => dispatch(setSuperAdminCollegeAdminsUi({ error: v }));
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   const handleSave = () => {
@@ -135,12 +151,18 @@ function CollegeAdminPanel({ college, onAssign, onToggleStatus }) {
   );
 }
 
-export default function CollegeAdmins({ colleges, platform, showToast, adminCollegeId, setAdminCollegeId }) {
-  const [assignTarget, setAssignTarget] = useState(null);
+export default function CollegeAdmins({ colleges, showToast, adminCollegeId }) {
+  const dispatch = useDispatch();
+  const { assignTargetId } = useSelector(selectSuperAdminCollegeAdminsUi);
+  const setAssignTargetId = (v) => dispatch(setSuperAdminCollegeAdminsUi({
+    assignTargetId: v,
+    ...(v != null ? { form: { name: '', email: '', password: '' }, error: '' } : {}),
+  }));
 
   const selectedCollege = adminCollegeId ? colleges.find(c => c.id === adminCollegeId) : null;
+  const assignTarget = colleges.find((college) => college.id === assignTargetId);
 
-  const handleAssign = (college) => setAssignTarget(college);
+  const handleAssign = (college) => setAssignTargetId(college.id);
 
   const handleSaveAdmin = async (collegeId, adminData) => {
     const duplicate = colleges.some((college) => college.id !== collegeId && college.admin?.email?.toLowerCase() === adminData.email.toLowerCase());
@@ -149,7 +171,8 @@ export default function CollegeAdmins({ colleges, platform, showToast, adminColl
       return false;
     }
     try {
-      await platform.assignAdmin(collegeId, adminData);
+      await dispatch(assignCollegeAdmin({ collegeId, data: adminData })).unwrap();
+      await dispatch(refreshSuperAdminData({ silentAfterMutation: true }));
       showToast('Admin assigned successfully!', 'success');
       return true;
     } catch (error) {
@@ -161,7 +184,8 @@ export default function CollegeAdmins({ colleges, platform, showToast, adminColl
   const handleToggleStatus = async (collegeId, currentStatus) => {
     const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
     try {
-      await platform.setAdminStatus(collegeId, newStatus);
+      await dispatch(updateCollegeAdminStatus({ collegeId, status: newStatus })).unwrap();
+      await dispatch(refreshSuperAdminData({ silentAfterMutation: true }));
       showToast(`Admin ${newStatus === 'active' ? 'activated' : 'deactivated'}.`, 'success');
     } catch (error) {
       showToast(errorMessage(error, 'Could not update the admin.'), 'error');
@@ -172,13 +196,13 @@ export default function CollegeAdmins({ colleges, platform, showToast, adminColl
   if (selectedCollege) {
     return (
       <>
-        <button className="back-link" onClick={() => setAdminCollegeId(null)}>
+        <button className="back-link" onClick={() => dispatch(selectAdminCollege(null))}>
           <ArrowLeft size={15} /> All Colleges
         </button>
 
         <div className="section-header">
           <h2>Admin — {selectedCollege.name}</h2>
-          <button className="btn btn-primary btn-sm" onClick={() => setAssignTarget(selectedCollege)}>
+          <button className="btn btn-primary btn-sm" onClick={() => handleAssign(selectedCollege)}>
             <UserPlus size={14} /> {selectedCollege.admin ? 'Replace Admin' : 'Assign Admin'}
           </button>
         </div>
@@ -192,7 +216,7 @@ export default function CollegeAdmins({ colleges, platform, showToast, adminColl
         {assignTarget && (
           <AssignAdminModal
             college={assignTarget}
-            onClose={() => setAssignTarget(null)}
+            onClose={() => setAssignTargetId(null)}
             onSave={handleSaveAdmin}
           />
         )}
@@ -213,7 +237,7 @@ export default function CollegeAdmins({ colleges, platform, showToast, adminColl
           <button
             key={c.id}
             className="college-card"
-            onClick={() => setAdminCollegeId(c.id)}
+            onClick={() => dispatch(selectAdminCollege(c.id))}
             style={{ textAlign: 'left', width: '100%', background: 'none' }}
           >
             <div className="college-card-initial">{c.name.slice(0, 2).toUpperCase()}</div>
@@ -228,7 +252,7 @@ export default function CollegeAdmins({ colleges, platform, showToast, adminColl
       {assignTarget && (
         <AssignAdminModal
           college={assignTarget}
-          onClose={() => setAssignTarget(null)}
+          onClose={() => setAssignTargetId(null)}
           onSave={handleSaveAdmin}
         />
       )}

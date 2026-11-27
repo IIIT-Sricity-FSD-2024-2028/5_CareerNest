@@ -1,7 +1,14 @@
+// Data Flow (roles/super-admin/pages/Profile.jsx):
+// Backend API -> Redux Thunks/Slices (authSlice, superAdminSlice, usersSlice) -> useSelector(selectSession, selectSuperAdminProfileUi, selectUserById) -> UI render
+// User Actions -> dispatch(fetchUserById, updateUser) -> Slice reducers/thunks -> Redux state update
 import { phoneError, phoneInputProps } from '../../../shared/utils/phone.js';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { ExternalLink, Mail, ShieldCheck, User } from 'lucide-react';
-import api, { errorMessage, readSession } from '../../../services/api.js';
+import { useDispatch, useSelector } from 'react-redux';
+import { errorMessage } from '../../../services/api.js';
+import { selectSession } from '../../../store/slices/authSlice.js';
+import { selectSuperAdminProfileUi, setSuperAdminProfileUi } from '../store/superAdminSlice.js';
+import { fetchUserById, selectUserById, updateUser } from '../../../store/slices/usersSlice.js';
 import ChangePasswordModal from '../../../shared/components/ChangePasswordModal.jsx';
 
 const EMPTY_EDIT_FIELDS = {
@@ -9,21 +16,25 @@ const EMPTY_EDIT_FIELDS = {
 };
 
 export default function Profile({ showToast, onProfileUpdated }) {
-  const session = readSession() || {};
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
-  const [fields, setFields] = useState(EMPTY_EDIT_FIELDS);
-  const [saving, setSaving] = useState(false);
-  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+  const dispatch = useDispatch();
+  const session = useSelector(selectSession) || {};
+  const profile = useSelector((state) => selectUserById(state, session.id));
+  const { loading, isEditing, fields, saving, isChangePasswordOpen } = useSelector(selectSuperAdminProfileUi);
+  const setLoading = (v) => dispatch(setSuperAdminProfileUi({ loading: v }));
+  const setIsEditing = (v) => dispatch(setSuperAdminProfileUi({ isEditing: v }));
+  const setFields = (updater) => {
+    const next = typeof updater === 'function' ? updater(fields) : updater;
+    dispatch(setSuperAdminProfileUi({ fields: next }));
+  };
+  const setSaving = (v) => dispatch(setSuperAdminProfileUi({ saving: v }));
+  const setIsChangePasswordOpen = (v) => dispatch(setSuperAdminProfileUi({ isChangePasswordOpen: v }));
 
   useEffect(() => {
     let active = true;
     const load = async () => {
       if (!session.id) { if (active) setLoading(false); return; }
       try {
-        const { data } = await api.get(`/users/${session.id}`);
-        if (active) setProfile(data);
+        await dispatch(fetchUserById(session.id)).unwrap();
       } catch (error) {
         if (active) showToast?.(errorMessage(error, 'Failed to load profile.'), 'error');
       } finally {
@@ -32,7 +43,7 @@ export default function Profile({ showToast, onProfileUpdated }) {
     };
     load();
     return () => { active = false; };
-  }, [session.id, showToast]);
+  }, [dispatch, session.id, showToast]);
 
   const setField = (field) => (event) => setFields((current) => ({ ...current, [field]: event.target.value }));
 
@@ -48,18 +59,24 @@ export default function Profile({ showToast, onProfileUpdated }) {
 
   const save = async () => {
     if (!session.id || saving) return;
-    if (phoneError(editFields.phone)) { showToast?.(phoneError(editFields.phone), 'error'); return; }
+    const invalidPhone = phoneError(fields.phone);
+    if (invalidPhone) {
+      showToast?.(invalidPhone, 'error');
+      return;
+    }
     setSaving(true);
     try {
-      const { data: updated } = await api.put(`/users/${session.id}`, {
-        name: fields.name.trim(), email: fields.email.trim(), phone: fields.phone.trim(),
-        department: fields.department.trim(), location: fields.location.trim(), about: fields.about.trim(),
-        socialLinks: { linkedin: fields.linkedin.trim(), portfolio: fields.portfolio.trim() },
-      });
-      setProfile(updated);
+      const updated = await dispatch(updateUser({
+        id: session.id,
+        data: {
+          name: fields.name.trim(), email: fields.email.trim(), phone: fields.phone.trim(),
+          department: fields.department.trim(), location: fields.location.trim(), about: fields.about.trim(),
+          socialLinks: { linkedin: fields.linkedin.trim(), portfolio: fields.portfolio.trim() },
+        },
+      })).unwrap();
+      if (!updated) return;
       const nextSession = { ...session, name: updated.name, email: updated.email };
-      localStorage.setItem('loggedInUser', JSON.stringify(nextSession));
-      onProfileUpdated?.(nextSession);
+      if (onProfileUpdated?.(nextSession) === false) return;
       setIsEditing(false);
       showToast?.('Profile updated successfully!');
     } catch (error) {

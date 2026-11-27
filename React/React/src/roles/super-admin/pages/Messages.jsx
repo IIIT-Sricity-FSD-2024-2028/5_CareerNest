@@ -1,18 +1,25 @@
-import React, { useEffect, useState } from 'react';
+// Data Flow (roles/super-admin/pages/Messages.jsx):
+// Backend API -> Redux Thunks/Slices (messagesSlice, superAdminSlice) -> useSelector(selectSentMessages, selectSuperAdminMessagesUi) -> UI render
+// User Actions -> dispatch(fetchSentMessages, sendAdminMessage, loadMessages) -> Slice reducers/thunks -> Redux state update
+import { useCallback, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   MessageSquare, Send, UserCog, Users, AlertTriangle,
   CheckCircle, RefreshCw, Clock, Building2, XCircle
 } from 'lucide-react';
-import { usePlatformData } from '../../../shared/context/PlatformDataContext.jsx';
+import { fetchSentMessages, selectSentMessages, sendAdminMessage } from '../../../store/slices/messagesSlice.js';
+import { selectSuperAdminMessagesUi, setSuperAdminMessagesUi } from '../store/superAdminSlice.js';
 import { errorMessage } from '../../../services/api.js';
 
 function ComposeForm({ colleges, onSend }) {
-  const [toType,  setToType]  = useState('one');   // 'one' | 'all'
-  const [toId,    setToId]    = useState('');
-  const [subject, setSubject] = useState('');
-  const [body,    setBody]    = useState('');
-  const [sending, setSending] = useState(false);
-  const [formErr, setFormErr] = useState('');
+  const dispatch = useDispatch();
+  const { toType, toId, subject, body, sending, formErr } = useSelector(selectSuperAdminMessagesUi);
+  const setToType = (v) => dispatch(setSuperAdminMessagesUi({ toType: v }));
+  const setToId = (v) => dispatch(setSuperAdminMessagesUi({ toId: v }));
+  const setSubject = (v) => dispatch(setSuperAdminMessagesUi({ subject: v }));
+  const setBody = (v) => dispatch(setSuperAdminMessagesUi({ body: v }));
+  const setSending = (v) => dispatch(setSuperAdminMessagesUi({ sending: v }));
+  const setFormErr = (v) => dispatch(setSuperAdminMessagesUi({ formErr: v }));
 
   const adminsOnly = colleges.filter(c => c.admin);
 
@@ -201,30 +208,30 @@ function SentList({ messages, loading, err, onRefresh }) {
 }
 
 export default function Messages({ colleges }) {
-  const { sendMessage, getSentMessages } = usePlatformData();
-  const [messages, setMessages] = useState([]);
-  const [loading,  setLoading]  = useState(true);
-  const [err,      setErr]      = useState('');
-  const [toast,    setToast]    = useState(null);
+  const dispatch = useDispatch();
+  const messages = useSelector(selectSentMessages);
+  const { loading, err, toast } = useSelector(selectSuperAdminMessagesUi);
+  const setLoading = useCallback((v) => dispatch(setSuperAdminMessagesUi({ loading: v })), [dispatch]);
+  const setErr = useCallback((v) => dispatch(setSuperAdminMessagesUi({ err: v })), [dispatch]);
+  const setToast = (v) => dispatch(setSuperAdminMessagesUi({ toast: v }));
 
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
+    setTimeout(() => dispatch(setSuperAdminMessagesUi({ toast: null })), 3000);
   };
 
-  const loadMessages = () => {
+  const loadMessages = useCallback(() => {
     setLoading(true);
     setErr('');
-    getSentMessages()
-      .then(res  => setMessages(res.data || []))
+    dispatch(fetchSentMessages()).unwrap()
       .catch(e   => setErr(errorMessage(e, 'Could not load sent messages.')))
       .finally(() => setLoading(false));
-  };
+  }, [dispatch]);
 
-  useEffect(loadMessages, []);
+  useEffect(loadMessages, [loadMessages]);
 
   const handleSend = async (payload) => {
-    await sendMessage(payload);
+    await dispatch(sendAdminMessage(payload)).unwrap();
     showToast('Message sent successfully!', 'success');
     loadMessages();
   };

@@ -1,11 +1,23 @@
+// Data Flow (roles/super-admin/pages/Colleges.jsx):
+// Backend API -> Redux Thunks/Slices (collegesSlice, superAdminSlice) -> useSelector(selectAdminCollege, selectSuperAdminCollegesUi) -> UI render
+// User Actions -> dispatch(createCollege, updateCollegeStatus, refreshSuperAdminData) -> Slice reducers/thunks -> Redux state update
+import { useDispatch, useSelector } from 'react-redux';
 import { phoneError, phoneInputProps } from '../../../shared/utils/phone.js';
-import React, { useState } from 'react';
 import { errorMessage } from '../../../services/api.js';
+import { createCollege, updateCollegeStatus } from '../../../store/slices/collegesSlice.js';
+import {
+  
+  refreshSuperAdminData,
+  selectAdminCollege,
+  selectSuperAdminCollegesUi,
+  setSuperAdminCollegesUi,
+  setSuperAdminTab,
+} from '../store/superAdminSlice.js';
 import { Plus, ShieldCheck, Building2 } from 'lucide-react';
 
 const FIELD_META = [
   { key: 'name', label: 'College name', required: true, placeholder: 'e.g. IIT Bombay' },
-  { key: 'code', label: 'College code', required: true, placeholder: 'e.g. IITB', hint: '2–12 capital letters, numbers or hyphens' },
+  { key: 'code', label: 'College code', required: true, placeholder: 'e.g. IITB', hint: '2â€“12 capital letters, numbers or hyphens' },
   { key: 'email', label: 'Official email', required: true, placeholder: 'admin@college.ac.in' },
   { key: 'phone', label: 'Phone', placeholder: '9876543210' },
   { key: 'address', label: 'Address', placeholder: 'City, State' },
@@ -18,13 +30,13 @@ function validateField(key, raw, existing = []) {
   switch (key) {
     case 'name':
       if (!v) return 'College name is required.';
-      if (v.length < 3 || v.length > 100) return 'Name must be 3–100 characters.';
+      if (v.length < 3 || v.length > 100) return 'Name must be 3â€“100 characters.';
       if (!/^[A-Za-z0-9][A-Za-z0-9 .,&'()-]*$/.test(v)) return "Use letters, numbers, spaces and . , & ' ( ) - only.";
       if (existing.some((c) => c.name.trim().toLowerCase() === v.toLowerCase())) return 'A college with this name already exists.';
       return '';
     case 'code':
       if (!v) return 'College code is required.';
-      if (!/^[A-Z0-9-]{2,12}$/.test(v)) return 'Use 2–12 capital letters, numbers or hyphens (e.g. IITB).';
+      if (!/^[A-Z0-9-]{2,12}$/.test(v)) return 'Use 2â€“12 capital letters, numbers or hyphens (e.g. IITB).';
       if (existing.some((c) => c.code.toLowerCase() === v.toLowerCase())) return 'This code is already used by another college.';
       return '';
     case 'email':
@@ -36,7 +48,7 @@ function validateField(key, raw, existing = []) {
       return phoneError(raw);
       return '';
     case 'address':
-      if (v && (v.length < 5 || v.length > 200)) return 'Address must be 5–200 characters.';
+      if (v && (v.length < 5 || v.length > 200)) return 'Address must be 5â€“200 characters.';
       return '';
     case 'website':
       if (v && !/^https?:\/\/[^\s/$.?#][^\s]*\.[A-Za-z]{2,}[^\s]*$/.test(v)) return 'Use a full URL starting with http:// or https://';
@@ -47,10 +59,18 @@ function validateField(key, raw, existing = []) {
 }
 
 function AddCollegeModal({ onClose, onSave, existing }) {
-  const [form, setForm] = useState({ name: '', code: '', email: '', phone: '', address: '', website: '' });
-  const [touched, setTouched] = useState({});
-  const [error, setError] = useState('');
-  const [saving, setSaving] = useState(false);
+  const dispatch = useDispatch();
+  const { form, touched, error, saving } = useSelector(selectSuperAdminCollegesUi);
+  const setForm = (updater) => {
+    const next = typeof updater === 'function' ? updater(form) : updater;
+    dispatch(setSuperAdminCollegesUi({ form: next }));
+  };
+  const setTouched = (updater) => {
+    const next = typeof updater === 'function' ? updater(touched) : updater;
+    dispatch(setSuperAdminCollegesUi({ touched: next }));
+  };
+  const setError = (v) => dispatch(setSuperAdminCollegesUi({ error: v }));
+  const setSaving = (v) => dispatch(setSuperAdminCollegesUi({ saving: v }));
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: k === 'code' ? v.toUpperCase() : v }));
   const errors = Object.fromEntries(FIELD_META.map(({ key }) => [key, validateField(key, form[key], existing)]));
@@ -92,7 +112,7 @@ function AddCollegeModal({ onClose, onSave, existing }) {
         {error && <p className="form-error">{error}</p>}
         <div className="modal-actions">
           <button className="btn btn-outline" onClick={onClose}>Cancel</button>
-          <button className="btn btn-primary" onClick={handleSave} disabled={saving}>{saving ? 'Creating…' : 'Create College'}</button>
+          <button className="btn btn-primary" onClick={handleSave} disabled={saving}>{saving ? 'Creatingâ€¦' : 'Create College'}</button>
         </div>
       </div>
     </div>
@@ -119,9 +139,15 @@ function StatusModal({ college, onClose, onSave }) {
   );
 }
 
-export default function Colleges({ colleges, platform, showToast, setActiveTab, setAdminCollegeId }) {
-  const [showAdd, setShowAdd]       = useState(false);
-  const [statusTarget, setStatusTarget] = useState(null);
+export default function Colleges({ colleges, showToast }) {
+  const dispatch = useDispatch();
+  // Redux data source: colleges prop from SuperAdminApp (collegesSlice) + modal UI from superAdminSlice; mutations dispatch createCollege / updateCollegeStatus.
+  const { showAdd, statusTarget } = useSelector(selectSuperAdminCollegesUi);
+  const setShowAdd = (v) => dispatch(setSuperAdminCollegesUi({
+    showAdd: v,
+    ...(v ? { form: { name: '', code: '', email: '', phone: '', address: '', website: '' }, touched: {}, error: '', saving: false } : {}),
+  }));
+  const setStatusTarget = (v) => dispatch(setSuperAdminCollegesUi({ statusTarget: v }));
 
   const handleAddCollege = async (newCol) => {
     if (colleges.some((college) => college.code.toLowerCase() === newCol.code.toLowerCase())) {
@@ -129,7 +155,8 @@ export default function Colleges({ colleges, platform, showToast, setActiveTab, 
       return false;
     }
     try {
-      await platform.addCollege(newCol);
+      await dispatch(createCollege(newCol)).unwrap();
+      await dispatch(refreshSuperAdminData({ silentAfterMutation: true }));
       showToast('College added successfully!', 'success');
       return true;
     } catch (error) {
@@ -140,7 +167,8 @@ export default function Colleges({ colleges, platform, showToast, setActiveTab, 
 
   const handleStatusChange = async (id, status) => {
     try {
-      await platform.setCollegeStatus(id, status);
+      await dispatch(updateCollegeStatus({ id, status })).unwrap();
+      await dispatch(refreshSuperAdminData({ silentAfterMutation: true }));
       showToast('College access updated.', 'success');
     } catch (error) {
       showToast(errorMessage(error, 'Could not update college access.'), 'error');
@@ -148,8 +176,8 @@ export default function Colleges({ colleges, platform, showToast, setActiveTab, 
   };
 
   const goManageAdmin = (college) => {
-    setAdminCollegeId(college.id);
-    setActiveTab('college-admins');
+    dispatch(selectAdminCollege(college.id));
+    dispatch(setSuperAdminTab('college-admins'));
   };
 
   return (

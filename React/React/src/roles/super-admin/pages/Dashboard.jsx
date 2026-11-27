@@ -1,9 +1,17 @@
-import React from 'react';
+// Data Flow (roles/super-admin/pages/Dashboard.jsx):
+// Backend API -> Redux Thunks/Slices (superAdminSlice) -> useSelector(selectAdminCollege, selectSuperAdminPlatform) -> UI render
+// User Actions -> dispatch(slice actions) -> Slice reducers/thunks -> Redux state update
+import { useDispatch } from 'react-redux';
 import {
   Building2, Users, GraduationCap, UserCog, TrendingUp,
   AlertTriangle, ShieldCheck, ArrowRight, Activity,
   Award, MessageSquare
 } from 'lucide-react';
+import {
+  
+  selectAdminCollege,
+  setSuperAdminTab,
+} from '../store/superAdminSlice.js';
 
 function PlacementBar({ name, placed, students }) {
   const rate = students > 0 ? Math.round((placed / students) * 100) : 0;
@@ -41,7 +49,12 @@ function AlertItem({ icon: Icon, color, title, sub, action, onAction }) {
   );
 }
 
-export default function SADashboard({ colleges, stats, data, userName, setActiveTab, setAdminCollegeId }) {
+export default function SADashboard({ colleges, stats, data, userName }) {
+  const dispatch = useDispatch();
+  // Redux data source: colleges, stats, and data props come from SuperAdminApp -> selectSuperAdminPlatform (superAdminSlice).
+  const navigateToTab = (tab) => {
+    dispatch(setSuperAdminTab(tab));
+  };
   const officersByCollege = data?.officersByCollege || {};
 
   // Prefer live-fetched officer data; fall back to college.stats if backend scopes the endpoint
@@ -60,7 +73,7 @@ export default function SADashboard({ colleges, stats, data, userName, setActive
   const totalPlaced   = stats?.totalPlaced    || colleges.reduce((a, c) => a + (c.stats?.placed || 0), 0);
   const placementRate = totalStudents > 0 ? Math.round((totalPlaced / totalStudents) * 100) : 0;
 
-  // Alerts — SA only manages colleges + college admins, not placement officers
+  // Alerts â€” SA only manages colleges + college admins, not placement officers
   const unassignedColleges    = colleges.filter(c => !c.admin && c.status === 'active');
   const inactiveAdminColleges = colleges.filter(c => c.admin?.status === 'inactive');
   const hasAlerts = unassignedColleges.length > 0 || inactiveAdminColleges.length > 0;
@@ -89,7 +102,7 @@ export default function SADashboard({ colleges, stats, data, userName, setActive
       <div className="welcome-banner">
         <div>
           <h2>Welcome back, {userName?.split(' ')[0] || 'Admin'}</h2>
-          <p>Platform overview · {new Date().toLocaleDateString('en-IN', { dateStyle: 'long' })}</p>
+          <p>Platform overview Â· {new Date().toLocaleDateString('en-IN', { dateStyle: 'long' })}</p>
         </div>
         <div className="welcome-banner-meta">
           <span><Building2 size={14} /> {colleges.length} Colleges</span>
@@ -112,7 +125,10 @@ export default function SADashboard({ colleges, stats, data, userName, setActive
               title={`${c.name} has no college admin`}
               sub="Assign an admin to activate this college's portal"
               action="Assign"
-              onAction={() => { setAdminCollegeId(c.id); setActiveTab('college-admins'); }}
+              onAction={() => {
+                dispatch(selectAdminCollege(c.id));
+                navigateToTab('college-admins');
+              }}
             />
           ))}
           {inactiveAdminColleges.map(c => (
@@ -123,7 +139,10 @@ export default function SADashboard({ colleges, stats, data, userName, setActive
               title={`${c.admin?.name}'s account is inactive`}
               sub={`College admin for ${c.name}`}
               action="Fix"
-              onAction={() => { setAdminCollegeId(c.id); setActiveTab('college-admins'); }}
+              onAction={() => {
+                dispatch(selectAdminCollege(c.id));
+                navigateToTab('college-admins');
+              }}
             />
           ))}
         </div>
@@ -152,7 +171,7 @@ export default function SADashboard({ colleges, stats, data, userName, setActive
               <Award size={16} color="#f59e0b" />
               College Placement Rankings
             </div>
-            <button className="btn btn-ghost btn-sm" onClick={() => setActiveTab('colleges')}>
+            <button className="btn btn-ghost btn-sm" onClick={() => navigateToTab('colleges')}>
               View All <ArrowRight size={12} />
             </button>
           </div>
@@ -179,7 +198,7 @@ export default function SADashboard({ colleges, stats, data, userName, setActive
             </div>
           </div>
           <div className="quick-actions-list">
-            <button className="quick-action-row" onClick={() => setActiveTab('colleges')}>
+            <button className="quick-action-row" onClick={() => navigateToTab('colleges')}>
               <div className="qa-icon" style={{ background: '#f5f3ff' }}>
                 <Building2 size={18} color="#7c3aed" />
               </div>
@@ -190,7 +209,7 @@ export default function SADashboard({ colleges, stats, data, userName, setActive
               <ArrowRight size={14} color="#94a3b8" />
             </button>
 
-            <button className="quick-action-row" onClick={() => setActiveTab('college-admins')}>
+            <button className="quick-action-row" onClick={() => navigateToTab('college-admins')}>
               <div className="qa-icon" style={{ background: '#f0f9ff' }}>
                 <UserCog size={18} color="#0ea5e9" />
               </div>
@@ -201,7 +220,7 @@ export default function SADashboard({ colleges, stats, data, userName, setActive
               <ArrowRight size={14} color="#94a3b8" />
             </button>
 
-            <button className="quick-action-row" onClick={() => setActiveTab('activity')}>
+            <button className="quick-action-row" onClick={() => navigateToTab('activity')}>
               <div className="qa-icon" style={{ background: '#f0fdf4' }}>
                 <Activity size={18} color="#22c55e" />
               </div>
@@ -212,7 +231,7 @@ export default function SADashboard({ colleges, stats, data, userName, setActive
               <ArrowRight size={14} color="#94a3b8" />
             </button>
 
-            <button className="quick-action-row" onClick={() => setActiveTab('messages')}>
+            <button className="quick-action-row" onClick={() => navigateToTab('messages')}>
               <div className="qa-icon" style={{ background: '#fdf4ff' }}>
                 <MessageSquare size={18} color="#a855f7" />
               </div>
@@ -229,7 +248,7 @@ export default function SADashboard({ colleges, stats, data, userName, setActive
       {/* Colleges Overview Table */}
       <div className="section-header" style={{ marginTop: 8 }}>
         <h2>Colleges Overview</h2>
-        <button className="btn btn-primary btn-sm" onClick={() => setActiveTab('colleges')}>
+        <button className="btn btn-primary btn-sm" onClick={() => navigateToTab('colleges')}>
           <Building2 size={14} /> Manage Colleges
         </button>
       </div>
@@ -290,7 +309,7 @@ export default function SADashboard({ colleges, stats, data, userName, setActive
                   <td>
                     <span style={{ fontWeight: 600 }}>{officerCount(c)}</span>
                     {officersByCollege[c.id] != null && officersByCollege[c.id].length === 0 && (
-                      <span style={{ color: '#ef4444', fontSize: 11, marginLeft: 4 }}>⚠ none</span>
+                      <span style={{ color: '#ef4444', fontSize: 11, marginLeft: 4 }}>âš  none</span>
                     )}
                   </td>
                   <td><strong style={{ color: '#16a34a' }}>{c.stats?.placed ?? 0}</strong></td>

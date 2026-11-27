@@ -1,11 +1,12 @@
-import { useNavigate } from 'react-router-dom';
+import { ReduxAnchor } from '../../../shared/components/ReduxLink.jsx';
+import { useReduxNavigate } from '../../../store/useBrowserCommands.js';
 import { BriefcaseBusiness, CalendarCheck2, Clock3, FileText, GraduationCap, TrendingUp, UsersRound } from 'lucide-react';
 import { useStore } from '../context/StoreContext.jsx';
 import '../styles/index.css';
 
 export default function Dashboard() {
     const { store } = useStore();
-    const navigate = useNavigate();
+    const navigate = useReduxNavigate();
     const { currentUser, dashboardStats, recruiterJobs, myApplications, upcomingEvents, announcementsData } = store;
 
     const firstName = currentUser.name.split(' ')[0];
@@ -68,7 +69,7 @@ export default function Dashboard() {
                     <div className="card applications-card">
                         <div className="card-header">
                             <h3>My Applications</h3>
-                            <a
+                            <ReduxAnchor
                                 href="#"
                                 className="view-all"
                                 onClick={(e) => {
@@ -77,7 +78,7 @@ export default function Dashboard() {
                                 }}
                             >
                                 View all &rarr;
-                            </a>
+                            </ReduxAnchor>
                         </div>
                         <div className="list-group">
                             {myApplications.slice(0, 6).map((app) => {
@@ -181,7 +182,7 @@ export default function Dashboard() {
                                                 <p>
                                                     {event.company} - {event.role} - {event.time}
                                                 </p>
-                                                {event.link && <a className="schedule-link" href={event.link} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>Open link ↗</a>}
+                                                {event.link && <ReduxAnchor className="schedule-link" href={event.link} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>Open link ↗</ReduxAnchor>}
                                             </div>
                                             <div className={`item-date ${isInterview ? 'status-interview' : 'status-applied'}`}>
                                                 {isInterview && <CalendarCheck2 size={15} aria-hidden="true" />} {event.date}
@@ -197,7 +198,7 @@ export default function Dashboard() {
                 <section className="recommended-section">
                     <div className="section-header">
                         <h3>Recommended Opportunities</h3>
-                        <a
+                        <ReduxAnchor
                             href="#"
                             className="view-all"
                             onClick={(e) => {
@@ -206,7 +207,7 @@ export default function Dashboard() {
                             }}
                         >
                             Browse all &rarr;
-                        </a>
+                        </ReduxAnchor>
                     </div>
 
                     <div className="jobs-grid">

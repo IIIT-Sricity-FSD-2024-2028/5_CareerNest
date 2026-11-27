@@ -1,12 +1,17 @@
+import { useBrowserCommands, useReduxNavigate } from '../../../store/useBrowserCommands.js';
+import { useSelector } from 'react-redux';
+import { selectSession } from '../../../store/sessionSlice.js';
+import { useViewState } from '../../../store/useViewState.js';
 import { infoDialog } from '../../../shared/components/AppDialog.jsx';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useEffect, useMemo, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { candidateActions } from '../../../store/candidate/candidateSlice.js';
 import { useStore } from '../context/StoreContext.jsx';
-import api, { readSession, errorMessage } from '../../../services/api.js';
+import { errorMessage } from '../../../services/api.js';
+import { useOperations } from '../../../store/useOperations.js';
 import { useUI } from '../context/UIContext.jsx';
 import '../styles/opportunities.css';
-import { Trash2, Check } from 'lucide-react';
-
+import { Check } from 'lucide-react';
 
 function mapDept(dept) {
     if (dept === 'Computer Science') return 'CSE';
@@ -15,35 +20,146 @@ function mapDept(dept) {
     return dept;
 }
 
+function ApplicationContactStep({ user, onCancel, onNext }) {
+    const [{ phone, linkedin }, { setPhone, setLinkedin }] = useViewState(
+        'candidate', 'ApplicationContactStep',
+        () => ({ phone: user?.phone ?? '', linkedin: user?.socialLinks?.linkedin ?? '' }),
+    );
+
+    return (
+        <div>
+            <p style={{ fontSize: 13, color: '#64748b', marginBottom: 20 }}>
+                Confirm your contact information before applying.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div>
+                    <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Full Name *</label>
+                    <input type="text" value={user?.name ?? ''} readOnly style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, background: '#f9fafb', boxSizing: 'border-box' }} />
+                </div>
+                <div>
+                    <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Email *</label>
+                    <input type="email" value={user?.email ?? ''} readOnly style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, background: '#f9fafb', boxSizing: 'border-box' }} />
+                </div>
+                <div>
+                    <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Phone *</label>
+                    <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }} />
+                </div>
+                <div>
+                    <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>LinkedIn Profile (optional)</label>
+                    <input type="url" value={linkedin} onChange={(e) => setLinkedin(e.target.value)} style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }} />
+                </div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 28 }}>
+                <button className="btn-secondary" onClick={onCancel}>Cancel</button>
+                <button className="btn-primary" onClick={onNext}>Next &gt; </button>
+            </div>
+        </div>
+    );
+}
+
+function ApplicationQuestionsStep({ onBack, onNext }) {
+    const [
+        { workEligibility, experience, coverLetter },
+        { setWorkEligibility, setExperience, setCoverLetter },
+    ] = useViewState('candidate', 'ApplicationQuestionsStep', () => ({
+        workEligibility: 'yes',
+        experience: '0',
+        coverLetter: '',
+    }));
+
+    return (
+        <div>
+            <p style={{ fontSize: 13, color: '#64748b', marginBottom: 20 }}>
+                Additional questions from the recruiter.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div>
+                    <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>
+                        Are you currently eligible to work in India? *
+                    </label>
+                    <select value={workEligibility} onChange={(e) => setWorkEligibility(e.target.value)} style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }}>
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                    </select>
+                </div>
+                <div>
+                    <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>
+                        How many years of relevant experience do you have? *
+                    </label>
+                    <select value={experience} onChange={(e) => setExperience(e.target.value)} style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }}>
+                        <option value="0">Fresher / 0 years</option>
+                        <option value="1">1 year</option>
+                        <option value="2">2 years</option>
+                        <option value="3+">3+ years</option>
+                    </select>
+                </div>
+                <div>
+                    <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>
+                        Cover letter / additional message (optional)
+                    </label>
+                    <textarea value={coverLetter} onChange={(e) => setCoverLetter(e.target.value)} rows={4} placeholder="Tell the recruiter why you are a great fit..." style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, resize: 'vertical', boxSizing: 'border-box' }} />
+                </div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginTop: 28 }}>
+                <button className="btn-secondary" onClick={onBack}>← Back</button>
+                <button className="btn-primary" onClick={onNext}>Next &gt; </button>
+            </div>
+        </div>
+    );
+}
+
 export default function Opportunities() {
-    const { store, updateStore, applyToJob, toggleSaved } = useStore();
+    const commands = useOperations();
+    const { chooseFile } = useBrowserCommands();
+    const sessionId = useSelector(selectSession)?.id;
+    const { store, dispatchCandidate, applyToJob, toggleSaved } = useStore();
     const { openAskQuery } = useUI();
-    const navigate = useNavigate();
+    const navigate = useReduxNavigate();
     const [searchParams] = useSearchParams();
 
-    const [activeJobId, setActiveJobId] = useState(() => {
-        const passed = searchParams.get('jobId');
-        if (passed) return parseInt(passed, 10);
-        return store.recruiterJobs.length > 0 ? store.recruiterJobs[0].id : null;
-    });
-    const [typeFilter, setTypeFilter] = useState('All');
-    const [query, setQuery] = useState('');
+    const [
+      { activeJobId, typeFilter, query },
+      { setActiveJobId, setTypeFilter, setQuery },
+    ] = useViewState('candidate', 'Opportunities', () => ({
+      activeJobId: (() => {
+          const passed = searchParams.get('jobId');
+          if (passed) return parseInt(passed, 10);
+          return store.recruiterJobs.length > 0 ? store.recruiterJobs[0].id : null;
+      })(),
+      typeFilter: 'All',
+      query: '',
+    }));
     // Advanced filters live here now (there is only one search box in the portal)
-    const [showAdvanced, setShowAdvanced] = useState(false);
-    const [advanced, setAdvanced] = useState({ location: '', branch: 'Any', minLpa: '', sort: 'latest' });
-    const [applyError, setApplyError] = useState('');
-
-    const [eligibilityInfo, setEligibilityInfo] = useState(null); // { job, isEligible, cgpaPass, branchPass, mappedDept }
-    const [termsOpen, setTermsOpen] = useState(false);
-    const [termsChecked, setTermsChecked] = useState(false);
-    const [successOpen, setSuccessOpen] = useState(false);
-    const [pendingApplyJobId, setPendingApplyJobId] = useState(null);
+    const [
+      { showAdvanced, advanced, applyError, eligibilityInfo },
+      { setShowAdvanced, setAdvanced, setApplyError, setEligibilityInfo },
+    ] = useViewState('candidate', 'Opportunities/showAdvanced', () => ({
+      showAdvanced: false,
+      advanced: { location: '', branch: 'Any', minLpa: '', sort: 'latest' },
+      applyError: '',
+      eligibilityInfo: null,
+    })); // { job, isEligible, cgpaPass, branchPass, mappedDept }
+    const [
+      { termsOpen, termsChecked, successOpen, pendingApplyJobId },
+      { setTermsOpen, setTermsChecked, setSuccessOpen, setPendingApplyJobId },
+    ] = useViewState('candidate', 'Opportunities/termsOpen', () => ({
+      termsOpen: false,
+      termsChecked: false,
+      successOpen: false,
+      pendingApplyJobId: null,
+    }));
 
     // Multi-step apply modal
-    const [applyStep, setApplyStep] = useState(1); // 1=Info, 2=Resume, 3=Questions, 4=Review
-    const [selectedResume, setSelectedResume] = useState(null);
-    const [selectedResumeUrl, setSelectedResumeUrl] = useState(null);
-    const [uploadedFile, setUploadedFile] = useState(null);
+    const [{ applyStep }, { setApplyStep }] = useViewState('candidate', 'Opportunities/applyStep', () => ({
+      applyStep: 1,
+    })); // 1=Info, 2=Resume, 3=Questions, 4=Review
+    const [
+      { selectedResume, selectedResumeUrl },
+      { setSelectedResume, setSelectedResumeUrl },
+    ] = useViewState('candidate', 'Opportunities/selectedResume', () => ({
+      selectedResume: null,
+      selectedResumeUrl: null,
+    }));
     const resumeInputRef = useRef(null);
 
     const resumeHistory = (store.profileResumeData?.resumeHistory || []).filter((resume) => !!resume.resumeUrl);
@@ -120,6 +236,7 @@ export default function Opportunities() {
     }, [filteredJobs]);
 
     const activeJob = store.recruiterJobs.find((j) => j.id === activeJobId);
+    const eligibilityJob = store.recruiterJobs.find((job) => job.id === eligibilityInfo?.jobId);
 
     async function applyJob(jobId, resumeFile, resumeUrl) {
         const job = store.recruiterJobs.find((j) => j.id === jobId);
@@ -146,12 +263,9 @@ export default function Opportunities() {
         const branchPass = job.branches.includes(mappedDept) || job.branches.includes('Any');
         const isEligible = cgpaPass && branchPass;
 
-        setEligibilityInfo({ job, isEligible, cgpaPass, branchPass, mappedDept, userCgpa, reqCgpa });
+        setEligibilityInfo({ jobId, isEligible, cgpaPass, branchPass, mappedDept, userCgpa, reqCgpa });
 
-        updateStore((s) => {
-            const innerJob = s.recruiterJobs.find((j) => j.id === jobId);
-            if (innerJob) innerJob.eligibilityChecked = true;
-        });
+        dispatchCandidate(candidateActions.eligibilityChecked(jobId));
     }
 
     function confirmEligibilityApply(jobId) {
@@ -162,7 +276,6 @@ export default function Opportunities() {
         const history = resumeHistory;
         setSelectedResume(history.length > 0 ? history[0].name : null);
         setSelectedResumeUrl(history.length > 0 ? history[0].resumeUrl : null);
-        setUploadedFile(null);
         setPendingApplyJobId(jobId);
         setTermsOpen(true);
     }
@@ -178,16 +291,10 @@ export default function Opportunities() {
         if (!file) return;
         if (!/\.(pdf|doc|docx)$/i.test(file.name) || file.size > 2 * 1024 * 1024) { infoDialog('Choose a PDF, DOC or DOCX file no larger than 2 MB.'); e.target.value = ''; return; }
         let saved;
-        try { const form = new FormData(); form.append('file', file); saved = (await api.post(`/users/${readSession().id}/resume`, form, { headers: { 'Content-Type': 'multipart/form-data' } })).data; }
+        try { const form = new FormData(); form.append('file', file); saved = (await commands.uploadResume(sessionId, form)).data; }
         catch (error) { infoDialog(errorMessage(error, 'Could not upload resume.')); return; }
         const newEntry = { resumeUrl: saved.resumeUrl, name: file.name, date: new Date().toISOString().split('T')[0], size: `${Math.round(file.size / 1024)} KB` };
-        updateStore((s) => {
-            if (!s.profileResumeData) s.profileResumeData = {};
-            const rd = s.profileResumeData;
-            rd.uploadedResume = newEntry;
-            rd.resumeHistory = [newEntry, ...(rd.resumeHistory || [])];
-        });
-        setUploadedFile(newEntry);
+        dispatchCandidate(candidateActions.resumeUploaded(newEntry));
         setSelectedResume(file.name);
         setSelectedResumeUrl(saved.resumeUrl);
         e.target.value = '';
@@ -329,7 +436,7 @@ export default function Opportunities() {
                     </button>
                 </div>
                 <div style={{ padding: 24, color: 'var(--text-primary)' }}>
-                    {eligibilityInfo && (
+                    {eligibilityInfo && eligibilityJob && (
                         <>
                             <div style={{ marginBottom: 24, textAlign: 'center' }}>
                                 <div
@@ -353,7 +460,7 @@ export default function Opportunities() {
                                     {eligibilityInfo.isEligible ? 'You are Eligible!' : 'Not Eligible'}
                                 </h3>
                                 <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>
-                                    {eligibilityInfo.job.title} at {eligibilityInfo.job.company}
+                                    {eligibilityJob.title} at {eligibilityJob.company}
                                 </p>
                             </div>
 
@@ -392,7 +499,7 @@ export default function Opportunities() {
 
                                 <div style={{ display: 'flex', padding: 16, alignItems: 'center' }}>
                                     <div style={{ flex: 2, fontWeight: 500, fontSize: 14 }}>Branch</div>
-                                    <div style={{ flex: 1, textAlign: 'center', fontSize: 14 }}>{eligibilityInfo.job.branches.join(', ')}</div>
+                                    <div style={{ flex: 1, textAlign: 'center', fontSize: 14 }}>{(eligibilityJob.branches || []).join(', ')}</div>
                                     <div style={{ flex: 1, textAlign: 'center', fontSize: 14, color: eligibilityInfo.branchPass ? 'inherit' : '#ef4444' }}>
                                         {eligibilityInfo.mappedDept}
                                     </div>
@@ -411,7 +518,7 @@ export default function Opportunities() {
                                     Close
                                 </button>
                                 {eligibilityInfo.isEligible ? (
-                                    <button className="btn-primary" onClick={() => confirmEligibilityApply(eligibilityInfo.job.id)}>
+                                    <button className="btn-primary" onClick={() => confirmEligibilityApply(eligibilityJob.id)}>
                                         Apply Now
                                     </button>
                                 ) : (
@@ -448,33 +555,7 @@ export default function Opportunities() {
 
                     {/* ── Step 1: Contact Info ── */}
                     {applyStep === 1 && (
-                        <div>
-                            <p style={{ fontSize: 13, color: '#64748b', marginBottom: 20 }}>
-                                Confirm your contact information before applying.
-                            </p>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                                <div>
-                                    <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Full Name *</label>
-                                    <input type="text" defaultValue={store.currentUser?.name} readOnly style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, background: '#f9fafb', boxSizing: 'border-box' }} />
-                                </div>
-                                <div>
-                                    <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Email *</label>
-                                    <input type="email" defaultValue={store.currentUser?.email} readOnly style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, background: '#f9fafb', boxSizing: 'border-box' }} />
-                                </div>
-                                <div>
-                                    <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Phone *</label>
-                                    <input type="tel" defaultValue={store.currentUser?.phone} style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }} />
-                                </div>
-                                <div>
-                                    <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>LinkedIn Profile (optional)</label>
-                                    <input type="url" defaultValue={store.currentUser?.socialLinks?.linkedin} style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }} />
-                                </div>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 28 }}>
-                                <button className="btn-secondary" onClick={() => setTermsOpen(false)}>Cancel</button>
-                                <button className="btn-primary" onClick={() => setApplyStep(2)}>Next &gt; </button>
-                            </div>
-                        </div>
+                        <ApplicationContactStep user={store.currentUser} onCancel={() => setTermsOpen(false)} onNext={() => setApplyStep(2)} />
                     )}
 
                     {/* ── Step 2: Resume Selection (matches screenshot) ── */}
@@ -532,7 +613,7 @@ export default function Opportunities() {
                             {/* Upload resume button */}
                             <input ref={resumeInputRef} type="file" accept=".pdf,.doc,.docx" style={{ display: 'none' }} onChange={handleResumeUpload} />
                             <button
-                                onClick={(e) => { e.stopPropagation(); resumeInputRef.current?.click(); }}
+                                onClick={(e) => { e.stopPropagation(); chooseFile(resumeInputRef.current, 'resume'); }}
                                 style={{
                                     marginTop: 16, display: 'flex', alignItems: 'center', gap: 8,
                                     padding: '10px 18px', borderRadius: 20, border: '1.5px solid #2563eb',
@@ -551,43 +632,7 @@ export default function Opportunities() {
 
                     {/* ── Step 3: Application Questions ── */}
                     {applyStep === 3 && (
-                        <div>
-                            <p style={{ fontSize: 13, color: '#64748b', marginBottom: 20 }}>
-                                Additional questions from the recruiter.
-                            </p>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                                <div>
-                                    <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>
-                                        Are you currently eligible to work in India? *
-                                    </label>
-                                    <select defaultValue="yes" style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }}>
-                                        <option value="yes">Yes</option>
-                                        <option value="no">No</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>
-                                        How many years of relevant experience do you have? *
-                                    </label>
-                                    <select defaultValue="0" style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }}>
-                                        <option value="0">Fresher / 0 years</option>
-                                        <option value="1">1 year</option>
-                                        <option value="2">2 years</option>
-                                        <option value="3+">3+ years</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>
-                                        Cover letter / additional message (optional)
-                                    </label>
-                                    <textarea rows={4} placeholder="Tell the recruiter why you are a great fit..." style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, resize: 'vertical', boxSizing: 'border-box' }} />
-                                </div>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginTop: 28 }}>
-                                <button className="btn-secondary" onClick={() => setApplyStep(2)}>← Back</button>
-                                <button className="btn-primary" onClick={() => setApplyStep(4)}>Next &gt; </button>
-                            </div>
-                        </div>
+                        <ApplicationQuestionsStep onBack={() => setApplyStep(2)} onNext={() => setApplyStep(4)} />
                     )}
 
                     {/* ── Step 4: Review & Terms ── */}
@@ -716,6 +761,8 @@ function ActiveJobDetails({ job, store, onApply, onCheckEligibility, onAskQuery,
         } else {
             actionButton = (
                 <button
+                    type="button"
+                    disabled
                     className="btn-ineligible-state"
                     style={{ width: '100%', borderRadius: 'var(--radius-md)', padding: 16, fontWeight: 600, backgroundColor: '#fee2e2', color: '#ef4444', border: 'none', marginBottom: 20, cursor: 'not-allowed' }}
                 >

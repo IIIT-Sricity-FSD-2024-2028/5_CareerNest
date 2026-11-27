@@ -1,8 +1,11 @@
+import { useEntityList } from '../../../store/useEntities.js';
+import { useViewState } from '../../../store/useViewState.js';
 import { confirmDialog } from '../../../shared/components/AppDialog.jsx';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useStore } from '../context/StoreContext.jsx';
 import { errorMessage } from '../../../services/api.js';
+import { referralCompanyKey } from '../../../store/candidate/candidateCommands.js';
 import { Avatar, Modal, ReferralPill, ScheduleItem, StatusPill, normReferralStatus } from '../components/shared.jsx';
 import '../styles/applications.css';
 import { BriefcaseBusiness } from 'lucide-react';
@@ -13,22 +16,30 @@ const TERMINAL = ['Rejected', 'Withdrawn', 'Offered', 'Offer'];
 
 // ── Ask an alumnus of the company for a referral ────────────────────────────────
 function GetReferralModal({ app, requestedAlumniIds, onClose, onSent }) {
-    const { fetchAlumniForCompany, requestReferral } = useStore();
-    const [alumni, setAlumni] = useState(null);
-    const [selected, setSelected] = useState(null);
-    const [message, setMessage] = useState(
-        `Hi, I recently applied for ${app.title} at ${app.company}. I would really appreciate it if you could refer me. Thank you!`
-    );
-    const [sending, setSending] = useState(false);
-    const [error, setError] = useState('');
+    const { loadReferralAlumni, requestReferral } = useStore();
+    const directory = useEntityList('users', 'referralDirectory');
+    const company = referralCompanyKey(app.company);
+    const [
+      { loaded, selectedId, message, sending, error },
+      { setLoaded, setSelectedId, setMessage, setSending, setError },
+    ] = useViewState('candidate', 'GetReferralModal', () => ({
+      loaded: false,
+      selectedId: null,
+      message: `Hi, I recently applied for ${app.title} at ${app.company}. I would really appreciate it if you could refer me. Thank you!`,
+      sending: false,
+      error: '',
+    }));
+
+    const alumni = loaded ? directory.filter((user) =>
+        referralCompanyKey(user.company) === company && !requestedAlumniIds.has(user.id)
+    ) : null;
+    const selected = alumni?.find((user) => user.id === selectedId);
 
     useEffect(() => {
-        let alive = true;
-        fetchAlumniForCompany(app.company)
-            .then((list) => { if (alive) setAlumni(list.filter((a) => !requestedAlumniIds.has(a.id))); })
-            .catch((e) => { if (alive) { setAlumni([]); setError(errorMessage(e, 'Could not load alumni.')); } });
-        return () => { alive = false; };
-    }, [app.company]);   // eslint-disable-line react-hooks/exhaustive-deps
+        loadReferralAlumni()
+            .catch((e) => setError(errorMessage(e, 'Could not load alumni.')))
+            .finally(() => setLoaded(true));
+    }, [loadReferralAlumni, setError, setLoaded]);
 
     async function send() {
         if (!selected) return;
@@ -68,7 +79,7 @@ function GetReferralModal({ app, requestedAlumniIds, onClose, onSent }) {
                 <>
                     <p className="cx-muted" style={{ marginBottom: 12 }}>Choose an alumnus who works at {app.company}:</p>
                     {alumni.map((a) => (
-                        <button key={a.id} className={`cx-choice ${selected?.id === a.id ? 'selected' : ''}`} onClick={() => setSelected(a)}>
+                        <button key={a.id} className={`cx-choice ${selected?.id === a.id ? 'selected' : ''}`} onClick={() => setSelectedId(a.id)}>
                             <Avatar name={a.name} color={a.avatarColor || '#3934A0'} />
                             <div>
                                 <strong>{a.name}</strong>
@@ -155,8 +166,6 @@ function AppDetails({ app, referrals, schedule, onGetReferral, onCancel }) {
                 </div>
             )}
 
-
-
             <div className="activity-log-container">
                 <h5 className="activity-header">ACTIVITY LOG</h5>
                 {timeline.map((t, i) => (
@@ -195,16 +204,22 @@ export default function Applications() {
     const [searchParams] = useSearchParams();
     const focusAppId = parseInt(searchParams.get('appId'), 10);
 
-    const [filter, setFilter] = useState('All');
-    const [search, setSearch] = useState('');
-    const [expandedId, setExpandedId] = useState(Number.isNaN(focusAppId) ? null : focusAppId);
-    const [referralApp, setReferralApp] = useState(null);
-    const [notice, setNotice] = useState({ type: '', text: '' });
+    const [
+      { filter, search, expandedId, referralAppId, notice },
+      { setFilter, setSearch, setExpandedId, setReferralAppId, setNotice },
+    ] = useViewState('candidate', 'Applications', () => ({
+      filter: 'All',
+      search: '',
+      expandedId: Number.isNaN(focusAppId) ? null : focusAppId,
+      referralAppId: null,
+      notice: { type: '', text: '' },
+    }));
     const focusRef = useRef(null);
 
     useEffect(() => { focusRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, []);
 
     const apps = store.myApplications;
+    const referralApp = apps.find((app) => app.id === referralAppId);
     const counts = useMemo(() => {
         const c = { All: apps.length };
         FILTERS.slice(1).forEach((f) => { c[f] = apps.filter((a) => a.status === f).length; });
@@ -283,7 +298,7 @@ export default function Applications() {
                                     <div className="app-row-right" style={{ gap: 10 }}>
                                         {best && <ReferralPill status={best.status} />}
                                         {canAsk && (
-                                            <button className="cx-btn cx-btn--outline cx-btn--sm" onClick={(e) => { e.stopPropagation(); setReferralApp(app); }}>
+                                            <button className="cx-btn cx-btn--outline cx-btn--sm" onClick={(e) => { e.stopPropagation(); setReferralAppId(app.id); }}>
                                                 <i className="bx bx-user-plus" /> Get referral
                                             </button>
                                         )}
@@ -296,7 +311,7 @@ export default function Applications() {
                                         app={app}
                                         referrals={store.referralRequests}
                                         schedule={store.schedule}
-                                        onGetReferral={() => setReferralApp(app)}
+                                        onGetReferral={() => setReferralAppId(app.id)}
                                         onCancel={cancelApplication}
                                     />
                                 )}
@@ -310,9 +325,9 @@ export default function Applications() {
                 <GetReferralModal
                     app={referralApp}
                     requestedAlumniIds={requestedIds(referralApp)}
-                    onClose={() => setReferralApp(null)}
+                    onClose={() => setReferralAppId(null)}
                     onSent={(alum) => {
-                        setReferralApp(null);
+                        setReferralAppId(null);
                         setNotice({ type: 'ok', text: `Referral request sent to ${alum.name}. You will see their reply here and in your notifications.` });
                     }}
                 />

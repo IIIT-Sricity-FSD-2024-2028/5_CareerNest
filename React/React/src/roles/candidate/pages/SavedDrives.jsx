@@ -1,4 +1,5 @@
-import { useNavigate } from 'react-router-dom';
+import { ReduxAnchor } from '../../../shared/components/ReduxLink.jsx';
+import { useReduxNavigate } from '../../../store/useBrowserCommands.js';
 import { useStore } from '../context/StoreContext.jsx';
 import { errorMessage } from '../../../services/api.js';
 import { useToast } from '../hooks/useToast.js';
@@ -11,7 +12,7 @@ function daysLeft(deadline) {
 export default function SavedDrives() {
     const { store, toggleSaved } = useStore();
     const { toast, showToast } = useToast();
-    const navigate = useNavigate();
+    const navigate = useReduxNavigate();
 
     const savedJobs = store.recruiterJobs.filter((j) => store.savedDriveIds.includes(j.id));
 
@@ -38,7 +39,7 @@ export default function SavedDrives() {
                         <i className="bx bx-bookmark-heart" />
                         <h3>No saved drives yet</h3>
                         <p>Bookmark drives from Browse Opportunities and they will be collected here.</p>
-                        <a
+                        <ReduxAnchor
                             href="#"
                             onClick={(e) => {
                                 e.preventDefault();
@@ -46,7 +47,7 @@ export default function SavedDrives() {
                             }}
                         >
                             Browse Drives &rarr;
-                        </a>
+                        </ReduxAnchor>
                     </div>
                 ) : (
                     <div className="drives-list">

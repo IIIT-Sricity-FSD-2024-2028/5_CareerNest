@@ -1,5 +1,7 @@
-import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { ReduxAnchor } from '../../../shared/components/ReduxLink.jsx';
+import { useReduxNavigate } from '../../../store/useBrowserCommands.js';
+import { useViewState } from '../../../store/useViewState.js';
+import { useMemo } from 'react';
 import { useStore } from '../context/StoreContext.jsx';
 import { Avatar, ReferralPill, normReferralStatus } from '../components/shared.jsx';
 import '../styles/applications.css';
@@ -13,8 +15,10 @@ const TABS = [
 
 export default function Referrals() {
     const { store } = useStore();
-    const navigate = useNavigate();
-    const [tab, setTab] = useState('all');
+    const navigate = useReduxNavigate();
+    const [{ tab }, { setTab }] = useViewState('candidate', 'Referrals', () => ({
+      tab: 'all',
+    }));
 
     const requests = useMemo(
         () => [...store.referralRequests].sort((a, b) => b.id - a.id),
@@ -56,7 +60,7 @@ export default function Referrals() {
                         ? 'After you apply to a company, you can ask its alumni from your college for a referral.'
                         : 'Try another filter.'}</p>
                     {requests.length === 0 && (
-                        <a href="#" onClick={(e) => { e.preventDefault(); navigate('/candidate/applications'); }}>Go to My Applications →</a>
+                        <ReduxAnchor href="#" onClick={(e) => { e.preventDefault(); navigate('/candidate/applications'); }}>Go to My Applications →</ReduxAnchor>
                     )}
                 </div>
             ) : (

@@ -1,6 +1,9 @@
+import ReduxLink, { ReduxAnchor } from '../../../shared/components/ReduxLink.jsx';
+import { useReduxNavigate } from '../../../store/useBrowserCommands.js';
+import { useViewState } from '../../../store/useViewState.js';
 import '../styles/ui.css';
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { memo, useCallback, useLayoutEffect, useRef, useState } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
+import { memo, useCallback, useLayoutEffect, useRef } from 'react';
 import { Bell } from 'lucide-react';
 import SignOutModal from './SignOutModal.jsx';
 import { useStore } from '../context/StoreContext.jsx';
@@ -60,12 +63,14 @@ const TopAvatar = memo(function TopAvatar({ name, avatar, avatarImage, onClick }
 });
 
 export default function Layout() {
-    const { store } = useStore();
+    const { store, loadError, refreshWarning, reload } = useStore();
     const { notifOpen, toggleNotif, closeNotif, markAllRead, readAndNavigate, unreadCount } = useUI();
-    const navigate = useNavigate();
+    const navigate = useReduxNavigate();
     const location = useLocation();
     const user = store.currentUser;
-    const [isSignOutOpen, setIsSignOutOpen] = useState(false);
+    const [{ isSignOutOpen }, { setIsSignOutOpen }] = useViewState('candidate', 'Layout', () => ({
+      isSignOutOpen: false,
+    }));
 
     const activeItem = [...NAV_ITEMS, PROFILE_TITLE].find((item) =>
         item.to === '/candidate' ? location.pathname === '/candidate' : location.pathname.startsWith(item.to)
@@ -106,10 +111,10 @@ export default function Layout() {
                                 : location.pathname.startsWith(item.to);
                             return (
                                 <li key={item.to} className={isActive ? 'nav-item active' : 'nav-item'}>
-                                    <Link to={item.to}>
+                                    <ReduxLink to={item.to}>
                                         <i className={`bx ${item.icon}`} />
                                         <span>{item.label}</span>
-                                    </Link>
+                                    </ReduxLink>
                                 </li>
                             );
                         })}
@@ -154,7 +159,7 @@ export default function Layout() {
                                     <div className="notification-dropdown show" style={{ zIndex: 41 }}>
                                         <div className="notif-header">
                                             <h5>Notifications</h5>
-                                            <a
+                                            <ReduxAnchor
                                                 href="#"
                                                 onClick={(e) => {
                                                     e.preventDefault();
@@ -162,7 +167,7 @@ export default function Layout() {
                                                 }}
                                             >
                                                 Mark all read
-                                            </a>
+                                            </ReduxAnchor>
                                         </div>
                                         <div className="notif-body">
                                             {store.notificationsData.length === 0 && <div className="notif-item"><p>You're all caught up.</p></div>}
@@ -192,6 +197,12 @@ export default function Layout() {
                     </div>
                 </header>
 
+                {(refreshWarning || loadError) && (
+                    <div role="status" className="cx-panel cx-panel--warn">
+                        {refreshWarning || loadError}{' '}
+                        <button type="button" className="cx-btn cx-btn--sm" onClick={reload}>Retry refresh</button>
+                    </div>
+                )}
                 <Outlet />
             </main>
             <SignOutModal isOpen={isSignOutOpen} onClose={() => setIsSignOutOpen(false)} />

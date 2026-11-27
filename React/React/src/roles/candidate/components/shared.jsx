@@ -1,3 +1,4 @@
+import { ReduxAnchor } from '../../../shared/components/ReduxLink.jsx';
 // Small presentational pieces shared by the candidate pages so they all look the same.
 
 const STATUS_TONE = {
@@ -31,14 +32,6 @@ export function Avatar({ name = '', color = '#3934A0', initials }) {
     return <span className="cx-avatar" style={{ background: color }}>{text}</span>;
 }
 
-export function Stars({ value = 0 }) {
-    return (
-        <span className="cx-stars">
-            {[1, 2, 3, 4, 5].map((n) => <span key={n} className={n <= value ? '' : 'off'}>★</span>)}
-        </span>
-    );
-}
-
 export function Modal({ title, subtitle, onClose, children, footer }) {
     return (
         <div className="cx-overlay" onClick={onClose}>
@@ -54,7 +47,7 @@ export function Modal({ title, subtitle, onClose, children, footer }) {
     );
 }
 
-export function formatDay(dateStr) {
+function formatDay(dateStr) {
     const d = new Date(`${dateStr}T00:00:00`);
     if (Number.isNaN(d.getTime())) return { day: '--', month: '' };
     return { day: d.getDate(), month: d.toLocaleDateString('en-IN', { month: 'short' }) };
@@ -72,9 +65,9 @@ export function ScheduleItem({ item }) {
             </div>
             <span className="cx-pill cx-pill--info">Interview</span>
             {item.link && (
-                <a className="cx-btn cx-btn--primary cx-btn--sm" href={item.link} target="_blank" rel="noreferrer">
+                <ReduxAnchor className="cx-btn cx-btn--primary cx-btn--sm" href={item.link} target="_blank" rel="noreferrer">
                     <i className="bx bx-link-external" /> {isInterview ? 'Join interview' : 'Open test'}
-                </a>
+                </ReduxAnchor>
             )}
         </div>
     );
